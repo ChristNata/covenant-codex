@@ -870,3 +870,90 @@ Win32_Globalization for 12b, preserving all other standalone pins. Dependency
 edits wait for that stage. Current 12a authorization is tests first plus a
 clearly labeled permissive launch-contract scaffold and minimal registration;
 no actual validation implementation, native process/hash/Job proof or spawning.
+
+F03 helper local checkpoint completed:
+`4a5a56b4202c0e706cd88ae5aacd56faa0afb3be`,
+`feat(covenant): verify Windows artifact digest pairs`. Exactly verifier, frozen
+seven-test file and ledger were staged; names/whitespace checks passed and the
+index was empty after commit. No 12a or concurrent source/user changes entered
+that checkpoint and no push occurred. Workflow/native/live F03 remain pending.
+
+The approved F00/F12 header-name amendment is now applied to the inventory:
+two added scrub keys, two anchored provider_login rows and two exact source
+queries, preserving prior rows. Pinned/current model-provider-info source
+anchors are lines 406/408; the actual env-header reader is lines 278-286. Actual
+structural validator passed with 15 seams, 54 tools and 181 authorities. Narrow
+source review/evidence is in `f12-scrub-amendment-evidence.md`. This does not
+implement scrubbing or certify F21 credential-name closure; that remains a
+mandatory runtime configuration restriction before construction and on reload.
+
+### F12 12a launch-contract test stage: behavioral red
+
+Eight Windows-only sibling tests now freeze named StartupControls, immutable
+LaunchContract, borrowed path/expected-digest getters and a content-free unit
+LaunchContractError. They cover ownership, exact digest decoding, missing or
+malformed controls, native lexical paths, invalid Unicode/NUL, UTF-16 bounds
+and bounded errors. A prominently permissive compileable scaffold accepts all
+inputs and substitutes a zero digest solely to establish meaningful red; it is
+not validation and must be replaced before any checkpoint.
+
+Focused Nextest run `6d55a797-88cf-4398-9c14-5461c016a282`: compile 12.45s,
+eight selected tests ran in 0.174s, one passed/seven failed. The sixteen F10
+tests were deliberately filtered out; no selected foundation test was ignored.
+Failures are incorrect Ok/digest behavior, not missing module or compile errors.
+Only the three owned Rust files were formatted; no tests repeated afterward.
+Full API/red/hash handoff is `f12a-tests-evidence.md`, with log `f12a-red.log`.
+
+Manifest/runtime lock/F10 schema/root lock remain unchanged. There is no native
+spawning, file hashing, identity/Job, complete environment, backend, G4 or actual
+CLI-once-capture proof. 12b dependency edits wait for that stage. Root's future
+12c obligation to define argv[0] and bind resolved program to exact authorized
+argv is recorded in the foundation plan; it is not folded into 12a.
+
+### F14 successful native rotation: accepted local tranche
+
+Root accepted the separately implemented successful-rotation tranche after
+`f14-rotation-review.md` returned independent PASS. The three frozen public
+tests exercise actual codex-login in independent processes, redirected
+temporary File stores and a synthetic one-use native refresh authority. The
+baseline produced two requests/one reuse in each two-caller race and five
+requests/four reuses in the mixed race. Focused implementation run
+`d3df768f-db01-4e73-8982-0e1825530d1f` passed all three selected races in 0.713s;
+the six routing tests were explicitly excluded there. Final full fork-auth run
+`aea8fb97-678e-41a2-99ba-8cedcef389b6` passed nine tests, zero skipped, in 0.612s
+after compilation. Every authority round reported one accepted request, zero
+reuse and complete document/cache agreement; the mixed race completed a second
+generation. This is the nine-test fork target, not an upstream suite.
+
+The production tranche freezes the validated optional home for persistent
+backend selection and adds a permanent sibling file lock with an owned RAII
+guard. The existing configured File/Keyring/Auto choice remains; Ephemeral is
+excluded. Both native refresh entries use the same guarded authoritative
+load/account check/request/merge-save transaction. Same-account changed token
+generations are adopted without another request. There is no missing-store
+cached-document fallback in this refresh transaction. The per-manager
+semaphore and non-opted-in control flow remain in place.
+
+Full F14 remains partial: caller cancellation after authority consumption,
+atomic replacement and concurrent-reader visibility, metadata mutation/cache
+fallback, login/logout/revoke ordering, permanent-error recovery and backend/
+identity failure cases require further test-first stages. No secret-sink,
+browser/device, real harness, Bazel, constrained product or release acceptance
+is inferred from successful File-store races.
+
+The test-first local checkpoint is
+`bcfdf23c5e2aa4dce8638421c54e8e9ecd6298e9`,
+`test(covenant): reproduce concurrent native auth rotation`: exactly the frozen
+four public-test paths, 746 added lines. Their ten combined test/production
+hashes and both lock hashes matched the independently reviewed evidence before
+staging. Source is frozen while the following separate production checkpoint
+stages only its six auth paths plus this ledger (245 source change lines).
+No tests were repeated after formatting, no original root lock changed and no
+F11/F12/runtime/user file or remote action is included. Evidence is
+`f14-rotation-tests-evidence.md`, `f14-rotation-implementation-evidence.md` and
+`f14-rotation-review.md` under `.git/covenant-session/`.
+
+Root separately accepted the two-header F00/F12 scrub amendment after
+`f12-scrub-amendment-review.md` PASS. That inventory change remains outside
+these auth commits and awaits a suitable F12 checkpoint. F21 configuration
+closure is still a required implementation prerequisite.

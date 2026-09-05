@@ -5,6 +5,10 @@ mod bedrock_access_keys;
 mod bedrock_api_key;
 #[cfg(windows)]
 mod covenant_auth_home;
+#[cfg(windows)]
+mod covenant_auth_refresh;
+#[cfg(windows)]
+mod covenant_auth_storage;
 pub mod default_client;
 pub mod error;
 mod personal_access_token;

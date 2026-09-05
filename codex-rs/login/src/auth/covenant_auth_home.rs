@@ -10,7 +10,7 @@ use std::sync::OnceLock;
 // Freeze only the override: without it, every caller keeps its supplied home.
 static AUTH_HOME: OnceLock<Result<Option<PathBuf>, AuthHomeError>> = OnceLock::new();
 
-pub(super) fn resolve_auth_home(codex_home: PathBuf) -> Result<PathBuf, AuthHomeError> {
+pub(super) fn resolve_auth_home() -> Result<Option<PathBuf>, AuthHomeError> {
     match AUTH_HOME.get_or_init(|| {
         let Some(path) = parse_override(std::env::var_os("CODEX_AUTH_HOME"))? else {
             return Ok(None);
@@ -26,8 +26,7 @@ pub(super) fn resolve_auth_home(codex_home: PathBuf) -> Result<PathBuf, AuthHome
                 message: "unable to initialize CODEX_AUTH_HOME",
             })
     }) {
-        Ok(Some(path)) => Ok(path.clone()),
-        Ok(None) => Ok(codex_home),
+        Ok(path) => Ok(path.clone()),
         Err(error) => Err(*error),
     }
 }

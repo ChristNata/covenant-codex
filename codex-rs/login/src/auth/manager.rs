@@ -1553,7 +1553,7 @@ async fn load_auth(
 }
 
 // Persist refreshed tokens into auth storage and update last_refresh.
-fn persist_tokens(
+pub(super) fn persist_tokens(
     storage: &Arc<dyn AuthStorageBackend>,
     id_token: Option<String>,
     access_token: Option<String>,
@@ -1580,7 +1580,7 @@ fn persist_tokens(
 
 // Requests refreshed ChatGPT OAuth tokens from the auth service using a refresh token.
 // The caller is responsible for persisting any returned tokens.
-async fn request_chatgpt_token_refresh(
+pub(super) async fn request_chatgpt_token_refresh(
     refresh_token: String,
     client: &HttpClient,
 ) -> Result<RefreshResponse, RefreshTokenError> {
@@ -1698,10 +1698,10 @@ struct RefreshRequest {
 }
 
 #[derive(Deserialize, Clone)]
-struct RefreshResponse {
-    id_token: Option<String>,
-    access_token: Option<String>,
-    refresh_token: Option<String>,
+pub(super) struct RefreshResponse {
+    pub(super) id_token: Option<String>,
+    pub(super) access_token: Option<String>,
+    pub(super) refresh_token: Option<String>,
 }
 
 // Shared constant for token refresh (client id used for oauth token refresh flow)
@@ -2779,6 +2779,14 @@ impl AuthManager {
         {
             return Ok(());
         }
+        #[cfg(windows)]
+        if !self.has_external_auth()
+            && let Some(CodexAuth::Chatgpt(auth)) = auth_before_reload.as_ref()
+            && auth.storage().covenant_transaction().is_some()
+        {
+            // The opted-in native transaction reloads after acquiring ownership.
+            return self.refresh_token_from_authority_impl().await;
+        }
         let expected_account_id = auth_before_reload
             .as_ref()
             .and_then(CodexAuth::get_account_id);
@@ -2836,7 +2844,7 @@ impl AuthManager {
                             "Token data is not available.",
                         ))
                     })?;
-                    self.refresh_and_persist_chatgpt_token(chatgpt_auth, token_data.refresh_token)
+                    self.refresh_and_persist_chatgpt_token(chatgpt_auth, token_data)
                         .await
                 }
                 Some(
@@ -3012,9 +3020,21 @@ impl AuthManager {
     async fn refresh_and_persist_chatgpt_token(
         &self,
         auth: &ChatgptAuth,
-        refresh_token: String,
+        token_data: TokenData,
     ) -> Result<(), RefreshTokenError> {
-        let refresh_response = request_chatgpt_token_refresh(refresh_token, auth.client()).await?;
+        #[cfg(windows)]
+        if let Some(transaction) = auth.storage().covenant_transaction() {
+            super::covenant_auth_refresh::refresh_native_auth(
+                transaction,
+                token_data,
+                auth.client().clone(),
+            )
+            .await?;
+            self.reload().await;
+            return Ok(());
+        }
+        let refresh_response =
+            request_chatgpt_token_refresh(token_data.refresh_token, auth.client()).await?;
 
         persist_tokens(
             auth.storage(),

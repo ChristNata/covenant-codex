@@ -168,6 +168,12 @@ pub(super) trait AuthStorageBackend: Debug + Send + Sync {
     fn load(&self) -> std::io::Result<Option<AuthDotJson>>;
     fn save(&self, auth: &AuthDotJson) -> std::io::Result<()>;
     fn delete(&self) -> std::io::Result<bool>;
+
+    /// Opted-in persistent stores provide ownership for a complete auth mutation.
+    #[cfg(windows)]
+    fn covenant_transaction(&self) -> Option<super::covenant_auth_storage::AuthTransaction> {
+        None
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -505,12 +511,24 @@ pub(super) fn create_auth_storage(
     keyring_backend_kind: AuthKeyringBackendKind,
 ) -> Arc<dyn AuthStorageBackend> {
     #[cfg(windows)]
-    let codex_home = match super::covenant_auth_home::resolve_auth_home(codex_home) {
+    let auth_home = match super::covenant_auth_home::resolve_auth_home() {
         Ok(home) => home,
         Err(error) => return Arc::new(error),
     };
+    #[cfg(windows)]
+    let codex_home = auth_home.clone().unwrap_or(codex_home);
     let keyring_store: Arc<dyn KeyringStore> = Arc::new(DefaultKeyringStore);
-    create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind)
+    let storage =
+        create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind);
+    #[cfg(windows)]
+    if let Some(home) = auth_home
+        && mode != AuthCredentialsStoreMode::Ephemeral
+    {
+        return Arc::new(super::covenant_auth_storage::CovenantAuthStorage::new(
+            home, storage,
+        ));
+    }
+    storage
 }
 
 fn create_auth_storage_with_store(
