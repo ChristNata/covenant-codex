@@ -53,11 +53,15 @@
 # OPEN ISSUE: arbitrary configured env_key/env_http_headers and MCP bearer-token key
 # names lack a finite static prefix. F12/F21 must reject out-of-policy configuration or
 # obtain an approved frozen-name amendment. This file does not silently claim closure.
+# Root approved retaining built-in OpenAI header defaults via OPENAI_ORGANIZATION
+# and OPENAI_PROJECT in the scrub policy. F21 must reject effective credential/header
+# env names outside the reviewed compiled set before construction on every override/
+# reload. This is an implementation prerequisite, not completed runtime enforcement.
 # Native auth store shell reads remain the master's accepted residual, requiring P6.
 # trusted_support means proposed native support scope, never exemption from F14 canaries.
 schema_version = 1
 commit = "3d2ee51ca2d5db578f328aa75e20aa22c0197c9a"
-scrub_keys = ["COVENANT_DECIDER_PATH", "COVENANT_DECIDER_SHA256", "COVENANT_CHILD_MARKER", "CODEX_AUTH_HOME", "OPENAI_API_KEY", "CODEX_API_KEY", "CODEX_ACCESS_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "CODEX_CONNECTORS_TOKEN", "AWS_SESSION_TOKEN", "AZURE_CLIENT_SECRET", "AZURE_FEDERATED_TOKEN_FILE", "GOOGLE_APPLICATION_CREDENTIALS", "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN", "CODEX_EXEC_SERVER_NOISE_AUTH_TOKEN", "NODE_REPL_AUTH_TOKEN", "OPENAI_FEDERATION_RULE_ID", "OPENAI_IDENTITY_TOKEN_FILE", "OPENAI_WORKLOAD_IDENTITY_CONTEXT"]
+scrub_keys = ["COVENANT_DECIDER_PATH", "COVENANT_DECIDER_SHA256", "COVENANT_CHILD_MARKER", "CODEX_AUTH_HOME", "OPENAI_API_KEY", "CODEX_API_KEY", "CODEX_ACCESS_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "CODEX_CONNECTORS_TOKEN", "AWS_SESSION_TOKEN", "AZURE_CLIENT_SECRET", "AZURE_FEDERATED_TOKEN_FILE", "GOOGLE_APPLICATION_CREDENTIALS", "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN", "CODEX_EXEC_SERVER_NOISE_AUTH_TOKEN", "NODE_REPL_AUTH_TOKEN", "OPENAI_FEDERATION_RULE_ID", "OPENAI_IDENTITY_TOKEN_FILE", "OPENAI_WORKLOAD_IDENTITY_CONTEXT", "OPENAI_ORGANIZATION", "OPENAI_PROJECT"]
 scrub_prefixes = ["AWS_"]
 
 [[authorities]]
@@ -1889,6 +1893,28 @@ symbol = "OPENAI_WORKLOAD_IDENTITY_CONTEXT"
 family = "process"
 path = "codex-rs/core/src/unified_exec/process_manager.rs"
 symbol = "open_session_with_prepared_exec_env"
+
+[[secrets]]
+key = "OPENAI_ORGANIZATION"
+class = "provider_login"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "OPENAI_ORGANIZATION"
+
+[[secrets]]
+key = "OPENAI_PROJECT"
+class = "provider_login"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "OPENAI_PROJECT"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "OPENAI_ORGANIZATION"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "OPENAI_PROJECT"
 
 [[audit_queries]]
 family = "process"

@@ -957,3 +957,40 @@ Root separately accepted the two-header F00/F12 scrub amendment after
 `f12-scrub-amendment-review.md` PASS. That inventory change remains outside
 these auth commits and awaits a suitable F12 checkpoint. F21 configuration
 closure is still a required implementation prerequisite.
+
+F14 successful-rotation production checkpoint completed as
+`315fb195c2120d6c3c90878fda117b2cea43ea83`,
+`feat(covenant): serialize native auth token rotation`, following the frozen
+test checkpoint above. Exactly six reviewed auth source paths plus ledger
+were committed, with clean staged names/whitespace and an empty index afterward.
+The shared auth fixtures were then released to the separate cancellation test
+author. This hash annotation remains for the next ledger checkpoint; full F14
+and remote publication remain pending.
+
+### F12 12a lexical startup controls: accepted local tranche
+
+Root accepted the replacement launch-contract implementation after independent
+`f12a-review.md` PASS. Actual Nextest run
+`6834d7e3-3d5f-4107-8732-de62b13789e1` passed all eight selected foundation tests
+in 0.087s; sixteen F10 tests were deliberately excluded, with no selected skips.
+The earlier permissive scaffold's one-pass/seven-fail behavioral red is retained
+above. The final 113-line source validates owned controls, exact digest bytes,
+lossless Unicode/NUL and UTF-16 limits, lexical drive-rooted path shape, and
+opaque marker presence. It has no environment reread, filesystem/process access,
+mutable getters or secret-bearing output. The permissive scaffold is removed.
+
+Library-only Clippy passed without warnings and exact owned-source rustfmt/check
+passed after green, with no unchanged test repeat. Source, frozen tests/lib,
+manifest/lock/schema/root-lock hashes match `f12a-implementation-evidence.md`.
+Checkpoint scope is those three runtime source/test/registration paths, the
+separately accepted F00 two-header scrub/query amendment, and this ledger only.
+No dependency/manifest/root-lock/schema change is part of 12a.
+
+This accepts lexical startup controls, not actual CLI capture ordering, path
+existence/local-volume/reparse safety, native executable hash/identity, process
+or Job containment, environment completeness or real G4. F21 finite credential
+name enforcement remains pending. The next 12b stage is independently authored
+tests with a clearly temporary permissive scaffold, not environment validation
+implementation. Its isolated windows-sys 0.61.2 Globalization dependency is
+approved separately with all existing standalone pins preserved; root/Bazel
+integration remains a later product-stage obligation.
