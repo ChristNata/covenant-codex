@@ -28,6 +28,12 @@ use crate::tools::router::ToolCallSource;
 use codex_history::ResponseItemEnvelope;
 use codex_protocol::error::CodexErr;
 use codex_protocol::models::ResponseInputItem;
+#[cfg(feature = "covenant")]
+use codex_tools::CovenantTool;
+
+#[cfg(all(test, feature = "covenant"))]
+#[path = "covenant_readiness_admission_tests.rs"]
+mod covenant_readiness_admission_tests;
 
 struct ToolCallTimingGuard {
     started_at: Instant,
@@ -101,6 +107,10 @@ impl ToolCallRuntime {
         source: ToolCallSource,
         cancellation_token: CancellationToken,
     ) -> impl std::future::Future<Output = Result<AnyToolResult, FunctionCallError>> {
+        #[cfg(feature = "covenant")]
+        if let Err(error) = CovenantTool::admit(&call.tool_name, &call.payload) {
+            return Either::Left(std::future::ready(Err(error)));
+        }
         if self
             .step_context
             .turn
@@ -180,7 +190,7 @@ impl ToolCallRuntime {
                     .await
             }));
 
-        async move {
+        let future = async move {
             let _tool_call_timing_guard = tool_call_timing_guard;
             tokio::select! {
                 res = &mut dispatch_handle => res.map_err(Self::tool_task_join_error)?,
@@ -210,7 +220,15 @@ impl ToolCallRuntime {
                 },
             }
         }
-        .in_current_span()
+        .in_current_span();
+        #[cfg(feature = "covenant")]
+        {
+            Either::Right(future)
+        }
+        #[cfg(not(feature = "covenant"))]
+        {
+            future
+        }
     }
 }
 

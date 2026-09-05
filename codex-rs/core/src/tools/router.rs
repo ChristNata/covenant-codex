@@ -20,6 +20,8 @@ use codex_protocol::models::SearchToolCallParams;
 #[cfg(test)]
 use codex_protocol::openai_models::ModelInfo;
 use codex_protocol::openai_models::ToolMode;
+#[cfg(feature = "covenant")]
+use codex_tools::CovenantTool;
 use codex_tools::DiscoverableTool;
 use codex_tools::ResponsesApiNamespaceTool;
 use codex_tools::ToolName;
@@ -244,6 +246,8 @@ impl ToolRouter {
 
     #[instrument(level = "trace", skip_all, err)]
     pub fn build_tool_call(item: ResponseItem) -> Result<Option<ToolCall>, FunctionCallError> {
+        #[cfg(feature = "covenant")]
+        CovenantTool::admit_response_item(&item)?;
         match item {
             ResponseItem::FunctionCall {
                 name,
@@ -253,7 +257,9 @@ impl ToolRouter {
                 call_id,
                 ..
             } => {
-                let tool_name = ToolName::new(namespace, name).with_default_namespace();
+                let tool_name = ToolName::new(namespace, name);
+                #[cfg(not(feature = "covenant"))]
+                let tool_name = tool_name.with_default_namespace();
                 Ok(Some(ToolCall {
                     tool_name,
                     call_id,
@@ -287,12 +293,17 @@ impl ToolRouter {
                 input,
                 call_id,
                 ..
-            } => Ok(Some(ToolCall {
-                tool_name: ToolName::new(namespace, name).with_default_namespace(),
-                call_id,
-                payload: ToolPayload::Custom { input },
-                encrypted_function_args: None,
-            })),
+            } => {
+                let tool_name = ToolName::new(namespace, name);
+                #[cfg(not(feature = "covenant"))]
+                let tool_name = tool_name.with_default_namespace();
+                Ok(Some(ToolCall {
+                    tool_name,
+                    call_id,
+                    payload: ToolPayload::Custom { input },
+                    encrypted_function_args: None,
+                }))
+            }
             _ => Ok(None),
         }
     }
@@ -385,3 +396,7 @@ impl ToolRouter {
 #[cfg(test)]
 #[path = "router_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "covenant_wire_admission_tests.rs"]
+mod covenant_wire_admission_tests;

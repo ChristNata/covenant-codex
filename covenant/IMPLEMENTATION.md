@@ -1306,3 +1306,39 @@ fixture sensitivity and final implementation; evidence is in
 `f11-companion-tests-evidence.md` and `f11-companion-review.md`.
 Registration follows with reviewed production; no claim that this unregistered
 file alone ran the tests. No test repeat, F14 source, dependency or remote action.
+
+F11 readiness test checkpoint completed as
+`ed8965c0aad1ec442022d7c0429e381adaf48032`, 375 added lines including ledger;
+staged paths/blobs and root lock passed, with an empty index afterward.
+
+### F11 companion: accepted raw and earliest parallel admission
+
+Root accepted independent `f11-companion-review.md` PASS and authorized the
+exact policy/router/parallel sources plus ledger. A shared private two-row
+predicate now serves structured payload and borrowed raw ResponseItem adapters.
+Raw ToolSearch refuses before parsing. Constrained Function/Custom calls keep
+the original absent namespace; ordinary builds keep upstream normalization.
+Parallel denial returns a ready error before all eager metadata, readiness,
+task and cancellation work; accepted behavior retains its existing eager path.
+Current nonlocal ResponseItem variants are exhaustively classified, without
+granting hosted authority or adding a second allowlist. Frozen test registration
+is included here; no permissive scaffold is committed.
+
+Run `711c1742-31e1-44d1-bb22-6895b13c7efc` passed all fourteen constrained
+cases, including the original eight; run
+`5ee2d606-fc7a-42bf-8965-5e3e9342ec0d` passed the ordinary control. Each
+filtered 2,341 upstream cases. Scoped tools/core library Clippy passed; final
+exact-file formatting/check changed zero bytes. No review/post-format test
+repeat. Actual full-source verification graph and all eleven protected path
+pairs, source overlays, both locks and 1,232 external pins were independently
+verified; the original root Cargo.lock never changed.
+
+Evidence is `f11-companion-implementation-evidence.md`; final policy/router/
+parallel SHA-256 values respectively are
+`aaee23f4bf1ed99b9a7096a935c93133dbbdbe75a3dd28ab41e6b16acfe1329c`,
+`7e374c396c9e37a6a52137e8f0bb9c5f49ffe60432b135ec8a1ea3d30b1b185c`,
+`dc42f64e77d5343ffa6f23eef391ab5f030eb169872c089fd49c22282d33a0aa`.
+This accepts the bounded local-call admission gap only. Effective product tools,
+startup constructors, unsolicited hosted-item local persistence, real-hook/
+repository-read E2E, native F12/F13 authority and full F21/F31 remain pending.
+No concurrent F14 source, dependency, unrelated document or remote push included.
