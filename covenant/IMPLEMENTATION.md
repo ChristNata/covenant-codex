@@ -1366,3 +1366,35 @@ Evidence is `f12c2-tests-evidence.md` and its frozen result. The temporary
 permissive scaffold is not committed. Registration follows with the separately
 reviewed final source, so this unregistered file alone is not an executed target.
 No previous test, schema, lock, F14 work or remote action enters this checkpoint.
+
+F12c2 test checkpoint completed as
+`7c4178caadd16b3a023bf4cd1cd25d7e2a1ff13c`, 406 added lines including ledger;
+exact staged paths/blobs and root lock passed, with an empty index afterward.
+
+### F12c2 reply: accepted bounded protocol foundation
+
+Root accepted independent `f12c2-review.md` PASS and authorized the final
+152-line decision_reply module, frozen lib registration and ledger. The parser
+retains only an immutable real deadline, prefix length and optional fixed error.
+Chunk length is checked before comparison; no output body is copied, allocated
+or retained. First refusal wins permanently. Consuming finish requires, in
+order, no prior refusal, no cancellation, an unexpired real deadline, completed
+stdin closure, stdout EOF, observed exit zero and the complete exact ALLOW token.
+Public wrappers call the same private transitions with real Instant observations;
+there is no public fake clock, timeout override or ProtocolAllow constructor.
+
+Run `743090a3-5d67-4c48-bf8b-5b210871ce85` passed all eight frozen tests in
+1.132s, including the real deadline wait; 42 prior tests were filtered. Scoped
+library Clippy with warnings denied and final exact-file formatting/check passed.
+Formatting changed zero bytes and no tests were repeated for review or afterward.
+Independent review checked all frozen/protected sources, schema and root/runtime
+locks, exact priority, prefix arithmetic and constant additional allocation.
+
+Evidence is `f12c2-implementation-evidence.md`; final source SHA-256 is
+`357689dcd9625782590394997f398ebe5deb7b610a7ba1b7c212382974f2dd51` and
+frozen lib is `6f53979d0d6379a8368072843694842fa845f09b9e70ea1e32cfa244eafe011c`.
+Completion facts remain caller reports. Actual native pipe/process/cancellation
+observation, verified image/ancestor identity, Job cleanup and private native
+permit remain separate. Begin must precede future native hashing/creation.
+No full F12/F21/sidecar acceptance, dependency/lock change, concurrent F14 source,
+permissive scaffold or remote push is included in this checkpoint.

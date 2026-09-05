@@ -5,6 +5,8 @@
 
 mod decide;
 #[cfg(windows)]
+mod decision_reply;
+#[cfg(windows)]
 mod exec_envelope;
 #[cfg(windows)]
 mod launch_contract;
@@ -16,6 +18,22 @@ mod wire;
 
 pub use decide::DecideV1;
 pub use decide::InvalidDecide;
+#[cfg(windows)]
+pub use decision_reply::CancellationCompletion;
+#[cfg(windows)]
+pub use decision_reply::DecisionReply;
+#[cfg(windows)]
+pub use decision_reply::DecisionReplyError;
+#[cfg(windows)]
+pub use decision_reply::ProcessCompletion;
+#[cfg(windows)]
+pub use decision_reply::ProtocolAllow;
+#[cfg(windows)]
+pub use decision_reply::ReplyCompletion;
+#[cfg(windows)]
+pub use decision_reply::StdinCompletion;
+#[cfg(windows)]
+pub use decision_reply::StdoutCompletion;
 #[cfg(windows)]
 pub use exec_envelope::ExecEvent;
 #[cfg(windows)]
