@@ -793,3 +793,80 @@ reconciled with identical external pins; the original root lock remains
 unchanged. This is a verification-environment choice, not shippable source
 repair or a general dependency upgrade. Feature/behavior acceptance still needs
 the assigned test-first and independent review stages.
+
+F02 local checkpoint completed as
+`73ba1a6ac317bdb83b897e08f61ac48fc919ce11`,
+`feat(covenant): record verified Windows build outputs`. It contains exactly
+the four reviewed F02 files plus ledger. Staged names/whitespace checks passed
+and the index was empty after commit. Concurrent core/auth/user changes were
+excluded; no unchanged tests were repeated and no push occurred. This hash
+annotation remains for the next ledger checkpoint. Product acceptance is still
+pending, as recorded above.
+
+### F03 artifact-pair test stage: behavioral red
+
+`covenant/tests/test_windows_artifact.py` now freezes seven behavior methods for
+the approved read-only pair verifier. Cases cover byte-exact success, each
+missing member, digest mismatch/malformed/oversized data, empty/nonregular
+members, complete pairs outside the allowed tree or at its namespace root,
+traversal, and an actual local Windows junction. Input/sentinel bytes remain
+unchanged across validation. No static workflow-value tests were introduced.
+
+Entrypoint discovery ran zero tests and found the absent verifier; this is not
+behavioral red. A clearly labeled temporary permissive verifier then produced
+one passing method and six failing methods through 21 intended refusal
+assertions/subtests, seven total methods, zero skipped, 4.222s, exit 1. The
+junction fixture actually ran. The temporary module was removed; only its
+ignored evidence driver/log remains. Scoped Ruff check passed and formatting
+completed, with no test repeat solely after formatting. Frozen test SHA-256:
+`6d2d4f570c26171d5bd44c3e7729e378fcbd7573e29ada3782a85f77cada55ac`.
+
+Evidence/contract: `.git/covenant-session/f03-tests-evidence.md`,
+`f03-red.log`, and `f03-verifier-plan.md`. Production belongs to the next
+separate worker; no verifier/workflow/native setup or product build has been
+implemented by this stage. Exact two-file upload is approved; receipt remains
+development evidence on disk/log. Local helper/workflow and live acceptance
+remain distinct, and no hosted run, G4, release or push is claimed.
+
+F03 pair-verifier implementation independently reviewed: **PASS for the local
+read-only helper, pending root checkpoint acceptance**. The separate worker's
+frozen suite passed 7/7, zero skipped, 5.028s, including the actual Windows
+junction. Full source review confirms the exact pair/digest, bounded reads,
+contained ordinary paths, no mutation and content-free errors. The seven-test
+file, reused F02 helper and F02 tests retain their frozen hashes. Scoped Ruff
+passed with no formatting changes; reviewer ran no unchanged tests or builds.
+Evidence: `.git/covenant-session/f03-verifier-implementation-evidence.md` and
+`f03-verifier-review.md`. No workflow/native setup/hosted acceptance is implied.
+
+F12 first-foundation proposal is now recorded in
+`.git/covenant-session/f12-foundation-plan.md`. It proposes separate test-first
+launch-control, Windows environment, and bounded envelope/reply stages inside
+codex-covenant, with real Windows ordinal comparison and explicit Unicode,
+pseudo-drive-variable and resource policies. The default OpenAI header source
+names and arbitrary configured provider keys still require root-approved F21
+closure/policy amendments. Its new target dependency and limits are proposals,
+not approved implementation or tests. No source/manifest/lock/build changed
+during planning; native identity/Job/backends/elevated/G4 remain separate gates.
+
+Root accepted the F03 verifier helper tranche after its frozen seven tests and
+independent PASS. Local checkpoint scope is exactly
+`covenant/scripts/verify_windows_artifact.py`,
+`covenant/tests/test_windows_artifact.py` and this ledger. The helper stage is
+complete locally; workflow/native preparation/live F03 acceptance remain
+pending. No unchanged test repeat, unrelated staging or push belongs here.
+
+Root approved the F12 foundation caps, drive pseudo-variable preservation,
+actual Windows ordinal comparison with fail-closed errors, and immutable paired
+JSON/native environment block as proposed. Root also approved adding
+OPENAI_ORGANIZATION and OPENAI_PROJECT to the reviewed F00/F12 scrub policy,
+with concrete source-query evidence. F21 must reject effective credential or
+header environment names outside the reviewed compiled set before construction
+at every override/reload; preserve built-in defaults via those added names.
+Arbitrary auth.command/MCP/plugin authorities remain excluded. This is a
+closure prerequisite, not evidence that F21 enforcement already exists.
+
+Root approved a later isolated Windows-only windows-sys=0.61.2 dependency with
+Win32_Globalization for 12b, preserving all other standalone pins. Dependency
+edits wait for that stage. Current 12a authorization is tests first plus a
+clearly labeled permissive launch-contract scaffold and minimal registration;
+no actual validation implementation, native process/hash/Job proof or spawning.
