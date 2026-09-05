@@ -1191,3 +1191,38 @@ This checkpoint contains final environment/policy modules, frozen lib
 registration and ledger only. Actual backend environment completeness,
 F21 provider-name closure, native env/argv/process/Job/image, real G4 and
 product/Bazel integration remain pending; this is not full F12 acceptance.
+
+F12b final production checkpoint completed as
+`37734f4c5fa050e8ebb212c3f9ea8622fb6dfb18`,
+`feat(covenant): freeze scrubbed Windows environment pairs`: exactly final
+environment/policy/lib and ledger, 269 added lines. All staged path/blob and
+whitespace checks and original root-lock hash passed; index was empty afterward.
+No permissive scaffold, prior-test repeat, unrelated file or push was included.
+This hash annotation is retained for the next routine ledger checkpoint.
+
+### F12c1 envelope test checkpoint
+
+Root accepted the independently reviewed bounded envelope tranche on
+2026-09-06. The separate test author froze seven Windows behavior tests in
+`covenant/runtime/src/exec_envelope_tests.rs` (362 lines), SHA-256
+`740052dd8a58ca716638476583e993d1bf431e065374a313b90e452d41a57790`.
+They compare complete wire/native facts and owned input, exercise lexical
+path/ParentDir and Unicode/NUL refusals, coupled argument/path/sandbox limits,
+and the actual public 1,048,576-byte encoded boundary plus one-byte refusal.
+
+Final scaffold red run `738ed43c-2465-480a-aec8-172ef3709d7e` executed all seven:
+two passed, five failed behaviorally, with 35 prior tests filtered. Every
+negative row is evaluated before aggregate assertions. The permissive scaffold
+was only a temporary red harness and is not included in any checkpoint.
+Evidence is `f12c1-tests-evidence.md` and `f12c1-frozen-hashes.json` under the
+session evidence directory; root-approved API decisions are in
+`f12c-api-plan.md`.
+
+This test-only checkpoint intentionally adds the sibling source before its
+module registration in the immediately following reviewed production stage.
+The unregistered test file alone is not claimed to be a runnable red target;
+the recorded actual-source scaffold run is the behavioral evidence. Exact
+frozen API/registration, final production and independent review follow next.
+No prior test, dependency, schema, lock, native implementation or remote action
+belongs to this checkpoint. Protocol reply/deadline, native process/image/Job,
+F21 and actual sidecar/full F12 acceptance remain pending.
