@@ -1131,3 +1131,32 @@ is `8bebd1dd28b8f1cff0d525d18c5418e859ae53f80f23aba7b766125cfd20c3d9`.
 This checkpoint contains that one source path plus ledger. Runtime shutdown,
 process death, unseen responses, cancelled-manager cache repair, atomic writes,
 competing writers, cached failures, redaction and full F14 remain pending.
+
+F14 cancellation production checkpoint completed as
+`7467030184b19c4b8c51bbd82df620ddfa23e4c0`,
+`feat(covenant): preserve consumed refresh through caller cancellation`.
+Exactly the reviewed refresh source and ledger were staged; names, normalized
+blob content, whitespace and original root-lock hash passed. The index was
+empty afterward, and no remote action occurred.
+
+### F12 12b environment: reviewed contract test checkpoint
+
+Root accepted `f12b-review.md` PASS after reading the two production modules,
+frozen tests and actual evidence. This first checkpoint records the 381-line
+frozen test corpus and approved standalone windows-sys 0.61.2 manifest/lock
+addition, plus ledger. All 101 prior external package records remain identical;
+only the new package/root dependency edge was added. Root manifest/lock,
+schema and prior launch/source tests remain unchanged.
+
+Final author run `e94ddf55-c2dc-44a3-98b7-d610e34cbdfe` had two passes and
+nine intended behavior failures, with 24 prior tests filtered. The temporary
+permissive scaffold was used only to establish that executable red; it is not
+committed. The following production checkpoint registers these frozen sibling
+tests with the final reviewed implementation. This test-only checkpoint does
+not claim that an unregistered source file by itself ran the corpus.
+
+The tests compare full map/native content using the independent Windows ordinal
+oracle, validate every raw pair before scrub, exercise the 27-name/AWS canaries,
+pseudo drives and exact bounds, and preserve unrelated challenge values.
+Evidence and hashes are in `f12b-tests-evidence.md` and the lock comparison.
+No tests were repeated, no unrelated path was staged and no push occurred.
