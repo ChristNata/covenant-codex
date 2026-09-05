@@ -1,0 +1,8 @@
+upstream_url = "https://github.com/openai/codex"
+tag = "rust-v0.153.4"
+commit = "3d2ee51ca2d5db578f328aa75e20aa22c0197c9a"
+license_spdx = "Apache-2.0"
+rust_toolchain_path = "codex-rs/rust-toolchain.toml"
+rust_channel = "1.95.0"
+fork_url = "https://github.com/ChristNata/covenant-codex"
+fork_branch = "covenant-ver"
