@@ -31,6 +31,10 @@ const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
 mod cancellation_support;
 #[path = "covenant_auth/cancellation_tests.rs"]
 mod cancellation_tests;
+#[path = "covenant_auth/persistence_support.rs"]
+mod persistence_support;
+#[path = "covenant_auth/persistence_tests.rs"]
+mod persistence_tests;
 #[path = "covenant_auth/rotation_authority.rs"]
 mod rotation_authority;
 #[path = "covenant_auth/rotation_support.rs"]

@@ -1421,3 +1421,27 @@ complex checkpoints below 500 changed lines. This unregistered helper checkpoint
 alone is not represented as an executed red target. Evidence is
 `f14-persistence-tests-evidence.md` and the independently reviewed final evidence.
 No test repeat, F21 work, production/dependency change or remote push is included.
+
+F14 persistence helper checkpoint completed as
+`6706e41d0409692e7cd41871415dfd49c8081a27`, 329 added lines including ledger;
+exact staged paths/blobs and protected root lock passed, with an empty index.
+
+### F14 File persistence public contract checkpoint
+
+This root-authorized checkpoint contains the frozen 187-line public test sibling
+and four registration lines. SHA-256 values respectively are
+`73abd5bb9d606a0509822a39fe36b849dad4f42fd4dde03c260a19679749e50b`
+and `d6302e0ebb912d48c9cfc61dcae01889433f58d0ba191bf10ce7e50f12bcc6c8`.
+The retained-reader case requires the old open handle to retain complete old
+bytes while public refresh saves the complete winner and a fresh manager probes
+it. The read-only case requires public-save denial, consumed-refresh failure
+with exact prior bytes, and successful explicit new-login recovery. Both check
+one request, zero reuse, one acknowledgement, siblings and cleanup.
+
+Initial run `e49ef3b7-b958-4f06-a0d1-bfb13c341856` was one pass/one fail;
+the same frozen cases later both passed with the separately reviewed production
+bytes. No tests are repeated for checkpointing. The following source checkpoint
+records final two/thirteen-run evidence and the exact Clippy/Bazel limits.
+This accepts the tests for bounded File replacement, not crash durability,
+hostile namespace/ACL handling or full F14. No F21 source, dependency, root lock
+or remote action belongs to this checkpoint.
