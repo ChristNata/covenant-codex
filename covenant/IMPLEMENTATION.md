@@ -1398,3 +1398,26 @@ observation, verified image/ancestor identity, Job cleanup and private native
 permit remain separate. Begin must precede future native hashing/creation.
 No full F12/F21/sidecar acceptance, dependency/lock change, concurrent F14 source,
 permissive scaffold or remote push is included in this checkpoint.
+
+F12c2 final source/lib checkpoint completed as
+`49663b267cad43973b8214700563b216018d5aa4`, 202 added lines including ledger;
+exact staged paths/blobs and protected root lock passed, with an empty index.
+
+### F14 File persistence fixture checkpoint
+
+Root accepted independent `f14-persistence-review.md` bounded PASS and authorized
+the frozen fixture/test and final production checkpoints. This first checkpoint
+contains only the 306-line persistence support sibling plus ledger, SHA-256
+`f86f0a613d9e3cbd35dfef0ab4c254f022a448ceedd6f8c419ec577372becdab`.
+It creates isolated synthetic File auth state, retained-reader and read-only
+controls, complete expected documents, fresh public-manager probes and explicit
+cleanup checks without real credentials or keyrings.
+
+The separate author's actual-source run
+`e49ef3b7-b958-4f06-a0d1-bfb13c341856` executed both public cases: one passed
+and the retained-reader case failed on in-place mutation, with eleven prior
+cases filtered. The public test sibling and registration follow next to keep
+complex checkpoints below 500 changed lines. This unregistered helper checkpoint
+alone is not represented as an executed red target. Evidence is
+`f14-persistence-tests-evidence.md` and the independently reviewed final evidence.
+No test repeat, F21 work, production/dependency change or remote push is included.
