@@ -5,6 +5,8 @@
 
 mod decide;
 #[cfg(windows)]
+mod exec_envelope;
+#[cfg(windows)]
 mod launch_contract;
 mod numbers;
 mod values;
@@ -14,6 +16,14 @@ mod wire;
 
 pub use decide::DecideV1;
 pub use decide::InvalidDecide;
+#[cfg(windows)]
+pub use exec_envelope::ExecEvent;
+#[cfg(windows)]
+pub use exec_envelope::ExecEventError;
+#[cfg(windows)]
+pub use exec_envelope::FinalExecInput;
+#[cfg(windows)]
+pub use exec_envelope::NetworkAccess;
 #[cfg(windows)]
 pub use launch_contract::LaunchContract;
 #[cfg(windows)]

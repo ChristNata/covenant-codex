@@ -1226,3 +1226,35 @@ frozen API/registration, final production and independent review follow next.
 No prior test, dependency, schema, lock, native implementation or remote action
 belongs to this checkpoint. Protocol reply/deadline, native process/image/Job,
 F21 and actual sidecar/full F12 acceptance remain pending.
+
+### F12c1 envelope production checkpoint
+
+The frozen test stage is committed locally as
+`876f4b8d5ed9ca1384f0e14807ba81fd28e4effa`, exactly tests plus ledger, 397 added
+lines. Root then accepted `f12c1-review.md` PASS for the separate 238-line
+implementation and authorized only final source, frozen lib registration and
+ledger in this production checkpoint.
+
+The constructor now enforces native lexical and lossless UTF-16 bounds before
+copying, derives the sole argv[0] from the one program, and retains the exact
+owned environment/native fields. Both serializations use a fixed-capacity
+checked 1 MiB Write sink; the inner bytes pass unchanged F10 decoding and drop
+before the outer allocation. Errors retain no submitted content. This proves
+bounded additional allocation and wire/native data binding, not filesystem
+identity or native launch authority.
+
+Run `f41e0d65-4026-4bb6-9d9f-c50fdce940eb` passed all seven frozen tests in
+0.368s, with 35 prior cases filtered; scoped library Clippy with warnings denied
+and final formatting/check passed. Independent source review confirmed bound
+ordering, buffer growth limits, F10 validation and shared native/wire fields.
+All twenty protected hashes matched; no test was repeated for review or after
+formatting. Evidence is `f12c1-implementation-evidence.md`, its result JSON and
+`f12c1-review.md` in the session directory.
+
+Final source SHA-256 is
+`f95e3abd58e3d78cf3a2a6fe20a691085862bfd7ea0f0b3fd45102ce27f04b77`;
+frozen lib SHA-256 is
+`d38bf8d4bbdb6b7199ad984bfba41fcaccdabbb3f0126f92c245601e2d2514ea`.
+Protocol reply/deadline/completion, native backend/image/Job/quoting, F21,
+G4 and full F12 remain separate. No permissive scaffold, dependency/lock,
+unrelated concurrent F11 source, test repeat or remote push is included.
