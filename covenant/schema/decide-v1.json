@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://covenant-capital.local/codex-fork/schema/decide-v1.json",
+  "title": "DecideV1",
+  "description": "Versioned Exec/Patch decide object F10 produces and G4 evaluates. Byte-identical to fork:covenant/schema/decide-v1.json. No env_allowlist field.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "kind"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["exec", "patch"]
+    },
+    "exec": {
+      "$ref": "#/$defs/ExecCall"
+    },
+    "patch": {
+      "$ref": "#/$defs/PatchCall"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "exec" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["exec"],
+        "not": { "required": ["patch"] }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "patch" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["patch"],
+        "not": { "required": ["exec"] }
+      }
+    }
+  ],
+  "$defs": {
+    "ExecCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["program", "argv", "cwd", "env", "sandbox", "network", "tty"],
+      "properties": {
+        "program": { "type": "string", "minLength": 1 },
+        "argv": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "cwd": { "type": "string", "minLength": 1 },
+        "env": {
+          "type": "object",
+          "description": "Complete post-overlay post-scrub process environment; the exact map the spawned process sees. Not an allowlist subset.",
+          "additionalProperties": { "type": "string" }
+        },
+        "sandbox": { "type": "string", "minLength": 1 },
+        "network": { "type": "boolean" },
+        "tty": { "type": "boolean" }
+      }
+    },
+    "PatchCall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paths", "operations", "permissions", "resolved_identities"],
+      "properties": {
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/PatchOperation" }
+        },
+        "permissions": { "$ref": "#/$defs/PatchPermissions" },
+        "resolved_identities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ResolvedIdentity" }
+        }
+      }
+    },
+    "PatchOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "op", "hunks"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "op": {
+          "type": "string",
+          "enum": ["add", "update", "delete", "move"]
+        },
+        "destination": { "type": "string", "minLength": 1 },
+        "hunks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Hunk" }
+        },
+        "pre_image_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "op": { "const": "move" } },
+            "required": ["op"]
+          },
+          "then": { "required": ["destination"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": { "enum": ["update", "delete", "move"] }
+            },
+            "required": ["op"]
+          },
+          "then": { "required": ["pre_image_digest"] }
+        }
+      ]
+    },
+    "Hunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["old_start", "old_lines", "new_start", "new_lines", "lines"],
+      "properties": {
+        "old_start": { "type": "integer", "minimum": 0 },
+        "old_lines": { "type": "integer", "minimum": 0 },
+        "new_start": { "type": "integer", "minimum": 0 },
+        "new_lines": { "type": "integer", "minimum": 0 },
+        "lines": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HunkLine" }
+        }
+      }
+    },
+    "HunkLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["context", "add", "remove"]
+        },
+        "text": { "type": "string" }
+      }
+    },
+    "PatchPermissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sandbox", "write_roots", "network", "tty"],
+      "properties": {
+        "sandbox": { "type": "string", "minLength": 1 },
+        "write_roots": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "network": { "type": "boolean" },
+        "tty": { "type": "boolean" }
+      }
+    },
+    "ResolvedIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "kind",
+        "ancestor_identities",
+        "win32_normalized",
+        "volume_serial",
+        "file_index"
+      ],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["file", "directory", "symlink", "junction"]
+        },
+        "target": { "type": "string", "minLength": 1 },
+        "ancestor_identities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/AncestorIdentity" }
+        },
+        "win32_normalized": { "type": "string", "minLength": 1 },
+        "volume_serial": { "type": "string", "minLength": 1 },
+        "file_index": { "type": "string", "minLength": 1 },
+        "pre_image_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "file" } },
+            "required": ["kind"]
+          },
+          "then": { "required": ["pre_image_digest"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "enum": ["symlink", "junction"] }
+            },
+            "required": ["kind"]
+          },
+          "then": { "required": ["target"] }
+        }
+      ]
+    },
+    "AncestorIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "kind",
+        "win32_normalized",
+        "volume_serial",
+        "file_index"
+      ],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["file", "directory", "symlink", "junction"]
+        },
+        "target": { "type": "string", "minLength": 1 },
+        "win32_normalized": { "type": "string", "minLength": 1 },
+        "volume_serial": { "type": "string", "minLength": 1 },
+        "file_index": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": { "enum": ["symlink", "junction"] }
+            },
+            "required": ["kind"]
+          },
+          "then": { "required": ["target"] }
+        }
+      ]
+    }
+  }
+}

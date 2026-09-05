@@ -1,0 +1,22 @@
+[package]
+name = "codex-covenant"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "Apache-2.0"
+autotests = false
+
+[workspace]
+resolver = "3"
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = { version = "=1.0.149", features = ["arbitrary_precision", "raw_value"] }
+
+[dev-dependencies]
+jsonschema = { version = "=0.29.0", default-features = false }
+pretty_assertions = "=1.4.1"
+
+[[test]]
+name = "decide_v1"
+path = "tests/decide_v1.rs"

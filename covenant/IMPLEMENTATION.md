@@ -5,6 +5,14 @@ its schema, review history, tasks, and repository-context pack. This ledger
 records adaptations to the existing checkout; it does not certify an
 implementation. All 15 phases below remain uncompleted at this checkpoint.
 
+Subsequent accepted local state: F01 is complete after its focused 17-test suite,
+independent correction re-review, and root adjudication. F10's standalone local
+wire-contract artifact stage is also complete after 16 focused tests and
+independent review; its external schema/sidecar and source/Bazel integration
+acceptance remain pending. Checkpoint hashes and exact staged scope are
+recorded below. Other phases retain their separately documented in-progress or
+external-pending status.
+
 ## Session constraints and evidence
 
 - The user authorizes the planned fork work and workers for planning, tests,
@@ -45,6 +53,8 @@ implementation. All 15 phases below remain uncompleted at this checkpoint.
 | A07 | F01 uses an offline bootstrap validator and strictly resolves the recorded local tag to the pinned commit. | Root authorizes the implementation worker to fetch only already-verified `rust-v0.153.4` from `https://github.com/openai/codex.git` into that local tag name to supply verification evidence. No branch/checkout/baseline change; no validator network access or missing-tag bypass. |
 | A08 | F10 includes a small standalone `covenant/runtime` package/workspace named `codex-covenant` with its own lockfile and nextest local profile. | Root approved isolated wire-contract tests/implementation without altering the drifting upstream dependency baseline. The current stage exposes only decode/serialization; later integration still requires reviewed codex-rs path-dependency/Bazel wiring. JSON Schema integer acceptance must not silently narrow to u64; duplicate-key rejection is additional transport policy. |
 | A09 | Format only fork-owned or intentionally changed files; restore only proven CRLF-only checkout differences in F01's three pinned artifacts. | The user's no-unrelated-upstream-change constraint overrides whole-tree formatting. Root specifically authorized exact pinned-blob restoration of LICENSE, NOTICE, and rust-toolchain.toml only after verifying no existing content diff and CRLF normalization equality, plus exact-path index stat refresh with no staged content. No general upstream repair or formatter sweep is authorized. |
+| A10 | F21 preserves the internal in-process app-server orchestration required by this pinned `codex exec`, while removing public server entrypoints and alternate authorities. | Root approved the source re-anchor: `exec/src/lib.rs:812` calls app-server-client `lib.rs:330`, then `in_process.rs:473` creates MessageProcessor with plugin startup at line 490; `message_processor.rs:331` constructs `extensions.rs:75-133`. Do not claim the entire app-server library compiles out or rewrite the upstream agent loop. Exact extension/startup constructor clamps require their own F21 design and behavioral tests before edits. |
+| A11 | F00 records the fourth upstream wire form `tool_search` separately from function/custom/hosted. | Root approved the source-evidenced inventory form, with one positive synthetic identity regression before implementation. `ToolSpec::ToolSearch` and `ToolPayload::ToolSearch` remain proposed excluded; F11's exact two-identity admission table is unchanged. |
 
 The one-shot path is compatible with the planned exec gate on this baseline:
 `Feature::UnifiedExec = false` selects `ExecCommandHandler::one_shot`, which
@@ -247,7 +257,7 @@ Production implementation remains absent and no green production result is
 claimed. The durable evidence summary is this checkpoint; detailed process
 output was returned to the root by the test-author tool run.
 
-### F01 implementation checkpoint (corrections reviewed; root adjudication pending)
+### F01 implementation checkpoint (complete locally; checkpoint committed)
 
 The separate implementation worker's full evidence is
 `.git/covenant-session/f01-evidence.md`. It added the eight-field manifest and
@@ -291,6 +301,24 @@ and cached upstream diffs remain empty. F01 state is `reviewed` and
 `local-verified`, awaiting root adjudication before completion; no commit or
 push has been made. F00 stays structural `tests-red`, and F10 remains pending
 real validation implementation rather than accepting its permissive scaffold.
+
+Root subsequently accepted the F01 independent PASS and authorized two local
+checkpoint commits. The delegated integration worker inspected an empty index,
+staged explicit paths only, checked staged names and `git diff --cached --check`
+before each commit, and created:
+
+| Local checkpoint | Commit | Exact committed scope |
+| --- | --- | --- |
+| Planning ledger | `11c42edb4d431030f2746709c98e8a212d327f11` | `covenant/IMPLEMENTATION.md` only; message `docs(covenant): record implementation phases and scope`. |
+| F01 bootstrap | `3219b595a84a8dc7a996f4ec1ef7c6c3aefe6df7` | `covenant/UPSTREAM.toml`, `covenant/scripts/validate_bootstrap.py`, and `covenant/tests/test_bootstrap.py` only; message `feat(covenant): validate the pinned upstream bootstrap`. |
+
+F01 status is now `complete` for the adapted local bootstrap scope. No test rerun
+was needed after formatting/review, and no commit was pushed or remotely tagged.
+The index was empty after both commits. F00 tests/validator work, runtime/schema
+work, and the user's `covenant_docs/` were excluded and remained untracked.
+This hash/status ledger update is intentionally left for the next checkpoint,
+avoiding a self-referential commit chain. F00/F10 completion and downstream
+build/gate/release/harness acceptance are not implied by these commits.
 
 ### F10 test-author checkpoint
 
@@ -417,3 +445,86 @@ preflight stat/hash and policy call. These are pending design amendments, not
 completed engineering decisions or authorization to expand source edits now.
 Detailed evidence is in `.git/covenant-session/scout.md` and
 `.git/covenant-session/f12-design-review.md`.
+
+### F10 implementation and independent regression stage
+
+The implementation worker replaced the permissive scaffold with a private typed
+decoder, immutable validated wrapper, content-free error, and exact decimal
+integer validation. Its original 11 tests passed in Nextest run
+`51f0d4bd-24e6-4572-a44c-5cfc3eaaff54` (0.752 seconds, 0 skipped), but the
+worker identified two untested serde shape gaps before completion and held
+production corrections for independently authored red tests. This initial
+green run is not F10 acceptance.
+
+The test author added five regression methods: externally tagged object
+substitutions for all five string-enum positions, positional array
+substitutions for all ten schema-object positions, raw serde private-number
+object spoofing, ordinary decimal/exponent version semantics, and exact
+mathematical numeric boundaries. The schema oracle establishes rejection of
+the shape cases before the production assertions. Raw spoof objects are
+serialized directly to original request bytes without a Value reparse that
+could erase their hostile shape.
+
+The pinned dev oracle uses floating-point numeric const comparison; it can
+round near-one decimals or fail on huge exponents. Its numeric limitations do
+not amend the canonical schema. The ordinary-number corpus retains the real
+Draft 2020-12 oracle; separately labeled exact mathematical cases establish
+near-one rejection, exponent equality, very large integer acceptance, negative
+zero, and nonintegral rejection without that float oracle.
+
+Focused `just test --manifest-path ../covenant/runtime/Cargo.toml -p
+codex-covenant --locked` compiled in 3.38 seconds and produced Nextest run
+`55872857-fe4b-40c3-a8f5-e17bbd6692a1`: 16 tests, 14 passed, 2 failed,
+0 skipped in 1.204 seconds, exit 1. All five enum-object cases and nine derived
+struct-array cases were incorrectly accepted; the environment-array case
+correctly rejected. The original 11 tests and three new numeric/spoof methods
+passed. These are real production behavioral failures, not scaffold or missing
+entrypoint evidence. Root accepted this red stage; F10 remains `tests-red`
+pending corrections and independent review. Only the test file and this ledger
+were edited by the regression author; scoped test formatting follows this run.
+Evidence is recorded in `.git/covenant-session/f10-regression-red.md`.
+
+### F10 corrected implementation and independent review
+
+Production corrections passed all 16 focused tests, 0 skipped, in Nextest run
+`99bce712-7697-450d-b467-b871cb6e3a47` (1.107 seconds; compile 4.65 seconds).
+Scoped `just fix` passed without warnings or edits; the implementer then
+formatted only five production modules. The independent test-file hashes and
+root Cargo/Bazel hashes remained unchanged. No test suite was repeated solely
+after formatting.
+
+Independent review read all 491 production lines and the schema/test evidence
+and found no blocking defect. Every closed object passes through map-only
+decoding, each enum requires a string, optional fields distinguish omission
+from null, and the public wrapper cannot be built unchecked or mutated. Exact
+numeric-token and decimal-scale checks preserve schema integer semantics
+without float or u64 narrowing. Complete payload serialization, duplicate-key
+refusal, and bounded content-free errors remain intact. Root accepted the
+independent PASS and marked the F10 standalone local artifact stage `complete`.
+This does not complete sidecar, native path/env, process, patch, source/Bazel
+integration, or external harness acceptance.
+
+The documented just invocation uses the existing `codex-rs` Rust 1.95.0 pin;
+independent offline locked Cargo metadata confirms only the standalone package
+and its separate target/lock. The crate has no current Bazel target. Its test
+`include_str!` of the canonical schema must receive explicit Bazel compile_data
+when integration adds BUILD/dependency wiring; that pending integration is not
+claimed green. Schema copies still hash to
+`d06c6927784899cea94940854e6ab96f4ca622e49f7648e1fb3584ac1272bb48`.
+Full review is `.git/covenant-session/f10-review.md`.
+
+### F00 implementation handoff awaiting independent source review
+
+The implementation worker reports 15 focused tests green in 48.843 seconds,
+including the A11 test that first failed against production for unknown form.
+Scoped Ruff passed. After the A10 source-map additions, the real structural
+validator passed again with 15 seams, 54 tools, and 132 authorities (54 tool,
+33 constructor, 45 sink); inputs reference 107 source files, 21 key names, and
+12 literal audit queries. Evidence is `.git/covenant-session/f00-evidence.md`.
+
+F00 status is `implemented`, pending independent structural and human source
+review. Dynamic provider/MCP secret-name closure remains unresolved for F12/F21;
+finite declared-key coverage does not prove complete credential scrubbing.
+Literal source validation does not prove complete authority discovery, callable
+reachability, gate order, final environments, or semantic domination. No F00
+completion or downstream source-edit authorization follows from this green run.
