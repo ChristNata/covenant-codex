@@ -1101,3 +1101,33 @@ test, unrelated source, root-lock edit or remote action is included.
 Acceptance is bounded to a live runtime and synthetic File-store/native HTTP
 fixtures. Runtime/process death, atomic saves, competing metadata/login/logout
 writers, permanent-failure cache recovery, redaction and full F14 remain pending.
+
+F14 cancellation test checkpoint completed as
+`cacc3e9bc46c414bd9160864be24f31f890bc121`,
+`test(covenant): reproduce cancelled native auth refresh`: exactly six reviewed
+test paths plus ledger, 496 changed lines. Staged names/blob content/whitespace
+and the original root-lock hash passed; the index was empty afterward.
+
+### F14 caller cancellation: accepted local ownership fix
+
+Root accepted independent `f14-cancellation-review.md` PASS after reading the
+source and evidence. Only the private refresh module changes: a caller still
+waits for the lock and validates stored account/generation itself, then transfers
+the guard, client and matching refresh token into one plain Tokio task owning
+the complete HTTP response and authoritative merge/save. Caller cancellation
+cannot drop that owned operation on a live runtime; cancelled waiters leave no
+detached wait. Live callers retain existing result/cache reload behavior, with
+a fixed content-free join failure. Backend/default-mode behavior is unchanged.
+
+Focused run `e3826714-ed44-4e2f-a3ac-718d520ecac3` passed both frozen cases;
+full fork-auth run `c2ff3abe-ed15-4f1b-b0cc-e9789a7cac2c` passed all eleven,
+zero skipped. Both cancellation cases prove caller abort, continuing runtime,
+complete persisted generation one and a fresh public probe, with one request,
+zero reuse and one acknowledgement. Final scoped format/check passed; no tests
+were repeated afterward. All protected hashes match the frozen handoff.
+
+Evidence is `f14-cancellation-implementation-evidence.md`. Reviewed refresh SHA
+is `8bebd1dd28b8f1cff0d525d18c5418e859ae53f80f23aba7b766125cfd20c3d9`.
+This checkpoint contains that one source path plus ledger. Runtime shutdown,
+process death, unseen responses, cancelled-manager cache repair, atomic writes,
+competing writers, cached failures, redaction and full F14 remain pending.

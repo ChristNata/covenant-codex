@@ -23,8 +23,7 @@ pub(super) async fn refresh_native_auth(
             "Stored ChatGPT credentials are no longer available for this refresh.".to_string(),
         ))
     };
-    // The same guard owns the authoritative reload, HTTP request and merge/save.
-    // The caller owns this operation; dropping its future releases the guard.
+    // Waiting for ownership remains cancellable without starting a refresh.
     let storage: Arc<dyn AuthStorageBackend> = Arc::new(transaction.lock().await?);
     let current = storage.load()?.ok_or_else(unavailable)?;
     if current.resolved_mode() != AuthMode::Chatgpt {
@@ -44,12 +43,23 @@ pub(super) async fn refresh_native_auth(
         return Ok(());
     }
 
-    let response = request_chatgpt_token_refresh(expected.refresh_token, &client).await?;
-    persist_tokens(
-        &storage,
-        response.id_token,
-        response.access_token,
-        response.refresh_token,
-    )?;
-    Ok(())
+    // Transfer ownership before polling HTTP: once the authority consumes the
+    // token, caller cancellation must not discard its replacement. Dropping
+    // this join handle leaves the task running on the same live runtime.
+    tokio::spawn(async move {
+        let response = request_chatgpt_token_refresh(expected.refresh_token, &client).await?;
+        persist_tokens(
+            &storage,
+            response.id_token,
+            response.access_token,
+            response.refresh_token,
+        )?;
+        Ok::<(), RefreshTokenError>(())
+    })
+    .await
+    .map_err(|_| {
+        RefreshTokenError::Transient(std::io::Error::other(
+            "Native auth refresh task did not complete.",
+        ))
+    })?
 }
