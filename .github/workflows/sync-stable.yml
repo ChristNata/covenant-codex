@@ -89,6 +89,7 @@ jobs:
           fi
 
       - name: Create upgrade branch and PR
+        id: upgrade_pr
         if: steps.check.outputs.needed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -111,19 +112,39 @@ jobs:
 
           if [ -n "$EXISTING_PR" ]; then
             echo "Upgrade PR #${EXISTING_PR} already exists."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING_PR" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           git push --force origin \
             "${SHA}:refs/heads/${UPGRADE_BRANCH}"
 
-          gh pr create \
-            --base "$CUSTOM_BRANCH" \
-            --head "$UPGRADE_BRANCH" \
-            --title "Update Covenant Codex to ${TAG}" \
-            --body "A new stable OpenAI Codex release is available.
+          PR_URL="$(
+            gh pr create \
+              --base "$CUSTOM_BRANCH" \
+              --head "$UPGRADE_BRANCH" \
+              --title "Update Covenant Codex to ${TAG}" \
+              --body "A new stable OpenAI Codex release is available.
 
           Upstream release: ${TAG}
           Release: ${RELEASE_URL}
 
           This PR is the integration workspace for bringing the new stable upstream release into Covenant Codex."
+          )"
+
+          PR_NUMBER="$(gh pr view "$PR_URL" --json number --jq '.number')"
+
+          echo "created=true" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger Codex Cloud
+        if: steps.upgrade_pr.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.CODEX_TRIGGER_TOKEN }}
+          PR_NUMBER: ${{ steps.upgrade_pr.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+
+          gh pr comment "$PR_NUMBER" --body \
+          "@codex Read FORK_INTEGRATION.md and perform the upstream integration for this PR. Merge covenant-ver into the current upgrade branch, resolve conflicts semantically, preserve intentional Covenant Codex behavior, adapt our changes to the new upstream architecture where appropriate, remove obsolete compatibility code, follow AGENTS.md, run the appropriate formatting/build/tests, fix integration regressions, and push the completed changes back to this PR branch. Never modify main."
