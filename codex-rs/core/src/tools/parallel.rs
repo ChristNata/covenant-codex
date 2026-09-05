@@ -83,6 +83,9 @@ impl ToolCallRuntime {
             match future.await {
                 Ok(response) => Ok(response.into_response()),
                 Err(FunctionCallError::Fatal(message)) => Err(CodexErr::Fatal(message)),
+                Err(error @ FunctionCallError::CovenantDenied) => {
+                    Err(CodexErr::Fatal(error.to_string()))
+                }
                 Err(other) => Ok(ResponseItemEnvelope::new(
                     Self::failure_response(error_call, other).into(),
                 )),

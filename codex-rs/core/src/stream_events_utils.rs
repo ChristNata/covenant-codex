@@ -386,6 +386,9 @@ pub(crate) async fn handle_output_item_done(
         Err(FunctionCallError::Fatal(message)) => {
             return Err(CodexErr::Fatal(message));
         }
+        Err(error @ FunctionCallError::CovenantDenied) => {
+            return Err(CodexErr::Fatal(error.to_string()));
+        }
     }
 
     Ok(output)

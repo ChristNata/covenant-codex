@@ -994,3 +994,79 @@ tests with a clearly temporary permissive scaffold, not environment validation
 implementation. Its isolated windows-sys 0.61.2 Globalization dependency is
 approved separately with all existing standalone pins preserved; root/Bazel
 integration remains a later product-stage obligation.
+
+F12a local checkpoint completed as
+`76e21781a8bcaa9f3e8ef888a5be9b57325f31ca`,
+`feat(covenant): freeze validated startup launch controls`: exactly the three
+reviewed runtime paths, accepted inventory amendment and ledger, with clean
+staged names/whitespace and an empty index. No manifests, locks, schema,
+concurrent F11/auth files or user docs were included; no test repeat or push.
+This annotation remains for the next ledger checkpoint.
+
+### F11 first admission tranche: green and independently reviewed
+
+The private codex-tools two-row identity policy and six approved production
+seams now pass all eight frozen actual-registry tests. Nextest run
+`237c8a3d-ab45-435c-bc08-db5c0c357378` compiled in 13m26s and ran in 1.217s:
+eight passed, zero selected skips, 2,341 upstream tests deliberately excluded.
+Exact-file formatting/check changed no bytes; all production overlays, frozen
+tests/feature and original/temporary lock hashes matched. Independent
+`f11-first-review.md` is PASS for this precise partial contract, accepted by
+root. Scoped non-mutating library Clippy then completed exit 0 in 11m14s with
+no warnings/errors or source changes, satisfying root's local checkpoint gate.
+Evidence: `f11-first-implementation-evidence.md` and its recorded hash/log files.
+
+F11 remains incomplete. The current constrained wire path is unusable until
+the router companion preserves raw namespaces: upstream default normalization
+would make the final gate reject even valid unqualified calls. Raw pre-parse
+admission, parallel pre-readiness/metadata checks, post-hook/constructor clamps,
+ordinary-mode controls, effective advertised specs and actual agent/E2E coverage
+remain test-first follow-ons. This is identity admission, not F12/F13 native
+effect authorization or a shippable constrained product. The superseded
+covenant/core-tests experiment is excluded from checkpoints.
+
+### F12 12b Windows environment test stage: frozen behavioral red
+
+Root approved the narrow FrozenWindowsEnvironment raw-pair constructor and
+immutable map/native-block getters, unit content-free error and real Windows
+ordinal oracle. Eleven sibling tests now cover complete content/order,
+validation/collision before scrub, 27-name/AWS policy canaries, pseudo drives,
+lossless text and exact UTF-16/entry/aggregate bounds. Final substantive Nextest
+run `e94ddf55-c2dc-44a3-98b7-d610e34cbdfe`: eleven selected tests, two pass/nine
+intended behavior failures in 0.390s; 24 prior F10/12a tests deliberately
+excluded. Scoped formatting/check followed, with no unchanged test repeat.
+The permissive scaffold is explicitly nonshipping and has been handed to a
+separate implementer; no environment validation or native process claim exists.
+
+The isolated Windows-only windows-sys 0.61.2 Globalization addition retains all
+101 existing external package records exactly. An offline resolver's five
+unrelated JS/wasm downgrades were rejected/restored; subsequent locked Windows
+metadata passed with only the approved new package/root edge. Original root
+lock/schema remain untouched; no Bazel success is claimed. Full frozen hashes,
+lock comparison and red details are in `f12b-tests-evidence.md`. F21 arbitrary
+provider-name closure and actual final backend equality remain mandatory.
+
+Root settled the future 12c argv binding: a named input will contain one
+lossless absolute resolved application path plus an argument tail excluding
+argv[0]. DecideV1 argv must be derived as that exact program spelling followed
+by the tail. The native adapter derives argv[0] and lpApplicationName from the
+same frozen program, with no independent identity override/command string.
+Final audited Windows quoting length still needs validation. API/accessor
+review and tests remain a separate stage; 12b is not expanded to implement it.
+
+### F13 native qualification: approved bounded next step
+
+Root approved native TxF qualification first, with mandatory unsupported-volume
+or API refusal and no ordinary-writer fallback. An initial updates-only stage
+cannot complete F13. Every settled denial/effective precommit race must retain
+zero committed delta. Cancellation before commit admission rolls back; after
+owner-admitted CommitTransaction, settle the actual result and never falsely
+report denial or retry an unknown outcome. Blocked attacker attempts may retain
+the original authorized identity. Transaction-private staging is distinct from
+committed delta; ordinary temp artifacts/ACL changes are not permitted.
+
+A structured prepared batch replacing constrained text reparsing remains a
+necessary proposed seam, with no production edits before native proof/tests.
+Caps, G4 absent-parent semantics and identity encoding remain pending. These
+decisions from root's f13-design-plan adjudication are planning authorization,
+not implementation or native transaction acceptance.

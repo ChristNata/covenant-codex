@@ -36,6 +36,8 @@ use codex_protocol::parse_command::ParsedCommand;
 use codex_protocol::protocol::EventMsg;
 use codex_rollout::state_db;
 use codex_shell_command::parse_command::parse_shell_script;
+#[cfg(feature = "covenant")]
+use codex_tools::CovenantTool;
 use codex_tools::ToolName;
 use codex_tools::ToolSpec;
 use futures::future::BoxFuture;
@@ -480,6 +482,15 @@ impl ToolRegistry {
         &self,
         name: &ToolName,
     ) -> Option<Box<dyn ToolArgumentDiffConsumer>> {
+        // This factory handles custom wire streams; admission does not inspect input.
+        #[cfg(feature = "covenant")]
+        CovenantTool::admit(
+            name,
+            &ToolPayload::Custom {
+                input: String::new(),
+            },
+        )
+        .ok()?;
         self.tool(name)?.create_diff_consumer()
     }
 
@@ -497,6 +508,13 @@ impl ToolRegistry {
         mut invocation: ToolInvocation,
         terminal_outcome_reached: Option<Arc<AtomicBool>>,
     ) -> Result<AnyToolResult, FunctionCallError> {
+        #[cfg(feature = "covenant")]
+        if let Err(error) = CovenantTool::admit(&invocation.tool_name, &invocation.payload) {
+            if let Some(reached) = terminal_outcome_reached.as_deref() {
+                reached.store(/*val*/ true, Ordering::Release);
+            }
+            return Err(error);
+        }
         let tool_name = invocation.tool_name.clone();
         let call_id_owned = invocation.call_id.clone();
         let otel = invocation.turn.session_telemetry.clone();
@@ -564,7 +582,9 @@ impl ToolRegistry {
             return Err(err);
         }
 
-        if let Some(pre_tool_use_payload) = tool.pre_tool_use_payload(&invocation) {
+        if !cfg!(feature = "covenant")
+            && let Some(pre_tool_use_payload) = tool.pre_tool_use_payload(&invocation)
+        {
             match run_pre_tool_use_hooks(
                 &invocation.session,
                 &invocation.turn,
@@ -824,3 +844,7 @@ fn unsupported_tool_call_message(payload: &ToolPayload, tool_name: &ToolName) ->
 #[cfg(test)]
 #[path = "registry_tests.rs"]
 mod tests;
+
+#[cfg(all(test, feature = "covenant"))]
+#[path = "covenant_admission_tests.rs"]
+mod covenant_admission_tests;
