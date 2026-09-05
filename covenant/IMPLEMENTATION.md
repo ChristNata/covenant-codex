@@ -1342,3 +1342,27 @@ This accepts the bounded local-call admission gap only. Effective product tools,
 startup constructors, unsolicited hosted-item local persistence, real-hook/
 repository-read E2E, native F12/F13 authority and full F21/F31 remain pending.
 No concurrent F14 source, dependency, unrelated document or remote push included.
+
+F11 companion production checkpoint completed as
+`2204b2e63049dab575b6dd31f1c24fef8bc3faf0`, 154 changed lines including ledger;
+exact staged paths/blobs, reviewed hashes and root lock passed; index empty.
+
+### F12c2 exact reply test checkpoint
+
+Root accepted independent `f12c2-review.md` PASS for the bounded protocol
+foundation. This checkpoint contains the frozen 382-line reply test sibling
+plus ledger, SHA-256
+`b821ccd3aa95fa704aac92eea276cd440cfd7b0396045817a29cc35c7922e702`.
+Eight tests cover every exact split and bytewise arrival, every proper prefix,
+every byte-position mismatch and malformed/equivalent response, large/separate
+overflow, sticky refusal, all completion facts and priority, exact deadline
+boundaries, and real elapsed expiry through public wrappers.
+
+Actual scaffold run `5f74b41b-11a8-4b59-9c9e-92c4f98e61a8` executed all eight:
+one passed and seven failed behaviorally, with 42 prior tests filtered. The
+same private transition methods are called by real-Instant public wrappers;
+no test-only clock or parallel implementation supplies the boundary checks.
+Evidence is `f12c2-tests-evidence.md` and its frozen result. The temporary
+permissive scaffold is not committed. Registration follows with the separately
+reviewed final source, so this unregistered file alone is not an executed target.
+No previous test, schema, lock, F14 work or remote action enters this checkpoint.
