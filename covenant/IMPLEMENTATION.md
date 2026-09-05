@@ -1258,3 +1258,26 @@ frozen lib SHA-256 is
 Protocol reply/deadline/completion, native backend/image/Job/quoting, F21,
 G4 and full F12 remain separate. No permissive scaffold, dependency/lock,
 unrelated concurrent F11 source, test repeat or remote push is included.
+
+F12c1 final source/lib checkpoint completed as
+`fdad55f63575d278d4c57a1e5af0d22c92a0f33a`, 280 added lines including ledger.
+Reviewed hashes, staged paths/blobs and protected root lock passed; index empty.
+
+### F11 companion wire contract checkpoint
+
+Root accepted independent `f11-companion-review.md` PASS within the raw local
+call/earliest parallel admission scope. This checkpoint contains the frozen
+169-line wire test file plus ledger. It covers exact raw Function/Custom names,
+forms and namespaces, all ToolSearch execution/id/argument cases, and the
+ordinary positive normalization/search control. Whole accepted ToolCall data
+and fixed typed refusal are checked without printing the argument canary.
+
+Final three wire cases were genuinely red in run
+`46bf60dc-b904-4a11-b059-117e5618b482`; ordinary baseline control passed in
+`96f3270c-da79-4fd0-aaba-b6d7c692e257`. Frozen SHA-256 is
+`f1cbb961202f55bc3ce9f68f740314664b3fe63d8e20c36e5bae00d5bf8f137b`.
+Evidence is `f11-companion-tests-evidence.md`. Registration stays with the
+following reviewed production checkpoint; this unregistered test source alone
+is not represented as an executed target. Readiness tests are split next for
+review size. Native authority, hosted response processing, product construction
+and full F11/F21 remain separate. No F14, lock, unrelated source or remote action.
