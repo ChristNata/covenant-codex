@@ -3,6 +3,8 @@ mod agent_identity;
 mod auth_headers;
 mod bedrock_access_keys;
 mod bedrock_api_key;
+#[cfg(windows)]
+mod covenant_auth_home;
 pub mod default_client;
 pub mod error;
 mod personal_access_token;

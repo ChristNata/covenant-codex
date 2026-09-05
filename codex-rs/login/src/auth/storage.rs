@@ -504,6 +504,11 @@ pub(super) fn create_auth_storage(
     mode: AuthCredentialsStoreMode,
     keyring_backend_kind: AuthKeyringBackendKind,
 ) -> Arc<dyn AuthStorageBackend> {
+    #[cfg(windows)]
+    let codex_home = match super::covenant_auth_home::resolve_auth_home(codex_home) {
+        Ok(home) => home,
+        Err(error) => return Arc::new(error),
+    };
     let keyring_store: Arc<dyn KeyringStore> = Arc::new(DefaultKeyringStore);
     create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind)
 }

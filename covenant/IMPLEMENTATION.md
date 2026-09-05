@@ -58,6 +58,11 @@ external-pending status.
 | A09 | Format only fork-owned or intentionally changed files; restore only proven CRLF-only checkout differences in F01's three pinned artifacts. | The user's no-unrelated-upstream-change constraint overrides whole-tree formatting. Root specifically authorized exact pinned-blob restoration of LICENSE, NOTICE, and rust-toolchain.toml only after verifying no existing content diff and CRLF normalization equality, plus exact-path index stat refresh with no staged content. No general upstream repair or formatter sweep is authorized. |
 | A10 | F21 preserves the internal in-process app-server orchestration required by this pinned `codex exec`, while removing public server entrypoints and alternate authorities. | Root approved the source re-anchor: `exec/src/lib.rs:812` calls app-server-client `lib.rs:330`, then `in_process.rs:473` creates MessageProcessor with plugin startup at line 490; `message_processor.rs:331` constructs `extensions.rs:75-133`. Do not claim the entire app-server library compiles out or rewrite the upstream agent loop. Exact extension/startup constructor clamps require their own F21 design and behavioral tests before edits. |
 | A11 | F00 records the fourth upstream wire form `tool_search` separately from function/custom/hosted. | Root approved the source-evidenced inventory form, with one positive synthetic identity regression before implementation. `ToolSpec::ToolSearch` and `ToolPayload::ToolSearch` remain proposed excluded; F11's exact two-identity admission table is unchanged. |
+| A12 | F12 authorizes at the final prepared backend boundary; manager remains the mandatory routing/origin gate. The first constrained product supports local Windows exec only. | Root approved fork-only opt-in seams because legacy/elevated code changes env/cwd/security after the manager. Remote/foreign executor and snapshot routes must explicitly deny before dispatch, with behavioral coverage. Preserve sandbox selection and never fall back unsandboxed. Plain, legacy and elevated are separately required stages. |
+| A13 | F12 uses a fork-owned no-breakaway Windows Job and kills/reaps remaining members before tool settlement. | Root approves Job-descendant containment, not a claim that WMI/service/brokered effects are contained. Such effects require policy/residual treatment. Preserve ordinary upstream process behavior outside managed invocations. Native tests must prove containment and cleanup ordering, not just a plain adapter return value. |
+| A14 | F12 decider identity uses an opened-file hash, guarded immutable namespace and suspended-image path/file identity proof from a local non-reparse installation. | Root accepts this explicit construction proof; QueryFullProcessImageNameW is a name, not a direct mapped-image handle. Installation/dependency trust assumptions and replacement tests remain required. Do not claim a kernel mapped-image-handle comparison. |
+| A15 | F12's 1000 ms limit is an authorization deadline with fully owned cleanup before settlement. | No ALLOW after the deadline; no hard-real-time promise that creation/I/O/cleanup finishes in exactly 1000 ms. Concrete transport/request/resource limits still need their test-first design and cannot silently narrow F10's schema. |
+| A16 | Fixed trusted sandbox preparation may precede model authorization and is inventoried separately. | Root approves necessary existing token/ACL/proxy/cwd/helper preparation, with zero model payload execution on denial. Do not claim zero infrastructure filesystem effects or classify trusted preparation as the model patch. Expanded backend seams require their bounded source/test ownership before implementation. |
 
 The one-shot path is compatible with the planned exec gate on this baseline:
 `Feature::UnifiedExec = false` selects `ExecCommandHandler::one_shot`, which
@@ -616,3 +621,78 @@ admission/exclusions, complete credential scrubbing, native authority protection
 or F31 semantic domination. Dynamic provider/MCP names and other recorded policy
 decisions remain explicit F12/F21 design prerequisites. Release and external
 acceptance remain pending.
+
+F00 local checkpoint: `820438291b79b6d5dcf5481a4c8e4940b0ebfd91`,
+`feat(covenant): record and validate upstream authority inventory`. Exactly
+the two manifests, structural validator, focused test file and this ledger were
+staged. Reviewed file hashes and staged whitespace/names checks passed; index
+was empty after commit. Concurrent F02/auth/runtime/user paths were excluded.
+No unchanged tests were repeated and no push occurred. This hash annotation
+stays for the next ledger checkpoint.
+
+### F03 planning and approved F12 design boundary
+
+F03 planning is recorded in `.git/covenant-session/f03-plan.md`, with exact
+Actions commits verified against their authoritative Git refs and action
+metadata. It proposes a manual-only windows-2022 build/upload job using F02,
+read-only repository permission, explicit files and a checked exe/digest pair.
+It contains no F03 tests or implementation. Native setup/linker observations
+and any newly needed helper behavior require bounded follow-up review. Live
+dispatch remains pending until the workflow is on covenant-ver and the user's
+final-push condition permits publication; no workflow was invoked.
+
+Root read/adjudicated the F12 source findings summarized by A12-A16; this ledger
+owner read `.git/covenant-session/f12-design-review.md` in full before recording
+them. Necessary fork-only final-backend integration is approved, with local-only
+Windows support, explicit unsupported-route denial, separately proven sandbox
+branches, native Job settlement, guarded decider identity and honest deadline/
+preparation boundaries. F12 remains `planned`, not implemented or tested.
+Concrete size limits, typed API design and stage-specific native tests remain
+the next F12 prerequisites; real G4 acceptance remains external-pending.
+
+### F14 first Windows auth-home routing checkpoint
+
+Root accepted only the first routing tranche after
+`.git/covenant-session/f14-routing-review.md` reported independent PASS. The
+82-line production change registers a Windows-only private module and chooses
+CODEX_AUTH_HOME at the common storage factory. It freezes the override result
+on first use, creates/canonicalizes a present absolute root, and preserves each
+caller's supplied home when the override is absent. Failed initialization
+returns an error backend rather than falling back. Backend selection itself
+remains unchanged. This is pathname routing, not held filesystem identity or
+refresh-transaction safety.
+
+The six frozen tests exercise real public codex-login APIs in isolated child
+processes with temporary File-mode credentials. Original-source Nextest run
+`e505d47f-26dd-4195-9ae0-414fe50fa3f7` produced one pass, five behavioral
+failures, zero skipped; two failures occurred before later assertions and were
+labeled accurately. The corrected source then passed all six, zero skipped,
+in run `96225459-a678-459e-a215-951e56422e30` (0.159 seconds; compile 16.96
+seconds). All six reached final assertions in the green run. Scoped production
+formatting followed; no unchanged tests were repeated for review/checkpoint.
+
+The owned `covenant/login-tests` workspace directly compiles the actual login/
+protocol path crates and unchanged integration test. Independent comparison
+found zero new/changed external name/version/source/checksum identities;
+423 unreachable external packages were pruned and 32 stale local path-package
+versions corrected to their existing source manifests. The original root lock
+remains unchanged at SHA-256
+`cc69db68df16e6d243d5151ff85d5c4d34ca562f942b8be9016c00d038b512d5`.
+The test hash remains
+`d0a7e522cc18ec83df5dbeac3074a9ee7288a19a3de9b0ddbf9583b152f4a954`
+and owned lock hash
+`b0128b029ce9cb0967050c3bc271b9565cd007d32e664f3aefb18cf59e8074a0`.
+
+F14 is partial: valid File-mode routing is locally accepted. Invalid-root,
+new-root/alias, mocked keyring/Auto/Ephemeral, browser/device flow, refresh and
+competing-writer ownership, atomic replacement, cancellation, secret-canary,
+encrypted-store decisions and external harness separation remain later stages.
+Fixture redaction needs strengthening before secret-canary acceptance. No
+root-workspace build health, Bazel test wiring or real harness acceptance is
+inferred from this focused run. The new module uses normal source-module
+resolution and introduces no compile-time data include.
+
+The test workspace's local `/target/` ignore excludes default generated output;
+the exercised codex-rs/target-login-isolation cache is already excluded by the
+existing codex-rs target-* ignore. No generated cache or root dependency file
+belongs to this checkpoint.
