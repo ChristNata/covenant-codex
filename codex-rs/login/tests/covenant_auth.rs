@@ -27,6 +27,9 @@ use std::process::Stdio;
 
 const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
 
+#[path = "covenant_auth/rotation_tests.rs"]
+mod rotation_tests;
+
 #[derive(Clone, Copy, Deserialize, Serialize)]
 enum Operation {
     Login,
