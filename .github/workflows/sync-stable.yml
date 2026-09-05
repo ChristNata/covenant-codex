@@ -1,0 +1,129 @@
+name: Sync latest stable Codex
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "9 12 * * *"
+      timezone: "Asia/Jakarta"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-codex-stable
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: openai/codex
+  MIRROR_BRANCH: main
+  CUSTOM_BRANCH: covenant-ver
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout covenant-ver
+        uses: actions/checkout@v7
+        with:
+          ref: covenant-ver
+          fetch-depth: 0
+
+      - name: Find latest stable Codex release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          TAG="$(gh api repos/${UPSTREAM_REPO}/releases/latest --jq '.tag_name')"
+          URL="$(gh api repos/${UPSTREAM_REPO}/releases/latest --jq '.html_url')"
+
+          echo "Latest stable release: $TAG"
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch stable release
+        id: upstream
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          git fetch --force https://github.com/openai/codex.git \
+            "refs/tags/${TAG}:refs/tags/${TAG}"
+
+          SHA="$(git rev-parse "${TAG}^{commit}")"
+
+          echo "Stable release commit: $SHA"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Update pristine main
+        env:
+          SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          git push --force origin \
+            "${SHA}:refs/heads/${MIRROR_BRANCH}"
+
+      - name: Check if covenant-ver already contains this release
+        id: check
+        env:
+          SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin \
+            "+refs/heads/${CUSTOM_BRANCH}:refs/remotes/origin/${CUSTOM_BRANCH}"
+
+          if git merge-base --is-ancestor "$SHA" "origin/${CUSTOM_BRANCH}"; then
+            echo "covenant-ver already contains this stable release."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New stable release needs integration."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create upgrade branch and PR
+        if: steps.check.outputs.needed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+          SHA: ${{ steps.upstream.outputs.sha }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
+        run: |
+          set -euo pipefail
+
+          UPGRADE_BRANCH="upgrade/${TAG}"
+
+          EXISTING_PR="$(
+            gh pr list \
+              --state open \
+              --base "$CUSTOM_BRANCH" \
+              --head "$UPGRADE_BRANCH" \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Upgrade PR #${EXISTING_PR} already exists."
+            exit 0
+          fi
+
+          git push --force origin \
+            "${SHA}:refs/heads/${UPGRADE_BRANCH}"
+
+          gh pr create \
+            --base "$CUSTOM_BRANCH" \
+            --head "$UPGRADE_BRANCH" \
+            --title "Update Covenant Codex to ${TAG}" \
+            --body "A new stable OpenAI Codex release is available.
+
+          Upstream release: ${TAG}
+          Release: ${RELEASE_URL}
+
+          This PR is the integration workspace for bringing the new stable upstream release into Covenant Codex."
