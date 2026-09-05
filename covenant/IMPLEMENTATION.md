@@ -1160,3 +1160,34 @@ oracle, validate every raw pair before scrub, exercise the 27-name/AWS canaries,
 pseudo drives and exact bounds, and preserve unrelated challenge values.
 Evidence and hashes are in `f12b-tests-evidence.md` and the lock comparison.
 No tests were repeated, no unrelated path was staged and no push occurred.
+
+F12b contract test checkpoint completed as
+`f46813960eeabd2ece4c405ff1d182d015ea1c58`,
+`test(covenant): define frozen Windows environment contract`. Exactly the frozen
+test file, approved isolated manifest/lock and ledger were committed; staged
+names/blob content/whitespace and reviewed/root-lock hashes passed, with an
+empty index afterward. No permissive scaffold entered the checkpoint.
+
+### F12 12b environment: accepted local representation
+
+Root accepted independent `f12b-review.md` PASS for the final bounded caller-
+supplied environment. Raw owned pairs are bounded and validated losslessly,
+including pseudo drives and duplicates, before scrub. Fallible Windows ordinal
+comparison drives sorting, duplicate detection and the finite 27-name/AWS
+policy; all unexpected native results refuse. One retained post-scrub entry set
+builds complete immutable JSON/native representations; empty is exactly two
+NUL units. The two private production files contain 176 and 56 lines.
+
+Run `a3aff6e2-e525-4a24-be3e-90d581c2047f` passed all eleven frozen tests in
+0.373s, with 24 prior F10/12a tests filtered. Library-only Clippy and scoped
+final formatting/check passed; no post-format test repeat. Native comparator
+failure propagation is source-reviewed, not claimed empirically forced.
+All protected input, test, schema and lock hashes remain unchanged.
+
+Evidence is `f12b-implementation-evidence.md`; final production hashes are
+`0184fa3b9527ee75d9baf9fdd2611c03ef619505bde6a3c4c3d5c66cec330b25`
+and `6bf5386630bb4e6d2a157458a48bb199f60a78753aff3fb4e86c26c7443809fb`.
+This checkpoint contains final environment/policy modules, frozen lib
+registration and ledger only. Actual backend environment completeness,
+F21 provider-name closure, native env/argv/process/Job/image, real G4 and
+product/Bazel integration remain pending; this is not full F12 acceptance.

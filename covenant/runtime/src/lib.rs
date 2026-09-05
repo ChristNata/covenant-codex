@@ -8,6 +8,8 @@ mod decide;
 mod launch_contract;
 mod numbers;
 mod values;
+#[cfg(windows)]
+mod windows_environment;
 mod wire;
 
 pub use decide::DecideV1;
@@ -18,3 +20,7 @@ pub use launch_contract::LaunchContract;
 pub use launch_contract::LaunchContractError;
 #[cfg(windows)]
 pub use launch_contract::StartupControls;
+#[cfg(windows)]
+pub use windows_environment::FrozenWindowsEnvironment;
+#[cfg(windows)]
+pub use windows_environment::WindowsEnvironmentError;
