@@ -1445,3 +1445,48 @@ records final two/thirteen-run evidence and the exact Clippy/Bazel limits.
 This accepts the tests for bounded File replacement, not crash durability,
 hostile namespace/ACL handling or full F14. No F21 source, dependency, root lock
 or remote action belongs to this checkpoint.
+
+F14 persistence public-test checkpoint completed as
+`95dcab7eede7f33db010ed0313c34476043e9664`, 215 added lines including ledger;
+exact staged paths/blobs and protected root lock passed, with an empty index.
+
+### F14 File persistence: accepted replacement and failure preservation
+
+Root accepted independent `f14-persistence-review.md` bounded PASS. The final
+77-line private Windows backend wraps only valid opted-in File storage, inside
+the unchanged permanent transaction guard. Same-parent create-new ordinary
+temporary files receive complete pretty JSON, flush and sync before one
+std::fs::rename. Success immediately disables temporary-name cleanup with an
+infallible flag change; failure explicitly closes the owned temporary and
+returns a fixed safe error preserving its kind. No target truncation, delete,
+read-only bypass, app retry or fallible post-commit operation is introduced.
+Default/unset, Auto/Keyring/Secrets, Ephemeral and existing refresh ownership
+remain unchanged. Pinned Rust1.95/native fixture evidence confirms the observed
+retained-reader replacement and read-only denial; its actual rename flags omit
+IGNORE_READONLY. The earlier compile discovery and MoveFileEx-only failed runs
+remain preserved, not relabelled green.
+
+Focused run `7dddb702-d096-4272-9964-b5735b39a045` passed both new cases;
+affected run `58673895-aff6-408c-b702-1eeb0a2f3daa` passed all thirteen fork-auth
+cases with zero skips. Exact-three-source final formatting/check changed zero
+bytes. Source review independently verified tested/final hashes and frozen
+tests; no review or post-format test repeat. Evidence is
+`f14-persistence-implementation-evidence.md` and its independent review.
+
+The approved Windows normal tempfile dependency retains the existing dev edge.
+Only codex-login -> existing tempfile was added to the auth isolation lock;
+all 809 external full records and package identities remain unchanged. Root
+Cargo.lock and MODULE.bazel.lock are byte-identical. Required Bazel regeneration
+failed on the preserved codex-build-info 0.0.0 baseline path/version mismatch.
+Scoped Clippy was unavailable because Cargo's nonmember feature resolver
+panicked before analysis. No successful Bazel/Clippy validation is claimed and
+no upstream graph workaround was attempted. Product closure remains separate.
+
+Final backend SHA-256 is
+`9c5f0f7d8980f7c1464f76e0d3bcc8bbbe56b9dc2d208e56b60438a95fc72ea6`;
+the two factory/registration paths and both approved Cargo files match the
+reviewed final hash manifest. Partial-temp-write/sync faults, crash durability,
+hostile directory/name/ACL races, old security descriptor preservation,
+Auto/Secrets atomicity, competing metadata/login/revoke semantics and complete
+secret redaction remain separate test-first obligations. No full F14/F21,
+native sidecar, unrelated concurrent source or remote push is accepted here.

@@ -524,6 +524,14 @@ pub(super) fn create_auth_storage(
     if let Some(home) = auth_home
         && mode != AuthCredentialsStoreMode::Ephemeral
     {
+        let storage: Arc<dyn AuthStorageBackend> = if mode == AuthCredentialsStoreMode::File {
+            Arc::new(super::covenant_auth_file::CovenantAuthFile::new(
+                home.clone(),
+                storage,
+            ))
+        } else {
+            storage
+        };
         return Arc::new(super::covenant_auth_storage::CovenantAuthStorage::new(
             home, storage,
         ));

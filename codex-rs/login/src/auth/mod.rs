@@ -4,6 +4,8 @@ mod auth_headers;
 mod bedrock_access_keys;
 mod bedrock_api_key;
 #[cfg(windows)]
+mod covenant_auth_file;
+#[cfg(windows)]
 mod covenant_auth_home;
 #[cfg(windows)]
 mod covenant_auth_refresh;
