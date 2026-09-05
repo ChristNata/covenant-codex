@@ -696,3 +696,100 @@ The test workspace's local `/target/` ignore excludes default generated output;
 the exercised codex-rs/target-login-isolation cache is already excluded by the
 existing codex-rs target-* ignore. No generated cache or root dependency file
 belongs to this checkpoint.
+
+Routing-only local commit:
+`87963dd5ece63ee92d9b7bbd1dbf948c6524a143`,
+`feat(covenant): route Windows auth storage to a dedicated home`. Its nine
+explicit paths contain the three routing production files, unchanged six-test
+snapshot, isolated manifest/lock/nextest profile/target ignore, and ledger.
+The staged test blob was hashed immediately before commit and matched the
+reviewed test SHA above, keeping subsequent rotation registration outside this
+checkpoint. Staged names/whitespace checks passed and the index was empty after
+commit. No F02, rotation test, root lock, user document or generated cache was
+included; no test repeat or push occurred. This hash annotation is reserved for
+the next ledger checkpoint. F14 remains partial.
+
+Root reports F02's frozen ten tests now green against its implementation; its
+independent review is still pending. No F02 artifact/product or F03 live-CI
+acceptance is inferred from that report. F03 plan handoff is complete and no
+workflow/test implementation has begun in this planning stage.
+
+### F02 independent review requires a correction
+
+The helper implementation's frozen ten-test run was green (10/10, zero skipped,
+latest 0.841s), with scoped Ruff checks and no root lock/source change. Full
+independent source review found one previously uncovered input false green:
+`build_windows.py:197-199` accepts workspace.members as a string, mixed array,
+or table when Python membership finds "cli". Those shapes cannot establish the
+declared Cargo workspace membership. Status is `review-failed/R1-pending`, not
+complete. Detailed findings and reviewed boundaries are in
+`.git/covenant-session/f02-review.md`.
+
+The test author added one method while preserving all original assertions.
+Real production red: one targeted test, three expected refusal assertions fail
+with actual success JSON, zero skipped, 0.388s, exit 1. Evidence is
+`.git/covenant-session/f02-review-red.log`. Scoped Ruff check passed and format
+completed; there was no unchanged suite repeat. A different implementation
+worker must correct collection/element validation before independent re-review.
+
+The actual authorized `--check` against this checkout returned exit 0 with the
+source-bound locked Rust 1.95.0 Windows codex-cli/codex invocation and null
+artifact. This was configuration validation only: no product build, output
+digest, F21 constraint, live CI, G4 or promotion claim. Root-approved observed
+path containment remains trusted-workspace bookkeeping, not F12/F13 race
+protection. No production file, root lock, Git index, commit or remote changed
+during this review.
+
+### F11 approved plan and test-stage direction
+
+Root approved a default-off core `covenant` compiled feature forwarded through
+the existing CLI; F21 must make the published/default fork build constrained
+without a runtime disable. Typed CovenantDenied maps to the existing
+nonretryable Fatal and ends the turn. The same policy must cover the raw router,
+pre-readiness, streaming and final registry, preserving raw namespaces only in
+constrained mode. SC8 evidence must inspect the actual `item.completed` content
+and `turn.completed` usage events. The test author is exploring an actual-source
+core test workspace with minimal feature/test registration, preserving the root
+lock and external pins. Pure policy placement remains under review against the
+rule to resist adding core code, with existing codex-tools a candidate. These
+are approved design/test-stage directions, not implementation or green results.
+
+F02 R1 correction independently re-reviewed: **PASS for the local helper
+tranche, pending root acceptance**. The sole production delta is +9/-1 validating
+the workspace table, members list and every string element before membership.
+An in-memory old-block reconstruction matched the previously reviewed helper
+hash exactly; the frozen eleven-test hash and recipe/root lock are unchanged.
+The independent implementer's focused run passed 11/11, zero skipped, 2.191s;
+actual non-building checkout check again returned recipe-validated/artifact=null;
+scoped Ruff passed and formatting changed nothing. Reviewer repeated no tests
+or check, made no source/test edits and created no checkpoint. Evidence:
+`.git/covenant-session/f02-correction-evidence.md` and updated `f02-review.md`.
+Full constrained artifact, native equivalence, live CI and external acceptance
+remain pending; this verdict does not supersede their prerequisites.
+
+### F02 accepted local helper checkpoint
+
+Root accepted the F02 recipe/build-output helper tranche after the frozen
+eleven-test run (11 passed, zero skipped), actual non-building checkout check
+and independent R1 re-review PASS. This local stage is complete. Actual
+constrained product build acceptance remains pending F21/product-graph readiness;
+no synthetic output is treated as that artifact. The reviewed explicit files are
+`covenant/scripts/build_windows.py`, `covenant/windows-repro.toml`,
+`covenant/windows-build/.gitignore`, `covenant/tests/test_windows_build.py` and
+this ledger. Current reviewed hashes match the correction evidence. All
+concurrent core/auth/user files remain outside the checkpoint; no tests repeat
+or push is authorized by this checkpoint.
+
+Root approved F03's next test-author contract in
+`.git/covenant-session/f03-verifier-plan.md`: a read-only pair verifier and exact
+two-file upload. The F02 receipt remains development evidence on disk/log;
+native preparation awaits the final product graph. Only behavioral tests may
+be authored now, followed by a separate implementation worker; no workflow,
+native setup, actual product build or hosted acceptance is implied.
+
+F11 verification workspace amendment: root approved a temporary full-source
+verification worktree. Only that copy's local lock path metadata may be
+reconciled with identical external pins; the original root lock remains
+unchanged. This is a verification-environment choice, not shippable source
+repair or a general dependency upgrade. Feature/behavior acceptance still needs
+the assigned test-first and independent review stages.
