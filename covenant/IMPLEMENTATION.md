@@ -1281,3 +1281,28 @@ following reviewed production checkpoint; this unregistered test source alone
 is not represented as an executed target. Readiness tests are split next for
 review size. Native authority, hosted response processing, product construction
 and full F11/F21 remain separate. No F14, lock, unrelated source or remote action.
+
+F11 companion wire test checkpoint completed as
+`2b3b1418ebe253a2f8296d20a1f33545eec1b384`, 192 added lines including ledger;
+staged paths/blobs and root lock passed, with an empty index afterward.
+
+### F11 companion readiness contract checkpoint
+
+This root-authorized second test checkpoint contains the frozen 350-line
+readiness sibling plus ledger, SHA-256
+`2d7a5e0f33f7b3a37428c9532995b7a870b7200eecd869fc1b01b8ad5814aca6`.
+Three actual constrained cases require denial before attempted-call metadata,
+parallel-runtime lookup, readiness construction/poll and cancellation/extension
+lifecycle. A held execution lock, enabled metadata and pre-cancelled token make
+those observations discriminate a late inner denial; admitted raw and cancelled
+controls prove the detectors and ordinary accepted lifecycle still operate.
+
+Final red run `0d9e462c-dfb2-4ddd-9fb5-8f48f54cd53b` executed all three and
+failed behaviorally. The complete private core target and frozen dependencies
+were retained in the approved full-source verification checkout; exactly 149
+local version fields were reconciled there, with 1,232 external records fixed.
+The original root lock remains unchanged. Independent review accepted this
+fixture sensitivity and final implementation; evidence is in
+`f11-companion-tests-evidence.md` and `f11-companion-review.md`.
+Registration follows with reviewed production; no claim that this unregistered
+file alone ran the tests. No test repeat, F14 source, dependency or remote action.
