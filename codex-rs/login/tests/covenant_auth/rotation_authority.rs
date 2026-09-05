@@ -1,4 +1,4 @@
-use super::support::document;
+use super::rotation_support::document;
 use anyhow::Result;
 use anyhow::ensure;
 use std::io::Read;

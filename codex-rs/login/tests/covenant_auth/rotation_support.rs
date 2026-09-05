@@ -206,6 +206,41 @@ pub(super) fn run_child() -> Result<()> {
         })
 }
 
+pub(super) fn child_command(
+    test_name: &str,
+    root: &std::path::Path,
+    endpoint: &str,
+) -> Result<Command> {
+    let mut command = Command::new(std::env::current_exe()?);
+    command
+        .args(["--exact", test_name, "--nocapture"])
+        .current_dir(root)
+        .env_clear()
+        .env(CHILD, test_name)
+        .env("CODEX_HOME", root.join("mutable"))
+        .env("CODEX_AUTH_HOME", root.join("auth"))
+        .env(REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR, endpoint)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    for name in [
+        "TEMP",
+        "TMP",
+        "USERPROFILE",
+        "HOME",
+        "LOCALAPPDATA",
+        "APPDATA",
+    ] {
+        command.env(name, root);
+    }
+    for name in ["SystemRoot", "WINDIR"] {
+        if let Some(value) = std::env::var_os(name) {
+            command.env(name, value);
+        }
+    }
+    Ok(command)
+}
+
 pub(super) struct Processes {
     children: Vec<Child>,
     events: mpsc::Receiver<(usize, Event)>,
@@ -226,33 +261,7 @@ impl Processes {
             pending: Vec::new(),
         };
         for (index, method) in methods.iter().enumerate() {
-            let mut command = Command::new(std::env::current_exe()?);
-            command
-                .args(["--exact", test_name, "--nocapture"])
-                .current_dir(&fixture.root)
-                .env_clear()
-                .env(CHILD, test_name)
-                .env("CODEX_HOME", fixture.root.join("mutable"))
-                .env("CODEX_AUTH_HOME", fixture.root.join("auth"))
-                .env(REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR, endpoint)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null());
-            for name in [
-                "TEMP",
-                "TMP",
-                "USERPROFILE",
-                "HOME",
-                "LOCALAPPDATA",
-                "APPDATA",
-            ] {
-                command.env(name, &fixture.root);
-            }
-            for name in ["SystemRoot", "WINDIR"] {
-                if let Some(value) = std::env::var_os(name) {
-                    command.env(name, value);
-                }
-            }
+            let mut command = child_command(test_name, &fixture.root, endpoint)?;
             let mut child = command.spawn()?;
             let stdout = child.stdout.take().context("child stdout unavailable")?;
             let sender = sender.clone();

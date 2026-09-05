@@ -27,6 +27,14 @@ use std::process::Stdio;
 
 const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
 
+#[path = "covenant_auth/cancellation_support.rs"]
+mod cancellation_support;
+#[path = "covenant_auth/cancellation_tests.rs"]
+mod cancellation_tests;
+#[path = "covenant_auth/rotation_authority.rs"]
+mod rotation_authority;
+#[path = "covenant_auth/rotation_support.rs"]
+mod rotation_support;
 #[path = "covenant_auth/rotation_tests.rs"]
 mod rotation_tests;
 

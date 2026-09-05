@@ -1070,3 +1070,34 @@ necessary proposed seam, with no production edits before native proof/tests.
 Caps, G4 absent-parent semantics and identity encoding remain pending. These
 decisions from root's f13-design-plan adjudication are planning authorization,
 not implementation or native transaction acceptance.
+
+F11 first local checkpoint completed as
+`f0c03c9bee7ac869a200e910699288f96f608f81`,
+`feat(covenant): enforce closed tool admission at dispatch`. Exactly the six
+reviewed production paths, frozen core feature/test file and ledger were staged;
+names/whitespace checks passed and the index was empty. Source/feature/tests and
+both lock hashes matched review; no auth/12b/superseded wrapper/user files were
+included and no push occurred. Shared companion-test paths were then released
+to their independent author. Full F11/product usability remains pending above.
+
+### F14 caller cancellation: reviewed test checkpoint
+
+Root accepted `f14-cancellation-review.md` PASS for caller-task cancellation
+while the same Tokio runtime remains alive. The separately authored two-case
+red run `d90b5b8a-c735-4cad-bd0d-1c741206943f` passed the cancelled waiter and
+failed the consumed owner: one request consumed generation one, but no response
+acknowledgement or complete persisted/fresh-probe generation followed. Both
+cases confirmed task abort and continued runtime liveness before response release.
+
+This test checkpoint contains exactly six frozen test paths and this ledger.
+The two new files have 384 lines; shared changes only register/import modules
+and extract the unchanged cleared-environment child command construction.
+Test hashes match `f14-cancellation-tests-evidence.md`; all protected auth
+production, manifest and lock inputs retain their reviewed hashes. The following
+production checkpoint contains the separately reviewed ownership fix and its
+actual focused/full green evidence. No permissive production scaffold, repeated
+test, unrelated source, root-lock edit or remote action is included.
+
+Acceptance is bounded to a live runtime and synthetic File-store/native HTTP
+fixtures. Runtime/process death, atomic saves, competing metadata/login/logout
+writers, permanent-failure cache recovery, redaction and full F14 remain pending.

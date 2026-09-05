@@ -1,13 +1,9 @@
 //! Public native refresh races against a local single-use rotating authority.
 
-#[path = "rotation_authority.rs"]
-mod authority;
-#[path = "rotation_support.rs"]
-mod support;
-
+use super::rotation_authority::Authority;
+use super::rotation_support as support;
 use anyhow::Result;
 use anyhow::ensure;
-use authority::Authority;
 use codex_login::AuthDotJson;
 use std::fs;
 use support::Fixture;
