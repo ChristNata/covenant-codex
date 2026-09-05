@@ -6,7 +6,10 @@ records adaptations to the existing checkout; it does not certify an
 implementation. All 15 phases below remain uncompleted at this checkpoint.
 
 Subsequent accepted local state: F01 is complete after its focused 17-test suite,
-independent correction re-review, and root adjudication. F10's standalone local
+independent correction re-review, and root adjudication. F00 source inventory
+and structural validation are complete after 15 tests, actual input validation,
+and final independent source-review PASS; runtime enforcement remains pending.
+F10's standalone local
 wire-contract artifact stage is also complete after 16 focused tests and
 independent review; its external schema/sidecar and source/Bazel integration
 acceptance remain pending. Checkpoint hashes and exact staged scope are
@@ -513,6 +516,16 @@ claimed green. Schema copies still hash to
 `d06c6927784899cea94940854e6ab96f4ca622e49f7648e1fb3584ac1272bb48`.
 Full review is `.git/covenant-session/f10-review.md`.
 
+The delegated integration worker created local checkpoint
+`a3231e1bd82ffd9df63c54d50e6dbab9b228b0a0` with message
+`feat(covenant): validate the decide v1 wire contract`. Its 13 explicit paths
+contain only this ledger, the canonical schema copy, standalone manifest/lock,
+local nextest profile and target-only ignore, five production modules, and two
+test files. Staged whitespace/names checks passed; the index was empty after
+commit and runtime target files remain ignored. F00/F14 work and user documents
+were excluded. No remote push occurred. This hash annotation stays unstaged for
+the next ledger checkpoint, avoiding a self-referential commit chain.
+
 ### F00 implementation handoff awaiting independent source review
 
 The implementation worker reports 15 focused tests green in 48.843 seconds,
@@ -528,3 +541,78 @@ finite declared-key coverage does not prove complete credential scrubbing.
 Literal source validation does not prove complete authority discovery, callable
 reachability, gate order, final environments, or semantic domination. No F00
 completion or downstream source-edit authorization follows from this green run.
+
+### F02 recipe and build-output plan
+
+Root approved the direction of `.git/covenant-session/f02-plan.md`: a strict
+`windows-repro.toml` plus a small fork-owned Python build/digest helper, with
+tests authored before implementation. The current product invocation remains
+the existing codex-cli/codex binary, pinned Rust 1.95.0, locked release build,
+and x86_64-pc-windows-msvc target; no new frontend or copied exec loop is planned.
+Measured rustc/cargo commit identities and the existing static-CRT/stack/release
+configuration are recorded in the plan. Reproducibility is digest-recorded.
+
+Tests will cover source-bound input/path validation, literal argv, exact tool
+versions, stale/missing/wrong artifacts, failed builds, byte-exact SHA-256 and
+the boundary between an unattested build-output receipt and promotion evidence.
+The helper must preserve stale/existing files and cannot fall back to an
+unlocked build or unrelated upstream repair. F02 status remains `planned`;
+no actual constrained codex.exe has been produced or accepted.
+
+Root's auth isolation evidence provides a possible later necessary integration
+route: retain every external package/version/source while correcting stale
+local path-package lock metadata and pruning unreachable records in an owned
+workspace. This is not a general dependency upgrade and does not yet establish
+product binary selection or profile/config/build-resource equivalence. Any
+F21-required root dependency/lock changes still need their own bounded reviewed
+integration. F02 planning makes no such changes. Actual constrained-product,
+live F03, real G4, F31 and F33 acceptance remain separate pending gates.
+
+F02 test-author evidence: `covenant/tests/test_windows_build.py` defines 10
+focused methods against the plan's main/command-runner contract. Production
+entrypoint discovery failed before running any tests because build_windows.py
+is absent; this is not behavioral red evidence. A temporary, explicitly
+permissive baseline then ran all 10 methods in 1.203 seconds: 2 methods passed,
+8 methods failed with 35 failing assertions/subtests, 0 skipped. It deliberately
+ignored recipe binding, version checks, build failures, Cargo artifact events,
+output collisions and output bounds; the tests exposed those wrong behaviors.
+Synthetic producer bytes are only helper-fixture evidence, never a real Rust
+or constrained-product build. The temporary adapter was removed automatically.
+
+Scoped Ruff check passed, then only the new test file was formatted; no tests
+were repeated solely after formatting. F02 status is `tests-red`, pending
+production implementation and independent review. Exact contract and evidence:
+`.git/covenant-session/f02-plan.md`, `f02-tests-evidence.md`, and `f02-red.log`.
+No build helper/recipe, root dependency edit, actual product build, commit, or
+push was made by this authoring stage.
+
+F00 source-review update: the correction candidate now reports 178 authorities,
+45 literal queries and 118 source files, with the structural validator green.
+Independent re-review in `.git/covenant-session/f00-rereview.md` still requires
+three narrow metadata additions for startup git_head_sha process creation,
+persist_agent_identity_record credential mutation, and auth/revoke network/error
+handling. F00 remains review-pending; structural green does not close those
+source findings or establish secret-name closure.
+
+### F00 final independent acceptance
+
+Root accepted F00 source inventory and structural verification after all three
+final source findings were corrected and independently confirmed in
+`.git/covenant-session/f00-rereview.md`. The unchanged 15-test suite remains
+green; actual structural validation of the final inputs also passed. Current
+totals are 15 seams, 54 tool identities, 181 authorities (54 tool, 46 constructor,
+81 sink), 50 literal queries and 119 existing source files.
+
+Reviewed final SHA-256 values were independently matched before staging:
+INTEGRATION-FILES `93ca5f3c7df9dc5036582c2fb777d5838f1dc409dfb262261c543a60332a06a2`,
+AUTHORITY-INVENTORY `e72531ff53a9f0798c6e7ee6c703853d1d6aa020085a197d0f40694d59630b1d`,
+validator `c150893643d258c181cbbb41fc6c80836da753dcc3db8620276cd3047ede91de`,
+test `daad029ba3067cebb2ca5aac4e63308ffb4a775c8240bc1b84dd38e15b5bb722`.
+No unchanged tests were repeated for the metadata corrections or checkpoint.
+
+F00 is `complete` for the reviewed source inventory/structural-verifier stage.
+This accepts source anchors and proposed downstream ownership, not implemented
+admission/exclusions, complete credential scrubbing, native authority protection,
+or F31 semantic domination. Dynamic provider/MCP names and other recorded policy
+decisions remain explicit F12/F21 design prerequisites. Release and external
+acceptance remain pending.

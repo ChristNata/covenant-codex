@@ -1,0 +1,2136 @@
+# F00 SOURCE REVIEW CANDIDATE. No fork gate or exclusion is implemented by this file.
+# schema_version 1 validates structure only. All dispositions are proposed later-phase
+# ownership, subject to independent source review and F31 instrumentation/mutation.
+# Literal symbols may occur in comments: an anchor match is never a domination proof.
+# This candidate records discovered authority routes; independent audit must identify
+# omissions and block F00 completion or re-plan later Produces before implementation.
+# HUMAN AUDIT PROCEDURE (required separately from executable structural checks):
+# 1. Run validate_bootstrap.py on UPSTREAM.toml; verify the tag/HEAD lineage evidence.
+# 2. Execute the following static offline check from the repository root:
+# python covenant/scripts/validate_integration.py --repo . --upstream covenant/UPSTREAM.toml --integration covenant/INTEGRATION-FILES.toml --inventory covenant/AUTHORITY-INVENTORY.toml
+# 3. Read each anchored implementation in both pinned and working views. Trace callers
+#    from CLI/arg0/session/config/reload/extension constructors to actual effects and
+#    callees through local, remote, snapshot, Windows legacy/elevated and direct paths.
+# 4. Repeat source discovery at this commit using argument-safe git grep/rg for
+#    ToolName, register_external, ToolSpec, Command, spawn_process, write_file, remove,
+#    copy, reqwest, hooks, env_key, env_http_headers, credentials and provider APIs.
+#    Example discovery command (read output and callers; matches alone prove nothing):
+# git --no-replace-objects grep -n -e ToolName -e register_external -e Command:: -e spawn_process -e write_file -e env_key -e env_http_headers 3d2ee51ca2d5db578f328aa75e20aa22c0197c9a -- codex-rs
+#    Inspect Rust dependencies and feature reachability too; do not count test-only
+#    matches as production sinks. Every new identity/path/family forces review/replan.
+# 5. Check actual advertising and constructors, not only registry dispatch. Approve or
+#    reject each proposed disposition and record reviewer, commit and unresolved gaps.
+# 6. F31 must instrument the actual resolved sinks and run discriminating mutations;
+#    this CLI's literal audit_queries are executable presence checks only.
+# R1/R2 REVIEW FOLLOW-UP (source paths are classified below, all proposed excluded):
+# Trace provider.auth.command -> auth_manager_for_provider -> external_bearer_only
+# -> BearerTokenRefresher resolve/refresh -> run_provider_auth_command. Its inherited
+# environment and token stdout/stderr require explicit F12/F14/F21 design decisions;
+# model.provider trusted_support does not cover this configured process helper.
+# Trace required in-process app-server plugin startup -> manager startup tasks ->
+# curated Git sync OR GitHub HTTP OR backup archive -> extraction/activation/cleanup.
+# Trace automatic and manual marketplace upgrades through marketplace_upgrade/git.rs
+# and activation.rs. Trace loader Local/Git/Npm sources through its own run_git_output,
+# npm_source pack/extract, plugin_bundle_archive and PluginStore copy/replace/removal.
+# The timed Git runners, direct git_head_sha output, source-loader Git output, npm
+# process, macOS xcode-select probe and HTTP fallbacks are distinct sinks. --ignore-scripts and Git environment isolation do not remove them.
+# git --no-replace-objects grep -n -e auth.command -e external_bearer_only -e run_provider_auth_command -e run_git_output -e run_git_command_with_timeout -e pack_npm_package -e extract_zipball_to_dir -e activate_marketplace_root -e copy_dir_recursive 3d2ee51ca2d5db578f328aa75e20aa22c0197c9a -- codex-rs
+# Re-review source callers through startup, config reload, explicit install/upgrade
+# and cache refresh, including failure/fallback/cleanup branches. F21 source edits
+# and discriminating execution tests remain a separate authorized design stage.
+# F14 source ownership follow-up: manager.rs::persist_agent_identity_record is a
+# competing read/merge/write transaction with cached fallback when storage is absent.
+# Trace free and manager logout_with_revoke -> revoke_auth_tokens -> revoke_oauth_token
+# in login/src/auth/revoke.rs, then parsed response errors -> manager.rs warning sinks.
+# Retain explicit native auth/logout support; F14 transaction/redaction implementation
+# and canary tests remain pending their authorized stage. No encrypted-store amendment
+# is approved by these source-presence rows.
+# CLOSED KEY POLICY CANDIDATE: explicit keys below, plus AWS_ covers SDK environment
+# credentials (session tokens, web-identity pointers and profile-chain configuration).
+# Prefix selection is a proposed scrub policy; no credential values are stored/read.
+# Keys include executor denylist entries and the documented GitHub MCP token name;
+# these are conservative scrub candidates, not claims of enabled provider defaults.
+# OPEN ISSUE: arbitrary configured env_key/env_http_headers and MCP bearer-token key
+# names lack a finite static prefix. F12/F21 must reject out-of-policy configuration or
+# obtain an approved frozen-name amendment. This file does not silently claim closure.
+# Native auth store shell reads remain the master's accepted residual, requiring P6.
+# trusted_support means proposed native support scope, never exemption from F14 canaries.
+schema_version = 1
+commit = "3d2ee51ca2d5db578f328aa75e20aa22c0197c9a"
+scrub_keys = ["COVENANT_DECIDER_PATH", "COVENANT_DECIDER_SHA256", "COVENANT_CHILD_MARKER", "CODEX_AUTH_HOME", "OPENAI_API_KEY", "CODEX_API_KEY", "CODEX_ACCESS_TOKEN", "AWS_BEARER_TOKEN_BEDROCK", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "CODEX_CONNECTORS_TOKEN", "AWS_SESSION_TOKEN", "AZURE_CLIENT_SECRET", "AZURE_FEDERATED_TOKEN_FILE", "GOOGLE_APPLICATION_CREDENTIALS", "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN", "CODEX_EXEC_SERVER_NOISE_AUTH_TOKEN", "NODE_REPL_AUTH_TOKEN", "OPENAI_FEDERATION_RULE_ID", "OPENAI_IDENTITY_TOKEN_FILE", "OPENAI_WORKLOAD_IDENTITY_CONTEXT"]
+scrub_prefixes = ["AWS_"]
+
+[[authorities]]
+id = "tool.builtin.exec_command"
+kind = "tool"
+tool_id = "builtin.exec_command"
+family = "process"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/unified_exec/exec_command.rs"
+symbol = "ExecCommandHandler"
+gate = "process_start"
+reason = "PROPOSED F12 process gate; exec patch interception also requires F13. Upstream is ungated; this is phase ownership, not completion."
+
+[[authorities]]
+id = "tool.builtin.write_stdin"
+kind = "tool"
+tool_id = "builtin.write_stdin"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/unified_exec/write_stdin.rs"
+symbol = "WriteStdinHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.view_image"
+kind = "tool"
+tool_id = "builtin.view_image"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/view_image.rs"
+symbol = "ViewImageHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.update_plan"
+kind = "tool"
+tool_id = "builtin.update_plan"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/plan.rs"
+symbol = "PlanHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.list_mcp_resources"
+kind = "tool"
+tool_id = "builtin.list_mcp_resources"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resources.rs"
+symbol = "ListMcpResourcesHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.list_mcp_resource_templates"
+kind = "tool"
+tool_id = "builtin.list_mcp_resource_templates"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resource_templates.rs"
+symbol = "ListMcpResourceTemplatesHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.read_mcp_resource"
+kind = "tool"
+tool_id = "builtin.read_mcp_resource"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/read_mcp_resource.rs"
+symbol = "ReadMcpResourceHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.wait_for_environment"
+kind = "tool"
+tool_id = "builtin.wait_for_environment"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/wait_for_environment.rs"
+symbol = "WaitForEnvironmentHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.request_user_input"
+kind = "tool"
+tool_id = "builtin.request_user_input"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/request_user_input.rs"
+symbol = "RequestUserInputHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.request_user_input_async"
+kind = "tool"
+tool_id = "builtin.request_user_input_async"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/request_user_input_async.rs"
+symbol = "RequestUserInputAsyncHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.request_permissions"
+kind = "tool"
+tool_id = "builtin.request_permissions"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/request_permissions.rs"
+symbol = "RequestPermissionsHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.new_context"
+kind = "tool"
+tool_id = "builtin.new_context"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/new_context_window.rs"
+symbol = "NewContextWindowHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.get_context_remaining"
+kind = "tool"
+tool_id = "builtin.get_context_remaining"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/get_context_remaining.rs"
+symbol = "GetContextRemainingHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.list_available_plugins_to_install"
+kind = "tool"
+tool_id = "builtin.list_available_plugins_to_install"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/list_available_plugins_to_install.rs"
+symbol = "ListAvailablePluginsToInstallHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.request_plugin_install"
+kind = "tool"
+tool_id = "builtin.request_plugin_install"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/request_plugin_install.rs"
+symbol = "RequestPluginInstallHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.test_sync_tool"
+kind = "tool"
+tool_id = "builtin.test_sync_tool"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/test_sync.rs"
+symbol = "TestSyncHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.tool_search"
+kind = "tool"
+tool_id = "builtin.tool_search"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/tool_search.rs"
+symbol = "ToolSearchHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.apply_patch"
+kind = "tool"
+tool_id = "builtin.apply_patch"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/apply_patch.rs"
+symbol = "ApplyPatchHandler"
+gate = "patch_runtime"
+reason = "PROPOSED F13 patch gate; identity-held mutation amendment pending. Upstream is ungated; this is phase ownership, not completion."
+
+[[authorities]]
+id = "tool.clock.curr_time"
+kind = "tool"
+tool_id = "clock.curr_time"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/current_time.rs"
+symbol = "CurrentTimeHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.clock.sleep"
+kind = "tool"
+tool_id = "clock.sleep"
+family = "none"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/sleep.rs"
+symbol = "SleepHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.multi_agent_v1.spawn_agent"
+kind = "tool"
+tool_id = "multi_agent_v1.spawn_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents/spawn.rs"
+symbol = "\"spawn_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.multi_agent_v1.send_input"
+kind = "tool"
+tool_id = "multi_agent_v1.send_input"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents/send_input.rs"
+symbol = "\"send_input\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.multi_agent_v1.resume_agent"
+kind = "tool"
+tool_id = "multi_agent_v1.resume_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents/resume_agent.rs"
+symbol = "\"resume_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.multi_agent_v1.wait_agent"
+kind = "tool"
+tool_id = "multi_agent_v1.wait_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents/wait.rs"
+symbol = "\"wait_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.multi_agent_v1.close_agent"
+kind = "tool"
+tool_id = "multi_agent_v1.close_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents/close_agent.rs"
+symbol = "\"close_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.spawn_agent"
+kind = "tool"
+tool_id = "builtin.spawn_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs"
+symbol = "\"spawn_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.send_message"
+kind = "tool"
+tool_id = "builtin.send_message"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/send_message.rs"
+symbol = "\"send_message\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.followup_task"
+kind = "tool"
+tool_id = "builtin.followup_task"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/followup_task.rs"
+symbol = "\"followup_task\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.wait_agent"
+kind = "tool"
+tool_id = "builtin.wait_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/wait.rs"
+symbol = "\"wait_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.interrupt_agent"
+kind = "tool"
+tool_id = "builtin.interrupt_agent"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/interrupt_agent.rs"
+symbol = "\"interrupt_agent\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.list_agents"
+kind = "tool"
+tool_id = "builtin.list_agents"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/list_agents.rs"
+symbol = "\"list_agents\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.exec"
+kind = "tool"
+tool_id = "builtin.exec"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/code_mode/execute_handler.rs"
+symbol = "CodeModeExecuteHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.wait"
+kind = "tool"
+tool_id = "builtin.wait"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/code_mode/wait_handler.rs"
+symbol = "CodeModeWaitHandler"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.web_search"
+kind = "tool"
+tool_id = "builtin.web_search"
+family = "hosted"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/hosted_spec.rs"
+symbol = "create_web_search_tool"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.web.run"
+kind = "tool"
+tool_id = "web.run"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/web-search/src/tool.rs"
+symbol = "WebSearchTool"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.image_gen.imagegen"
+kind = "tool"
+tool_id = "image_gen.imagegen"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/image-generation/src/tool.rs"
+symbol = "ImageGenerationTool"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.get_goal"
+kind = "tool"
+tool_id = "builtin.get_goal"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"get_goal\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.create_goal"
+kind = "tool"
+tool_id = "builtin.create_goal"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"create_goal\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.builtin.update_goal"
+kind = "tool"
+tool_id = "builtin.update_goal"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"update_goal\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.memories.list"
+kind = "tool"
+tool_id = "memories.list"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"list\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.memories.read"
+kind = "tool"
+tool_id = "memories.read"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"read\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.memories.search"
+kind = "tool"
+tool_id = "memories.search"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"search\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.memories.add_ad_hoc_note"
+kind = "tool"
+tool_id = "memories.add_ad_hoc_note"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"add_ad_hoc_note\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.skills.list"
+kind = "tool"
+tool_id = "skills.list"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/skills/src/tools/list.rs"
+symbol = "const TOOL_NAME"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.skills.read"
+kind = "tool"
+tool_id = "skills.read"
+family = "read"
+disposition = "excluded"
+path = "codex-rs/ext/skills/src/tools/read.rs"
+symbol = "const TOOL_NAME"
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.history.list_windows"
+kind = "tool"
+tool_id = "history.list_windows"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_windows\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.history.list_items"
+kind = "tool"
+tool_id = "history.list_items"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_items\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.history.read_item"
+kind = "tool"
+tool_id = "history.read_item"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"read_item\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.history.search_contents"
+kind = "tool"
+tool_id = "history.search_contents"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"search_contents\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.notes.list_files_by_prefix"
+kind = "tool"
+tool_id = "notes.list_files_by_prefix"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_files_by_prefix\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.notes.read_file"
+kind = "tool"
+tool_id = "notes.read_file"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"read_file\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.notes.search_contents"
+kind = "tool"
+tool_id = "notes.search_contents"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"search_contents\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.notes.append_to_file"
+kind = "tool"
+tool_id = "notes.append_to_file"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"append_to_file\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "tool.notes.write_file"
+kind = "tool"
+tool_id = "notes.write_file"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"write_file\""
+reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
+
+[[authorities]]
+id = "cli.alternate_commands"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/cli/src/main.rs"
+symbol = "enum Subcommand"
+reason = "PROPOSED F21 must exclude alternate app-server, MCP server, cloud, debug and management entrypoints from the fork artifact."
+
+[[authorities]]
+id = "cli.arg0_dispatch"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/arg0/src/lib.rs"
+symbol = "arg0_dispatch"
+reason = "PROPOSED F21 review executable aliases and apply_patch/sandbox helper entry before the ordinary CLI parser."
+
+[[authorities]]
+id = "extensions.installation"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/app-server/src/extensions.rs"
+symbol = "pub(crate) fn thread_extensions"
+reason = "PROPOSED F21 approved reanchor: retain internal app-server orchestration but exclude prohibited extension construction here (queue, history, goals, attribution, guardian, memories, MCP, web, image, skills). Design/tests must choose clamps; source edits are not yet authorized."
+
+[[authorities]]
+id = "extensions.auto_goal"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/ext/goal/src/runtime.rs"
+symbol = "continue_if_idle"
+reason = "PROPOSED F21 exclude idle goal continuation independently of public goal tools."
+
+[[authorities]]
+id = "extensions.memories"
+kind = "constructor"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/extension.rs"
+symbol = "pub fn install"
+reason = "PROPOSED F21 exclude memory constructors and contributors independently of public memory tool denial."
+
+[[authorities]]
+id = "app_server.plugin_startup"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/app-server/src/in_process.rs"
+symbol = "plugin_startup_tasks: Some(PluginStartupConfig::Current)"
+reason = "PROPOSED F21 in-process startup enables plugin jobs even when no public app-server subcommand exists; clamp constructor with fork-scoped design/tests."
+
+[[authorities]]
+id = "app_server.background_services"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/app-server/src/message_processor.rs"
+symbol = "SkillsWatcher::new"
+reason = "PROPOSED F21 review models refresh, turn-cost, skill watchers and plugin callbacks created by the exec-internal MessageProcessor."
+
+[[authorities]]
+id = "session.initialization"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/session/session.rs"
+symbol = "warm_plugins_and_skills_for_session_init"
+reason = "PROPOSED F21 clamp plugin/skill warmups before construction, including resumed sessions."
+
+[[authorities]]
+id = "session.hooks"
+kind = "constructor"
+family = "hook"
+disposition = "excluded"
+path = "codex-rs/core/src/session/mod.rs"
+symbol = "build_hooks_config"
+reason = "PROPOSED F21 clear legacy_notify_argv as well as CodexHooks and PluginHooks."
+
+[[authorities]]
+id = "session.mcp"
+kind = "constructor"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/core/src/session/mcp_runtime.rs"
+symbol = "project_selected_environment_mcp_servers"
+reason = "PROPOSED F21 exclude executor-owned HTTP MCP discovery before model dispatch."
+
+[[authorities]]
+id = "mcp.connection"
+kind = "constructor"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/codex-mcp/src/connection_manager.rs"
+symbol = "pub async fn new"
+reason = "PROPOSED F21 block configured, plugin, app and executor server creation, not only tool invocation."
+
+[[authorities]]
+id = "mcp.tool_names"
+kind = "constructor"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/codex-mcp/src/tools.rs"
+symbol = "canonical_tool_name"
+reason = "PROPOSED F21 dynamic callable namespaces/names require constructor exclusion; no fake finite name expansion."
+
+[[authorities]]
+id = "tools.dynamic"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "append_dynamic_tool_runtimes"
+reason = "PROPOSED F11 and F21 reject arbitrary externally supplied function/name/namespace rows."
+
+[[authorities]]
+id = "tools.extension_contributors"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "extension_tool_executors"
+reason = "PROPOSED F21 disable extension contributors including history, notes, memory, skills, goal, image and web."
+
+[[authorities]]
+id = "tools.collaboration_namespace"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "struct MultiAgentV2NamespaceOverride"
+reason = "PROPOSED F11 rejects configurable namespaces including collaboration; F21 excludes the wrapper constructor."
+
+[[authorities]]
+id = "tools.hosted_specs"
+kind = "constructor"
+family = "hosted"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "hosted_model_tool_specs"
+reason = "PROPOSED F21 prevent hosted specs entering outbound inference; F11 alone cannot intercept hosted execution."
+
+[[authorities]]
+id = "tools.code_mode"
+kind = "constructor"
+family = "generated_code"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/code_mode/mod.rs"
+symbol = "CodeModeService"
+reason = "PROPOSED F21 exclude code-mode service creation and nested dispatch, including remote session providers."
+
+[[authorities]]
+id = "tools.guardian"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "is_basic_session_source"
+reason = "PROPOSED F21 disable guardian/reviewer auto-spawn source independently of normal tool registry."
+
+[[authorities]]
+id = "plugins.manager"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/manager.rs"
+symbol = "maybe_start_curated_repo_sync_for_config"
+reason = "PROPOSED F21 prevent plugin repository sync and remote cache jobs before tool advertisement."
+
+[[authorities]]
+id = "hooks.registry"
+kind = "constructor"
+family = "hook"
+disposition = "excluded"
+path = "codex-rs/hooks/src/registry.rs"
+symbol = "fn from_config"
+reason = "PROPOSED F21 exclude local, executor, plugin and legacy hook construction for every lifecycle event."
+
+[[authorities]]
+id = "extensions.mcp"
+kind = "constructor"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/ext/mcp/src/lib.rs"
+symbol = "install_executor_plugins"
+reason = "PROPOSED F21 exclude extension-owned executor MCP providers and startup hooks."
+
+[[authorities]]
+id = "provider.dynamic_secret_names"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "pub env_key: Option<String>"
+reason = "PROPOSED F12/F21 POLICY PENDING: arbitrary provider env_key and env_http_headers names have no static prefix guarantee. Must clamp to a reviewed closed policy or obtain an approved frozen-name amendment."
+
+[[authorities]]
+id = "provider.aws_chain"
+kind = "constructor"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/aws-auth/src/config.rs"
+symbol = "load_sdk_config"
+reason = "PROPOSED F21 POLICY PENDING: AWS SDK credential chain can read profile files and initiate network/process helpers; no unreviewed trusted exemption."
+
+[[authorities]]
+id = "process.exec_manager"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/core/src/unified_exec/process_manager.rs"
+symbol = "open_session_with_prepared_exec_env"
+reason = "PROPOSED F12 final start seam; ToolCtx propagation and final environment need reviewed integration."
+gate = "process_start"
+
+[[authorities]]
+id = "process.one_shot"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/core/src/unified_exec/oneshot.rs"
+symbol = "exec_command_to_completion"
+reason = "PROPOSED F12 preserve one-shot shared execution path selected by F21 UnifiedExec=false."
+gate = "process_start"
+
+[[authorities]]
+id = "process.runtime"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/core/src/tools/runtimes/unified_exec.rs"
+symbol = "ToolRuntime<UnifiedExecRequest, UnifiedExecAttempt>"
+reason = "PROPOSED F12 nearest typed ToolCtx/runtime request seam; amendments must stay fork-scoped."
+gate = "process_start"
+
+[[authorities]]
+id = "process.sandbox_dispatch"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/sandboxing/src/spawn.rs"
+symbol = "pub async fn spawn_process"
+reason = "PROPOSED F12 inspect selected backend without weakening sandbox policy."
+gate = "process_start"
+
+[[authorities]]
+id = "process.pipe"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/utils/pty/src/pipe.rs"
+symbol = "spawn_process_with_stdin_mode"
+reason = "PROPOSED F12 SC8 pending: best-effort job assignment and preserve_descendants invalidate current full-tree settlement assumption. Fork-only backend design pending."
+gate = "process_start"
+
+[[authorities]]
+id = "process.windows_legacy"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/windows-sandbox-rs/src/unified_exec/backends/legacy.rs"
+symbol = "prepare_legacy_spawn_context"
+reason = "PROPOSED F12 pending: mutable downstream env_map overlay means manager request is not final environment."
+gate = "process_start"
+
+[[authorities]]
+id = "process.windows_elevated"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/windows-sandbox-rs/src/unified_exec/backends/elevated.rs"
+symbol = "prepare_elevated_spawn_context_for_permissions"
+reason = "PROPOSED F12 pending: downstream environment and runner transport must participate in the resolved launch contract."
+gate = "process_start"
+
+[[authorities]]
+id = "process.executor"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/exec-server/src/local_process.rs"
+symbol = "async fn start_process"
+reason = "PROPOSED F12 pending: executor policy/snapshot/child_env resolution occurs after upstream manager; do not equate earlier request.env with launch env."
+gate = "process_start"
+
+[[authorities]]
+id = "process.remote"
+kind = "sink"
+family = "process"
+disposition = "gated"
+path = "codex-rs/exec-server/src/remote_process.rs"
+symbol = "impl ExecBackend"
+reason = "PROPOSED F12 backend support policy pending; final remote environment cannot be certified at caller map."
+gate = "process_start"
+
+[[authorities]]
+id = "patch.runtime"
+kind = "sink"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/core/src/tools/runtimes/apply_patch.rs"
+symbol = "apply_patch_with_options"
+reason = "PROPOSED F13 gate structured action before any write; existing action/text reparse and multi-file sequence require amendment."
+gate = "patch_runtime"
+
+[[authorities]]
+id = "patch.engine"
+kind = "sink"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/apply-patch/src/lib.rs"
+symbol = "pub async fn apply_patch_with_options"
+reason = "PROPOSED F13 pending guarded mutation design; existing sequential writer admits partial deltas and cannot prove transactional I/O."
+gate = "patch_runtime"
+
+[[authorities]]
+id = "patch.interception"
+kind = "sink"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/apply_patch.rs"
+symbol = "intercept_apply_patch"
+reason = "PROPOSED F13 cover exec_command shell-patch interception before the process-start seam."
+gate = "patch_runtime"
+
+[[authorities]]
+id = "filesystem.executor"
+kind = "sink"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/exec-server/src/local_file_system.rs"
+symbol = "async fn write_file"
+reason = "PROPOSED F13 guarded adapter must cover write/create/remove/copy through ExecutorFileSystem; no authorization implied by sandbox checks."
+gate = "patch_runtime"
+
+[[authorities]]
+id = "filesystem.windows_no_follow"
+kind = "sink"
+family = "filesystem"
+disposition = "gated"
+path = "codex-rs/exec-server/src/no_follow/windows.rs"
+symbol = "pub(super) async fn write_file"
+reason = "PROPOSED F13 pending: private helper has share-delete semantics, not an identity-held policy guard."
+gate = "patch_runtime"
+
+[[authorities]]
+id = "process.user_shell"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/tasks/user_shell.rs"
+symbol = "execute_user_shell_command"
+reason = "PROPOSED F21 exclude direct user-shell operations/alternate non-model entrypoints from the fork surface."
+
+[[authorities]]
+id = "process.snapshot"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core/src/shell_snapshot.rs"
+symbol = "ShellSnapshot"
+reason = "PROPOSED F21/F12 resolve snapshot constructor and preparation execution policy before spawning."
+
+[[authorities]]
+id = "process.aws_refresh"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/model-provider/src/amazon_bedrock/auth_refresh.rs"
+symbol = "Command::new"
+reason = "PROPOSED F21 provider policy pending: native AWS refresh invokes configured aws command outside tool process gate."
+
+[[authorities]]
+id = "process.mcp_stdio"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/rmcp-client/src/stdio_server_launcher.rs"
+symbol = "launch_server"
+reason = "PROPOSED F21 exclude both local and executor stdio launch before connection discovery."
+
+[[authorities]]
+id = "network.executor_http"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "RouteAwareHttpRequestRunner"
+reason = "PROPOSED F21 exclude arbitrary executor http/request capability; preserve only explicitly reviewed native model/auth transport."
+
+[[authorities]]
+id = "network.mcp_headers"
+kind = "sink"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/rmcp-client/src/utils.rs"
+symbol = "build_default_headers"
+reason = "PROPOSED F21 exclude arbitrary configured env_http_headers and bearer-token names with MCP constructors."
+
+[[authorities]]
+id = "network.mcp_http"
+kind = "sink"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/rmcp-client/src/rmcp_client.rs"
+symbol = "new_streamable_http_client"
+reason = "PROPOSED F21 exclude HTTP transport and OAuth-associated MCP startup."
+
+[[authorities]]
+id = "network.mcp_call"
+kind = "sink"
+family = "mcp"
+disposition = "excluded"
+path = "codex-rs/codex-mcp/src/connection_manager.rs"
+symbol = "pub async fn call_tool"
+reason = "PROPOSED F11 deny identities; F21 constructor exclusion also needed for side effects before calls."
+
+[[authorities]]
+id = "hook.command_runner"
+kind = "sink"
+family = "hook"
+disposition = "excluded"
+path = "codex-rs/hooks/src/engine/command_runner.rs"
+symbol = "command.spawn()"
+reason = "PROPOSED F21 exclude command execution for all hook events, not just PreToolUse."
+
+[[authorities]]
+id = "hook.legacy_notify"
+kind = "sink"
+family = "hook"
+disposition = "excluded"
+path = "codex-rs/hooks/src/legacy_notify.rs"
+symbol = "notify_hook"
+reason = "PROPOSED F21 clear legacy notify independent of modern hook features."
+
+[[authorities]]
+id = "hook.lifecycle"
+kind = "sink"
+family = "hook"
+disposition = "excluded"
+path = "codex-rs/core/src/hook_runtime.rs"
+symbol = "run_pending_session_start_hooks"
+reason = "PROPOSED F21 lifecycle coverage includes startup, post-tool, permission, stop, end, interrupt and compaction."
+
+[[authorities]]
+id = "generated.nested_dispatch"
+kind = "sink"
+family = "generated_code"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/code_mode/mod.rs"
+symbol = "build_nested_tool_payload"
+reason = "PROPOSED F21 exclude generated code and nested dispatch; F11 must still reject forged payload kinds."
+
+[[authorities]]
+id = "generated.execute"
+kind = "sink"
+family = "generated_code"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/code_mode/execute_handler.rs"
+symbol = "parse_exec_source"
+reason = "PROPOSED F21 exclude code-cell evaluation; no general CodeMode bypass for two-tool runtime."
+
+[[authorities]]
+id = "hosted.web"
+kind = "sink"
+family = "hosted"
+disposition = "excluded"
+path = "codex-rs/core/src/tools/hosted_spec.rs"
+symbol = "create_web_search_tool"
+reason = "PROPOSED F21 exclude every hosted web spec type before model requests."
+
+[[authorities]]
+id = "network.git_attribution"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/git-attribution/src/policy.rs"
+symbol = "resolve_attribution_policy"
+reason = "PROPOSED F21 exclude optional attribution policy lookups if their constructor remains reachable in the packaged fork."
+
+[[authorities]]
+id = "network.web"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/web-search/src/tool.rs"
+symbol = "async fn handle_call"
+reason = "PROPOSED F21 exclude standalone web extension transport."
+
+[[authorities]]
+id = "network.image"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/image-generation/src/tool.rs"
+symbol = "request_for_call_args"
+reason = "PROPOSED F21 exclude image generation network request and subsequent disk output."
+
+[[authorities]]
+id = "filesystem.image"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/image-generation/src/tool.rs"
+symbol = "save_image_generation_result"
+reason = "PROPOSED F21 exclude image artifact writes outside patch gate."
+
+[[authorities]]
+id = "filesystem.memory"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/memories/src/local/ad_hoc_note.rs"
+symbol = "add_ad_hoc_note"
+reason = "PROPOSED F21 exclude local memory mutation and background memory processing constructors."
+
+[[authorities]]
+id = "network.history_notes"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "fn endpoint"
+reason = "PROPOSED F21 exclude remote private history and notes endpoints, including append/write mutations."
+
+[[authorities]]
+id = "filesystem.goal"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/ext/goal/src/tool.rs"
+symbol = "async fn handle_create"
+reason = "PROPOSED F21 exclude model goal mutation and automatic goal work; normal agent loop remains upstream."
+
+[[authorities]]
+id = "filesystem.plugin_install"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/manager.rs"
+symbol = "pub async fn install"
+reason = "PROPOSED F21 exclude plugin install and managed sync write surfaces."
+
+[[authorities]]
+id = "exec.in_process_client"
+kind = "constructor"
+family = "process"
+disposition = "trusted_support"
+path = "codex-rs/exec/src/lib.rs"
+symbol = "InProcessAppServerClient::start"
+reason = "REVIEW PROPOSAL F21 approved reanchor: preserve this upstream exec lifecycle. Public app-server entrypoints and alternate authorities are excluded, not the entire internal library."
+
+[[authorities]]
+id = "app_server.client_library"
+kind = "constructor"
+family = "process"
+disposition = "trusted_support"
+path = "codex-rs/app-server-client/src/lib.rs"
+symbol = "codex_app_server::in_process::start"
+reason = "REVIEW PROPOSAL F21 nonoptional exec -> app-server-client -> app-server Cargo dependencies require the in-process library; do not rewrite the agent loop to erase linkage."
+
+[[authorities]]
+id = "app_server.thread_factory"
+kind = "constructor"
+family = "process"
+disposition = "trusted_support"
+path = "codex-rs/app-server/src/message_processor.rs"
+symbol = "thread_extensions("
+reason = "REVIEW PROPOSAL F21 internal ThreadManager construction remains required. Prohibited extension and startup constructors require fork-scoped clamps before model dispatch."
+
+[[authorities]]
+id = "auth.store_factory"
+kind = "constructor"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/storage.rs"
+symbol = "create_auth_storage"
+reason = "REVIEW PROPOSAL F14 approved reanchor from removed core/auth.rs; own immutable auth-home selection for File, Auto, Keyring and Ephemeral."
+
+[[authorities]]
+id = "auth.browser_login"
+kind = "constructor"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/login/src/server.rs"
+symbol = "run_login_server"
+reason = "REVIEW PROPOSAL F14 preserve explicit native login, callback and credential save under selected auth home."
+
+[[authorities]]
+id = "auth.device_login"
+kind = "constructor"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/login/src/device_code_auth.rs"
+symbol = "run_device_code_login"
+reason = "REVIEW PROPOSAL F14 preserve native device flow; no Covenant credential-byte handling."
+
+[[authorities]]
+id = "auth.file_write"
+kind = "sink"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/storage.rs"
+symbol = "impl AuthStorageBackend for FileAuthStorage"
+reason = "REVIEW PROPOSAL F14 implement atomic persistence; current file save truncates directly. Secret canary remains required."
+
+[[authorities]]
+id = "auth.keyring"
+kind = "sink"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/storage.rs"
+symbol = "KeyringAuthStorage"
+reason = "REVIEW PROPOSAL F14 resolve Windows secret_auth_storage and Auto/keyring behavior without silently breaking native auth."
+
+[[authorities]]
+id = "auth.refresh"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "refresh_and_persist_chatgpt_token"
+reason = "REVIEW PROPOSAL F14 cross-process lock must cover reload, network refresh and atomic commit; current semaphore is per instance."
+
+[[authorities]]
+id = "auth.workload_identity"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/workload_identity.rs"
+symbol = "OPENAI_IDENTITY_TOKEN_FILE_ENV_VAR"
+reason = "REVIEW PROPOSAL F14 review native workload identity network/file access; F12 scrub pointer/control keys from child environment."
+
+[[authorities]]
+id = "model.provider"
+kind = "constructor"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/model-provider/src/provider.rs"
+symbol = "create_model_provider"
+reason = "REVIEW PROPOSAL F21 review provider support boundary; direct model inference is trusted native support, not a tool authority."
+
+[[authorities]]
+id = "model.transport"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/codex-api/src/provider.rs"
+symbol = "pub struct Provider"
+reason = "REVIEW PROPOSAL F21 preserve model transport while proving hosted/extension specifications absent from captured requests."
+
+[[authorities]]
+id = "session.state_db"
+kind = "constructor"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/state/src/runtime.rs"
+symbol = "async fn init_inner"
+reason = "REVIEW PROPOSAL F14/F31 audit native SQLite/log persistence and secret retention; do not admit model-directed writes through this support classification."
+
+[[authorities]]
+id = "telemetry.analytics"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/analytics/src/client.rs"
+symbol = "pub async fn flush"
+reason = "REVIEW PROPOSAL F14/F31 include native analytics in secret-canary observation; source presence is not a no-secret proof."
+
+[[authorities]]
+id = "session.rollout"
+kind = "sink"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/rollout/src/recorder.rs"
+symbol = "record_canonical_items"
+reason = "REVIEW PROPOSAL F14/F31 inspect secret-canary retention in native rollout persistence; this is not a model file-write tool."
+
+[[authorities]]
+id = "session.auth_env_scrub"
+kind = "constructor"
+family = "process"
+disposition = "trusted_support"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "NON_INHERITABLE_ENV_VARS"
+reason = "REVIEW PROPOSAL F12 retain upstream non-inheritable restrictions in addition to reviewed Covenant scrub keys."
+
+[[authorities]]
+id = "network.proxy"
+kind = "constructor"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/core/src/session/mod.rs"
+symbol = "start_managed_network_proxy"
+reason = "REVIEW PROPOSAL F21/F12 preserve sandbox enforcement; audit credential broker/network effects without treating proxy as an admitted model tool."
+
+[[authorities]]
+id = "network.credential_broker"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/network-proxy/src/credential_broker/providers.rs"
+symbol = "credential_env_keys"
+reason = "REVIEW PROPOSAL F12 include concrete broker credential names in scrub; provider key material stays native."
+
+[[authorities]]
+id = "residual.shell_auth_reads"
+kind = "sink"
+family = "filesystem"
+disposition = "accepted_residual"
+path = "codex-rs/core/src/tools/handlers/unified_exec/exec_command.rs"
+symbol = "ExecCommandHandler"
+reason = "Master accepted residual F1.4: an allowed shell can obfuscate auth-store reads. F12 environment scrub is not file confidentiality; external child-runtime-native P6 and F14 fork-controlled sink canaries remain required."
+
+[[authorities]]
+id = "provider.auth_command_config"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "auth.command.trim().is_empty()"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Configured native auth.command is distinct from env_key/env_http_headers and AWS refresh. Exclude this command-backed provider configuration before auth construction; F12/F14 must observe any supported exception through separate approved design/tests."
+
+[[authorities]]
+id = "provider.auth_command_selection"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/model-provider/src/auth.rs"
+symbol = "pub(crate) fn auth_manager_for_provider"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. create_model_provider calls this selection, which maps provider.auth to AuthManager::external_bearer_only. Generic model.provider trusted_support does not authorize this process path."
+
+[[authorities]]
+id = "provider.auth_command_manager"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "pub fn external_bearer_only"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Constructs BearerTokenRefresher for configured command auth. Exclude independently of the normal native file/keyring/browser/device store flows."
+
+[[authorities]]
+id = "provider.auth_command_refresher"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/login/src/auth/external_bearer.rs"
+symbol = "pub(crate) struct BearerTokenRefresher"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Both resolve cache miss/expiry and refresh call run_provider_auth_command. F21 must exclude construction; F12 process/environment and F14 token/error-canary obligations remain pending."
+
+[[authorities]]
+id = "process.provider_auth_command"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/login/src/auth/external_bearer.rs"
+symbol = "async fn run_provider_auth_command"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Configured executable/args/cwd reach Command::new and command.output outside tool dispatch, with inherited environment and no env_clear. Exclude; any support requires explicit F12 launch/environment/supervision and F14 token-output/error handling design, not a native trusted-support exemption."
+
+[[authorities]]
+id = "plugins.startup_tasks"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/manager.rs"
+symbol = "pub fn maybe_start_plugin_startup_tasks_for_config"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Required internal app-server startup can call curated sync and configured marketplace auto-upgrade. Exclude plugin tasks while retaining the upstream in-process exec/thread lifecycle."
+
+[[authorities]]
+id = "plugins.curated_sync"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "pub fn sync_openai_plugins_repo"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic startup sync selects Git, then GitHub HTTP, then backup archive fallback; exclude the full constructor before lock/staging/network work."
+
+[[authorities]]
+id = "plugins.git_command_policy"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/git_policy.rs"
+symbol = "pub(crate) fn command(self, git_binary: &Path) -> Command"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. PluginGitMode Automatic/Manual both build a real Git command. Automatic Git environment isolation is not a Covenant gate and does not remove process authority."
+
+[[authorities]]
+id = "plugins.marketplace_upgrade"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade.rs"
+symbol = "fn upgrade_configured_git_marketplace"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic startup upgrades and explicit user-requested upgrades perform remote revision lookup, staged clone/checkout and activation; exclude both caller modes."
+
+[[authorities]]
+id = "plugins.source_materializer"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "pub(crate) fn materialize_marketplace_plugin_source_with_mode"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Explicit install and non-curated cache refresh select Local/Git/Npm source materialization; Git and Npm use distinct subprocess runners."
+
+[[authorities]]
+id = "plugins.curated_cache_refresh"
+kind = "constructor"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "pub fn refresh_curated_plugin_cache"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Startup curated refresh calls PluginStore install_with_version or uninstall for stale entries; exclude even with no advertised install tool."
+
+[[authorities]]
+id = "plugins.non_curated_cache_refresh"
+kind = "constructor"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "fn refresh_non_curated_plugin_cache_with_mode"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic/manual non-curated cache refresh materializes a source then installs its version/fallback manifest through PluginStore."
+
+[[authorities]]
+id = "plugins.npm_materializer"
+kind = "constructor"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "pub(crate) fn materialize_npm_plugin_source"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Loader Npm branch selects npm.cmd on Windows or npm elsewhere, packs package and extracts staging. --ignore-scripts does not remove the npm process; F21 Node-free artifact claim requires exclusion."
+
+[[authorities]]
+id = "plugins.store_factory"
+kind = "constructor"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "pub struct PluginStore"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Both startup cache refresh and explicit plugin installation reach this store; classify its concrete copy/activation/removal writes separately."
+
+[[authorities]]
+id = "process.plugins_startup_git"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn run_git_command_with_timeout"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic curated startup init/fetch/ls-remote/reset/clean reach this timed runner and its spawn; rev-parse HEAD uses the separately inventoried git_head_sha direct output sink. Exclude before startup, not merely from model tool advertisement."
+
+[[authorities]]
+id = "network.plugins_startup_fetch"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn fetch_curated_plugins_commit_from("
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Curated startup fetches remote or local source revisions through the timed Git runner; record its network effect separately from spawn."
+
+[[authorities]]
+id = "filesystem.plugins_startup_reset"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn reset_curated_plugins_checkout"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Curated startup issues reset --hard and clean -fdx through run_git_in_repo; this is a concrete Git-mediated filesystem sink, not permission to run these commands in this task."
+
+[[authorities]]
+id = "filesystem.plugins_git_trusted_repo"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/git_policy.rs"
+symbol = "pub(crate) fn configure_trusted_git_repository"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic remote lookup/clone prepares .tmp Git repository directories and writes HEAD before launching Git. Exclude constructor-side materialization as well as spawn."
+
+[[authorities]]
+id = "process.plugins_marketplace_git"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "fn run_git_command_with_timeout"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Separate timed spawn runner serves configured marketplace startup/explicit upgrade ls-remote, clone, sparse-checkout, checkout and rev-parse."
+
+[[authorities]]
+id = "network.plugins_marketplace_lookup"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "pub(super) fn git_remote_revision"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Both upgrade modes may perform Git ls-remote before materialization; fully pinned revision fast-path does not establish exclusion of the other branch."
+
+[[authorities]]
+id = "filesystem.plugins_marketplace_clone"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "pub(super) fn clone_git_source"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Upgrade clone/sparse-checkout/checkout writes staged marketplace content through the separate timed Git runner; also carries network effect."
+
+[[authorities]]
+id = "process.plugins_loader_git"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "fn run_git_output("
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Additional source-loader Git sink found while following R2: clone_git_plugin_source -> run_git -> run_git_output -> command.output. Distinct from both timed Git runners; used by explicit install and cache refresh."
+
+[[authorities]]
+id = "filesystem.plugins_loader_git_materialization"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "fn clone_git_plugin_source"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Source-loader Git clone/sparse-checkout/checkout writes staging during explicit install and non-curated cache refresh. Exclude regardless of Automatic versus Manual Git mode."
+
+[[authorities]]
+id = "process.plugins_npm_pack"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "fn pack_npm_package("
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Native Command::new(npm_command).output executes npm/npm.cmd pack with --ignore-scripts; configured registry and package reach this separate process, outside tool dispatch."
+
+[[authorities]]
+id = "network.plugins_npm_registry"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "command.arg(\"--registry\").arg(registry)"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Npm pack may contact its configured/default registry; excluding lifecycle scripts does not remove registry network effects."
+
+[[authorities]]
+id = "filesystem.plugins_npm_staging"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "fn materialize_npm_plugin_source_with_command"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Creates plugin staging/temp directories, writes npm package archive through pack, and invokes unpack_plugin_bundle_tar_gz before final install."
+
+[[authorities]]
+id = "filesystem.plugins_tar_extract"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/plugin_bundle_archive.rs"
+symbol = "fn unpack_plugin_bundle_tar<R: Read>"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Additional R2 materialization sink: mkdir and entry.unpack write validated archive entries into staging. Native Rust extraction remains an effect even when no npm lifecycle scripts execute."
+
+[[authorities]]
+id = "process.plugins_macos_git_probe"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn apple_developer_tools_available"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Additional platform branch: macOS startup executes /usr/bin/xcode-select -p before choosing Git/HTTP fallback. Exclude by startup constructor; source scout includes non-Windows authority without claiming a Windows execution test."
+
+[[authorities]]
+id = "network.plugins_github_text"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_github_text"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Git failure can fall back to GitHub metadata HTTP send; exclude fallback even if Git execution is disabled."
+
+[[authorities]]
+id = "network.plugins_github_archive"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_github_bytes"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. GitHub archive HTTP send is a separate curated startup fallback sink."
+
+[[authorities]]
+id = "network.plugins_backup_text"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_public_text"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Backup export fallback fetches public metadata through startup_sync_request send; no Git process is needed."
+
+[[authorities]]
+id = "network.plugins_backup_archive"
+kind = "sink"
+family = "network"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_public_bytes"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Backup export archive HTTP send remains reachable after Git/GitHub failure when no local snapshot exists."
+
+[[authorities]]
+id = "filesystem.plugins_sync_lock"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn lock_curated_plugins_startup_sync"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Startup creates .tmp and opens a writable lock file before selecting the Git/HTTP/backup transport; include pre-network writes."
+
+[[authorities]]
+id = "filesystem.plugins_sync_staging"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn prepare_curated_repo_parent_and_temp_dir"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Creates parent/temp directories and invokes stale-directory cleanup for Git/HTTP/archive startup paths."
+
+[[authorities]]
+id = "filesystem.plugins_sync_cleanup"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn remove_stale_curated_repo_temp_dirs"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Automatic startup may remove stale plugins-clone directories independently of a successful fetch or advertised plugin tool."
+
+[[authorities]]
+id = "filesystem.plugins_zip_extract"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn extract_zipball_to_dir"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. HTTP/backup startup fallback creates files/directories, copies archive bytes and applies entry permissions."
+
+[[authorities]]
+id = "filesystem.plugins_sync_activate"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn activate_curated_repo"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Startup renames existing checkout to backup and staged checkout into place, with rollback/temporary cleanup paths."
+
+[[authorities]]
+id = "filesystem.plugins_sync_sha"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn write_curated_plugins_sha"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Startup writes recorded revision after Git/HTTP/backup materialization; include state writes after activation."
+
+[[authorities]]
+id = "filesystem.plugins_upgrade_activate"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/activation.rs"
+symbol = "pub(super) fn activate_marketplace_root"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Additional R2 upgrade sink: mkdir, rename, rollback and removal of replacement roots for automatic and explicit marketplace upgrades."
+
+[[authorities]]
+id = "filesystem.plugins_upgrade_metadata"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/activation.rs"
+symbol = "pub(super) fn write_installed_marketplace_metadata"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Upgrade writes installed-marketplace metadata in staged root before activation."
+
+[[authorities]]
+id = "filesystem.plugins_store_copy"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn copy_dir_recursive"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Loader cache/install reaches actual mkdir and fs::copy for plugin contents. This sink remains even for Local sources requiring neither Git nor npm."
+
+[[authorities]]
+id = "filesystem.plugins_store_replace"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn replace_plugin_root_atomically"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Cache/install stages contents, writes fallback manifest, renames versions/root and rolls back on failure; proposed exclusion, not approval of patch transactional claims."
+
+[[authorities]]
+id = "filesystem.plugins_store_remove"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_existing_target"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Curated stale-plugin removal and explicit uninstall remove directories/files through PluginStore::uninstall."
+
+[[authorities]]
+id = "filesystem.plugins_store_old_versions"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_old_plugin_versions"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Successful install/refresh removes inactive cached versions; include post-install cleanup effects."
+
+[[authorities]]
+id = "filesystem.plugins_store_remote_identity"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "pub fn write_remote_plugin_id"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Explicit remote install writes/persists plugin identity metadata; startup support classification does not grant this authority."
+
+[[authorities]]
+id = "filesystem.plugins_store_clear_identity"
+kind = "sink"
+family = "filesystem"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_remote_plugin_install_metadata"
+reason = "PROPOSED EXCLUDED; F21 policy/design pending. Installing a version clears previous remote-install metadata with remove_file; include support file deletion."
+
+[[authorities]]
+id = "process.plugins_startup_git_head"
+kind = "sink"
+family = "process"
+disposition = "excluded"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn git_head_sha("
+reason = "PROPOSED EXCLUDED; F21 startup policy pending. Staged checkout validation and reading an existing curated checkout call git_head_sha, which runs git rev-parse HEAD with direct .output(), separately from run_git_command_with_timeout. Preserve this distinct process target for later exclusion tests."
+
+[[authorities]]
+id = "auth.agent_identity_record_write"
+kind = "sink"
+family = "filesystem"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "fn persist_agent_identity_record("
+reason = "REVIEW PROPOSAL F14 native auth support subject to shared transaction ownership. Existing managed-ChatGPT agent-identity persistence locks cached state, loads storage, falls back to the cached document if storage is absent, merges agent_identity and saves. F14 must cover the read/merge/write transaction and stale cached-state resurrection, not only atomic low-level save. Implementation and discriminating tests remain pending; no new identity feature or broader encrypted-store amendment is implied."
+
+[[authorities]]
+id = "auth.oauth_revocation"
+kind = "sink"
+family = "network"
+disposition = "trusted_support"
+path = "codex-rs/login/src/auth/revoke.rs"
+symbol = "async fn revoke_oauth_token("
+reason = "REVIEW PROPOSAL F14 preserve explicit native logout/revocation. Free logout_with_revoke and AuthManager::logout_with_revoke call revoke_auth_tokens -> revoke_oauth_token, which sends token JSON and returns errors containing a parsed response message; both manager.rs callers log those errors before local auth removal. Planned F14 opt-in redaction, transaction ownership and error-canary tests remain pending. This row does not claim current redaction or authorize unrelated auth changes."
+
+[[secrets]]
+key = "OPENAI_API_KEY"
+class = "provider_login"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "OPENAI_API_KEY"
+
+[[secrets]]
+key = "CODEX_API_KEY"
+class = "provider_login"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "CODEX_API_KEY"
+
+[[secrets]]
+key = "CODEX_ACCESS_TOKEN"
+class = "provider_login"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "CODEX_ACCESS_TOKEN"
+
+[[secrets]]
+key = "AWS_BEARER_TOKEN_BEDROCK"
+class = "provider_login"
+path = "codex-rs/model-provider/src/amazon_bedrock/auth.rs"
+symbol = "AWS_BEARER_TOKEN_BEDROCK"
+
+[[secrets]]
+key = "AWS_ACCESS_KEY_ID"
+class = "provider_login"
+path = "codex-rs/model-provider/src/amazon_bedrock/auth.rs"
+symbol = "AWS_ACCESS_KEY_ID"
+
+[[secrets]]
+key = "AWS_SECRET_ACCESS_KEY"
+class = "provider_login"
+path = "codex-rs/model-provider/src/amazon_bedrock/auth.rs"
+symbol = "AWS_SECRET_ACCESS_KEY"
+
+[[secrets]]
+key = "GH_TOKEN"
+class = "provider_login"
+path = "codex-rs/network-proxy/src/credential_broker/providers/github.rs"
+symbol = "GH_TOKEN"
+
+[[secrets]]
+key = "GITHUB_TOKEN"
+class = "provider_login"
+path = "codex-rs/network-proxy/src/credential_broker/providers/github.rs"
+symbol = "GITHUB_TOKEN"
+
+[[secrets]]
+key = "GH_ENTERPRISE_TOKEN"
+class = "provider_login"
+path = "codex-rs/network-proxy/src/credential_broker/providers/github.rs"
+symbol = "GH_ENTERPRISE_TOKEN"
+
+[[secrets]]
+key = "GITHUB_ENTERPRISE_TOKEN"
+class = "provider_login"
+path = "codex-rs/network-proxy/src/credential_broker/providers/github.rs"
+symbol = "GITHUB_ENTERPRISE_TOKEN"
+
+[[secrets]]
+key = "CODEX_CONNECTORS_TOKEN"
+class = "provider_login"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "CODEX_CONNECTORS_TOKEN"
+
+[[secrets]]
+key = "AWS_SESSION_TOKEN"
+class = "provider_login"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "AWS_SESSION_TOKEN"
+
+[[secrets]]
+key = "AZURE_CLIENT_SECRET"
+class = "provider_login"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "AZURE_CLIENT_SECRET"
+
+[[secrets]]
+key = "AZURE_FEDERATED_TOKEN_FILE"
+class = "provider_login"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "AZURE_FEDERATED_TOKEN_FILE"
+
+[[secrets]]
+key = "GOOGLE_APPLICATION_CREDENTIALS"
+class = "provider_login"
+path = "codex-rs/exec-server/src/client/route_aware_http_client.rs"
+symbol = "GOOGLE_APPLICATION_CREDENTIALS"
+
+[[secrets]]
+key = "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN"
+class = "provider_login"
+path = "codex-rs/codex-mcp/src/connection_manager/startup.rs"
+symbol = "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN"
+
+[[secrets]]
+key = "CODEX_EXEC_SERVER_NOISE_AUTH_TOKEN"
+class = "provider_login"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "CODEX_EXEC_SERVER_NOISE_AUTH_TOKEN"
+
+[[secrets]]
+key = "NODE_REPL_AUTH_TOKEN"
+class = "provider_login"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "NODE_REPL_AUTH_TOKEN"
+
+[[secrets]]
+key = "OPENAI_FEDERATION_RULE_ID"
+class = "provider_login"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "OPENAI_FEDERATION_RULE_ID"
+
+[[secrets]]
+key = "OPENAI_IDENTITY_TOKEN_FILE"
+class = "provider_login"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "OPENAI_IDENTITY_TOKEN_FILE"
+
+[[secrets]]
+key = "OPENAI_WORKLOAD_IDENTITY_CONTEXT"
+class = "provider_login"
+path = "codex-rs/protocol/src/shell_environment.rs"
+symbol = "OPENAI_WORKLOAD_IDENTITY_CONTEXT"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core/src/unified_exec/process_manager.rs"
+symbol = "open_session_with_prepared_exec_env"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/exec-server/src/local_process.rs"
+symbol = "child_env"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/utils/pty/src/pipe.rs"
+symbol = "preserve_descendants"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/apply-patch/src/lib.rs"
+symbol = "apply_patch_with_options"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/exec-server/src/no_follow/windows.rs"
+symbol = "write_file"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/model-provider-info/src/lib.rs"
+symbol = "env_http_headers"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/model-provider/src/amazon_bedrock/auth_refresh.rs"
+symbol = "Command::new"
+
+[[audit_queries]]
+family = "hosted"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbol = "hosted_model_tool_specs"
+
+[[audit_queries]]
+family = "mcp"
+path = "codex-rs/codex-mcp/src/connection_manager.rs"
+symbol = "pub async fn new"
+
+[[audit_queries]]
+family = "hook"
+path = "codex-rs/hooks/src/engine/command_runner.rs"
+symbol = "command.spawn()"
+
+[[audit_queries]]
+family = "hook"
+path = "codex-rs/core/src/session/mod.rs"
+symbol = "legacy_notify_argv"
+
+[[audit_queries]]
+family = "generated_code"
+path = "codex-rs/core/src/tools/code_mode/mod.rs"
+symbol = "build_nested_tool_payload"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/login/src/auth/external_bearer.rs"
+symbol = "async fn run_provider_auth_command"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn run_git_command_with_timeout"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn fetch_curated_plugins_commit_from("
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn reset_curated_plugins_checkout"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/git_policy.rs"
+symbol = "pub(crate) fn configure_trusted_git_repository"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "fn run_git_command_with_timeout"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "pub(super) fn git_remote_revision"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/git.rs"
+symbol = "pub(super) fn clone_git_source"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "fn run_git_output("
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/loader.rs"
+symbol = "fn clone_git_plugin_source"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "fn pack_npm_package("
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "command.arg(\"--registry\").arg(registry)"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/npm_source.rs"
+symbol = "fn materialize_npm_plugin_source_with_command"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/plugin_bundle_archive.rs"
+symbol = "fn unpack_plugin_bundle_tar<R: Read>"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn apple_developer_tools_available"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_github_text"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_github_bytes"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_public_text"
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "async fn fetch_public_bytes"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn lock_curated_plugins_startup_sync"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn prepare_curated_repo_parent_and_temp_dir"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn remove_stale_curated_repo_temp_dirs"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn extract_zipball_to_dir"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn activate_curated_repo"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn write_curated_plugins_sha"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/activation.rs"
+symbol = "pub(super) fn activate_marketplace_root"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/marketplace_upgrade/activation.rs"
+symbol = "pub(super) fn write_installed_marketplace_metadata"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn copy_dir_recursive"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn replace_plugin_root_atomically"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_existing_target"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_old_plugin_versions"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "pub fn write_remote_plugin_id"
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/core-plugins/src/store.rs"
+symbol = "fn remove_remote_plugin_install_metadata"
+
+[[audit_queries]]
+family = "process"
+path = "codex-rs/core-plugins/src/startup_sync.rs"
+symbol = "fn git_head_sha("
+
+[[audit_queries]]
+family = "filesystem"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "fn persist_agent_identity_record("
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/login/src/auth/revoke.rs"
+symbol = "async fn revoke_oauth_token("
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "pub async fn logout_with_revoke("
+
+[[audit_queries]]
+family = "network"
+path = "codex-rs/login/src/auth/manager.rs"
+symbol = "failed to revoke auth tokens during logout: {err}"

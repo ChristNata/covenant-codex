@@ -1,0 +1,615 @@
+# F00 SOURCE REVIEW CANDIDATE. No fork gate or exclusion is implemented by this file.
+# schema_version 1 validates structure only. All dispositions are proposed later-phase
+# ownership, subject to independent source review and F31 instrumentation/mutation.
+# Literal symbols may occur in comments: an anchor match is never a domination proof.
+# This candidate records discovered authority routes; independent audit must identify
+# omissions and block F00 completion or re-plan later Produces before implementation.
+# Existing-source seam rows below are pinned and working-tree checked.
+# New fork files are deliberately NOT represented as existing upstream anchors:
+# F10 covenant/runtime/src/* and schema/decide-v1.json; F22 covenant_inventory.rs;
+# F14 login/src/auth/covenant_auth_home.rs and refresh-lock module are proposed additions.
+# F12 fork-owned final-environment/supervision adapter and F13 guarded filesystem adapter
+# await approved design paths. Their source dependencies appear in AUTHORITY-INVENTORY.
+# F21 owns cli Cargo/Bazel/profile wiring later; current artifact has no fork feature.
+# APPROVED REANCHOR: codex-exec uses app-server-client -> app-server::in_process.
+# Keep required internal orchestration; remove public server entrypoints and alternate
+# authorities. app-server library linkage is not claimed absent. Any edits to
+# app-server/src/extensions.rs, message_processor.rs or in_process.rs require F21 design/tests.
+# Concrete tools use their source identity before optional namespace wrapping. Dynamic
+# MCP/external/configurable namespace families are constructor rows, not fake tool names.
+# Hosted web_search is a tool-type identity, not a locally dispatchable function.
+# tool_search has the distinct ToolSpec::ToolSearch / ToolPayload::ToolSearch form;
+# the F00 enum was re-anchored to record it without any F11 admission expansion.
+# R1/R2 connected source dependencies (scouted, NOT automatic later edit permission):
+# F12/F14/F21 provider command policy: model-provider-info/src/lib.rs ->
+# model-provider/src/auth.rs -> login/src/auth/manager.rs -> login/src/auth/external_bearer.rs.
+# F21 plugin startup/install exclusion: core-plugins/src/manager.rs -> startup_sync.rs,
+# git_policy.rs, marketplace_upgrade.rs, marketplace_upgrade/git.rs, and
+# marketplace_upgrade/activation.rs; loader.rs -> npm_source.rs and its own Git runner
+# -> plugin_bundle_archive.rs and store.rs. All paths have exact validated authority
+# anchors in AUTHORITY-INVENTORY.toml; retain required internal app-server orchestration.
+# Narrow follow-up anchors: startup_sync.rs::git_head_sha is a direct .output()
+# process boundary separate from its timed Git runner. F14 existing manager.rs edits
+# must account for persist_agent_identity_record read/merge/write and both native
+# logout_with_revoke callers. login/src/auth/revoke.rs::revoke_oauth_token is the
+# existing revocation network/error boundary for the planned opt-in F14 redaction;
+# these inventory anchors do not implement transactions/redaction or expand auth scope.
+schema_version = 1
+commit = "3d2ee51ca2d5db578f328aa75e20aa22c0197c9a"
+absent_seams = ["build_metadata"]
+
+[[seams]]
+id = "cli_entry"
+phase = "F21"
+path = "codex-rs/cli/src/main.rs"
+symbols = ["enum Subcommand", "fn main()"]
+
+[[seams]]
+id = "config_resolution"
+phase = "F21"
+path = "codex-rs/core/src/config/mod.rs"
+symbols = ["pub struct Config", "load_from_base_config_with_overrides"]
+
+[[seams]]
+id = "managed_requirements"
+phase = "F21"
+path = "codex-rs/core/src/config/mod.rs"
+symbols = ["requirements::apply_to_config"]
+
+[[seams]]
+id = "model_catalog"
+phase = "F21"
+path = "codex-rs/core/src/config/mod.rs"
+symbols = ["multi_agent_version_for_model", "load_model_catalog"]
+
+[[seams]]
+id = "auth_storage"
+phase = "F14"
+path = "codex-rs/login/src/auth/storage.rs"
+symbols = ["create_auth_storage", "get_auth_file", "impl AuthStorageBackend for FileAuthStorage"]
+
+[[seams]]
+id = "auth_refresh"
+phase = "F14"
+path = "codex-rs/login/src/auth/manager.rs"
+symbols = ["refresh_token_from_authority", "refresh_and_persist_chatgpt_token"]
+
+[[seams]]
+id = "tool_admission"
+phase = "F11"
+path = "codex-rs/core/src/tools/registry.rs"
+symbols = ["dispatch_any_with_terminal_outcome", "run_pre_tool_use_hooks"]
+
+[[seams]]
+id = "process_start"
+phase = "F12"
+path = "codex-rs/core/src/unified_exec/process_manager.rs"
+symbols = ["open_session_with_prepared_exec_env", "open_session_with_sandbox"]
+
+[[seams]]
+id = "patch_runtime"
+phase = "F13"
+path = "codex-rs/core/src/tools/runtimes/apply_patch.rs"
+symbols = ["impl ToolRuntime<ApplyPatchRequest, ApplyPatchRuntimeOutput>", "apply_patch_with_options"]
+
+[[seams]]
+id = "tool_registration"
+phase = "F21"
+path = "codex-rs/core/src/tools/spec_plan.rs"
+symbols = ["add_core_tool_sources", "ExecCommandHandler::one_shot", "hosted_model_tool_specs", "append_extension_tool_executors"]
+
+[[seams]]
+id = "feature_registry"
+phase = "F21"
+path = "codex-rs/features/src/lib.rs"
+symbols = ["pub enum Feature", "pub const FEATURES"]
+
+[[seams]]
+id = "pre_tool_hook"
+phase = "F21"
+path = "codex-rs/hooks/src/events/pre_tool_use.rs"
+symbols = ["pub(crate) async fn run"]
+
+[[seams]]
+id = "hook_runtime"
+phase = "F21"
+path = "codex-rs/core/src/hook_runtime.rs"
+symbols = ["run_pre_tool_use_hooks", "run_legacy_after_agent_hook"]
+
+[[seams]]
+id = "mcp_launcher"
+phase = "F21"
+path = "codex-rs/rmcp-client/src/stdio_server_launcher.rs"
+symbols = ["launch_server"]
+
+[[seams]]
+id = "mcp_manager"
+phase = "F21"
+path = "codex-rs/codex-mcp/src/connection_manager.rs"
+symbols = ["pub async fn new", "pub async fn call_tool"]
+
+[[tools]]
+id = "builtin.exec_command"
+namespace = ""
+name = "exec_command"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/unified_exec/exec_command.rs"
+symbol = "ExecCommandHandler"
+
+[[tools]]
+id = "builtin.write_stdin"
+namespace = ""
+name = "write_stdin"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/unified_exec/write_stdin.rs"
+symbol = "WriteStdinHandler"
+
+[[tools]]
+id = "builtin.view_image"
+namespace = ""
+name = "view_image"
+form = "function"
+effect = "read"
+path = "codex-rs/core/src/tools/handlers/view_image.rs"
+symbol = "ViewImageHandler"
+
+[[tools]]
+id = "builtin.update_plan"
+namespace = ""
+name = "update_plan"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/plan.rs"
+symbol = "PlanHandler"
+
+[[tools]]
+id = "builtin.list_mcp_resources"
+namespace = ""
+name = "list_mcp_resources"
+form = "function"
+effect = "mcp"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resources.rs"
+symbol = "ListMcpResourcesHandler"
+
+[[tools]]
+id = "builtin.list_mcp_resource_templates"
+namespace = ""
+name = "list_mcp_resource_templates"
+form = "function"
+effect = "mcp"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/list_mcp_resource_templates.rs"
+symbol = "ListMcpResourceTemplatesHandler"
+
+[[tools]]
+id = "builtin.read_mcp_resource"
+namespace = ""
+name = "read_mcp_resource"
+form = "function"
+effect = "mcp"
+path = "codex-rs/core/src/tools/handlers/mcp_resource/read_mcp_resource.rs"
+symbol = "ReadMcpResourceHandler"
+
+[[tools]]
+id = "builtin.wait_for_environment"
+namespace = ""
+name = "wait_for_environment"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/wait_for_environment.rs"
+symbol = "WaitForEnvironmentHandler"
+
+[[tools]]
+id = "builtin.request_user_input"
+namespace = ""
+name = "request_user_input"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/request_user_input.rs"
+symbol = "RequestUserInputHandler"
+
+[[tools]]
+id = "builtin.request_user_input_async"
+namespace = ""
+name = "request_user_input_async"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/request_user_input_async.rs"
+symbol = "RequestUserInputAsyncHandler"
+
+[[tools]]
+id = "builtin.request_permissions"
+namespace = ""
+name = "request_permissions"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/request_permissions.rs"
+symbol = "RequestPermissionsHandler"
+
+[[tools]]
+id = "builtin.new_context"
+namespace = ""
+name = "new_context"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/new_context_window.rs"
+symbol = "NewContextWindowHandler"
+
+[[tools]]
+id = "builtin.get_context_remaining"
+namespace = ""
+name = "get_context_remaining"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/get_context_remaining.rs"
+symbol = "GetContextRemainingHandler"
+
+[[tools]]
+id = "builtin.list_available_plugins_to_install"
+namespace = ""
+name = "list_available_plugins_to_install"
+form = "function"
+effect = "network"
+path = "codex-rs/core/src/tools/handlers/list_available_plugins_to_install.rs"
+symbol = "ListAvailablePluginsToInstallHandler"
+
+[[tools]]
+id = "builtin.request_plugin_install"
+namespace = ""
+name = "request_plugin_install"
+form = "function"
+effect = "filesystem"
+path = "codex-rs/core/src/tools/handlers/request_plugin_install.rs"
+symbol = "RequestPluginInstallHandler"
+
+[[tools]]
+id = "builtin.test_sync_tool"
+namespace = ""
+name = "test_sync_tool"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/test_sync.rs"
+symbol = "TestSyncHandler"
+
+[[tools]]
+id = "builtin.tool_search"
+namespace = ""
+name = "tool_search"
+form = "tool_search"
+effect = "mcp"
+path = "codex-rs/core/src/tools/handlers/tool_search.rs"
+symbol = "ToolSearchHandler"
+
+[[tools]]
+id = "builtin.apply_patch"
+namespace = ""
+name = "apply_patch"
+form = "custom"
+effect = "filesystem"
+path = "codex-rs/core/src/tools/handlers/apply_patch.rs"
+symbol = "ApplyPatchHandler"
+
+[[tools]]
+id = "clock.curr_time"
+namespace = "clock"
+name = "curr_time"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/current_time.rs"
+symbol = "CurrentTimeHandler"
+
+[[tools]]
+id = "clock.sleep"
+namespace = "clock"
+name = "sleep"
+form = "function"
+effect = "none"
+path = "codex-rs/core/src/tools/handlers/sleep.rs"
+symbol = "SleepHandler"
+
+[[tools]]
+id = "multi_agent_v1.spawn_agent"
+namespace = "multi_agent_v1"
+name = "spawn_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents/spawn.rs"
+symbol = "\"spawn_agent\""
+
+[[tools]]
+id = "multi_agent_v1.send_input"
+namespace = "multi_agent_v1"
+name = "send_input"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents/send_input.rs"
+symbol = "\"send_input\""
+
+[[tools]]
+id = "multi_agent_v1.resume_agent"
+namespace = "multi_agent_v1"
+name = "resume_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents/resume_agent.rs"
+symbol = "\"resume_agent\""
+
+[[tools]]
+id = "multi_agent_v1.wait_agent"
+namespace = "multi_agent_v1"
+name = "wait_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents/wait.rs"
+symbol = "\"wait_agent\""
+
+[[tools]]
+id = "multi_agent_v1.close_agent"
+namespace = "multi_agent_v1"
+name = "close_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents/close_agent.rs"
+symbol = "\"close_agent\""
+
+[[tools]]
+id = "builtin.spawn_agent"
+namespace = ""
+name = "spawn_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs"
+symbol = "\"spawn_agent\""
+
+[[tools]]
+id = "builtin.send_message"
+namespace = ""
+name = "send_message"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/send_message.rs"
+symbol = "\"send_message\""
+
+[[tools]]
+id = "builtin.followup_task"
+namespace = ""
+name = "followup_task"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/followup_task.rs"
+symbol = "\"followup_task\""
+
+[[tools]]
+id = "builtin.wait_agent"
+namespace = ""
+name = "wait_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/wait.rs"
+symbol = "\"wait_agent\""
+
+[[tools]]
+id = "builtin.interrupt_agent"
+namespace = ""
+name = "interrupt_agent"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/interrupt_agent.rs"
+symbol = "\"interrupt_agent\""
+
+[[tools]]
+id = "builtin.list_agents"
+namespace = ""
+name = "list_agents"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/handlers/multi_agents_v2/list_agents.rs"
+symbol = "\"list_agents\""
+
+[[tools]]
+id = "builtin.exec"
+namespace = ""
+name = "exec"
+form = "custom"
+effect = "process"
+path = "codex-rs/core/src/tools/code_mode/execute_handler.rs"
+symbol = "CodeModeExecuteHandler"
+
+[[tools]]
+id = "builtin.wait"
+namespace = ""
+name = "wait"
+form = "function"
+effect = "process"
+path = "codex-rs/core/src/tools/code_mode/wait_handler.rs"
+symbol = "CodeModeWaitHandler"
+
+[[tools]]
+id = "builtin.web_search"
+namespace = ""
+name = "web_search"
+form = "hosted"
+effect = "hosted"
+path = "codex-rs/core/src/tools/hosted_spec.rs"
+symbol = "create_web_search_tool"
+
+[[tools]]
+id = "web.run"
+namespace = "web"
+name = "run"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/web-search/src/tool.rs"
+symbol = "WebSearchTool"
+
+[[tools]]
+id = "image_gen.imagegen"
+namespace = "image_gen"
+name = "imagegen"
+form = "function"
+effect = "filesystem"
+path = "codex-rs/ext/image-generation/src/tool.rs"
+symbol = "ImageGenerationTool"
+
+[[tools]]
+id = "builtin.get_goal"
+namespace = ""
+name = "get_goal"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"get_goal\""
+
+[[tools]]
+id = "builtin.create_goal"
+namespace = ""
+name = "create_goal"
+form = "function"
+effect = "filesystem"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"create_goal\""
+
+[[tools]]
+id = "builtin.update_goal"
+namespace = ""
+name = "update_goal"
+form = "function"
+effect = "filesystem"
+path = "codex-rs/ext/goal/src/spec.rs"
+symbol = "\"update_goal\""
+
+[[tools]]
+id = "memories.list"
+namespace = "memories"
+name = "list"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"list\""
+
+[[tools]]
+id = "memories.read"
+namespace = "memories"
+name = "read"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"read\""
+
+[[tools]]
+id = "memories.search"
+namespace = "memories"
+name = "search"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"search\""
+
+[[tools]]
+id = "memories.add_ad_hoc_note"
+namespace = "memories"
+name = "add_ad_hoc_note"
+form = "function"
+effect = "filesystem"
+path = "codex-rs/ext/memories/src/lib.rs"
+symbol = "\"add_ad_hoc_note\""
+
+[[tools]]
+id = "skills.list"
+namespace = "skills"
+name = "list"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/skills/src/tools/list.rs"
+symbol = "const TOOL_NAME"
+
+[[tools]]
+id = "skills.read"
+namespace = "skills"
+name = "read"
+form = "function"
+effect = "read"
+path = "codex-rs/ext/skills/src/tools/read.rs"
+symbol = "const TOOL_NAME"
+
+[[tools]]
+id = "history.list_windows"
+namespace = "history"
+name = "list_windows"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_windows\""
+
+[[tools]]
+id = "history.list_items"
+namespace = "history"
+name = "list_items"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_items\""
+
+[[tools]]
+id = "history.read_item"
+namespace = "history"
+name = "read_item"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"read_item\""
+
+[[tools]]
+id = "history.search_contents"
+namespace = "history"
+name = "search_contents"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"search_contents\""
+
+[[tools]]
+id = "notes.list_files_by_prefix"
+namespace = "notes"
+name = "list_files_by_prefix"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"list_files_by_prefix\""
+
+[[tools]]
+id = "notes.read_file"
+namespace = "notes"
+name = "read_file"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"read_file\""
+
+[[tools]]
+id = "notes.search_contents"
+namespace = "notes"
+name = "search_contents"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"search_contents\""
+
+[[tools]]
+id = "notes.append_to_file"
+namespace = "notes"
+name = "append_to_file"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"append_to_file\""
+
+[[tools]]
+id = "notes.write_file"
+namespace = "notes"
+name = "write_file"
+form = "function"
+effect = "network"
+path = "codex-rs/ext/history-notes/src/tools.rs"
+symbol = "\"write_file\""
