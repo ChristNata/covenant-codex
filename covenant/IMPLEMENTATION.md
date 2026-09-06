@@ -1558,3 +1558,48 @@ settings were preserved. Provenance is `actionlint-installation-evidence.md`
 and `actionlint-installation.json`. No covenant release workflow exists yet,
 so this records tool availability, not workflow validation, dispatch or F03
 completion. The existing sync workflow was untouched.
+
+
+### F21b1: accepted effective configuration materialization
+
+Root accepted independent `f21-config-review.md` bounded PASS with 144 passing
+integrity checks. The frozen 458-line tests are checkpointed alone as
+`a1aaf5d8e5877810a3ed11c0c83b26aaf2caf58d`, SHA-256
+`17256efec9c21a5a8cb325f5a886b6dd8bd442a684ac5ad9d3aa0c08d42e4b2f`.
+That unregistered test-only checkpoint is not claimed independently executed;
+the four exact registration lines accompany this reviewed production change.
+The separate author obtained three genuine policy failures and an ordinary
+positive control, with every fixture/provenance/security control reached.
+
+The private config profile refuses nonempty mandatory hook requirements with
+fixed InvalidData text before mutation or derived diagnostics. It normalizes
+MCP/orchestrator, web, notify, tool-suggestion and input/plan channels before
+materialization while retaining raw config layers and permission/auth values.
+MCP setters remain normalized empty; web setters remain Disabled with the
+existing validator and source retained. Both raw suggestion resolvers return
+empty before ordinary layer traversal. Ordinary compiled behavior is preserved.
+This is materialization and projection coverage, not lifecycle exclusion.
+
+Actual constrained run `b4069779-142d-4b4d-8ba1-e801205137d7` passed all three
+cases, zero skips/failures, 2,360 unrelated tests filtered. Feature-off run
+`9beabc13-294f-4517-a7b6-471729522f85` passed one control, 2,343 filtered.
+Scoped actual-core library Clippy with `-D warnings` passed in 29.58s. Exact
+two-source final format/check passed with zero byte changes across all 28
+config paths. No review/checkpoint or post-format test repeat occurred.
+
+Final helper and config/mod.rs SHA-256 respectively are
+`5bfe96d9fb15b7a4c344016dd5861f3534e770d888130d10a856eb32be86f64d` and
+`f7f65e6fa00571b9dd1bd85f69b2f9d7ceeac22b747b85a94f01a693d31b9ec1`.
+Evidence is `f21-config-implementation-evidence.md`, SHA-256
+`984f1f50b951e9478c353682ec92ce60be6a9b5449d1f2f80be25310b6640361`;
+its final hash manifest and `f21-config-review-integrity.json` retain exact
+source/log/run provenance. Both source copies and protected inputs match.
+Root/MODULE locks remain unchanged; the disposable source graph retains only
+149 approved local version-field changes and all 1,232 external full records.
+
+Direct public field mutation, role I/O/model metadata, raw session reload,
+discovery/contributor/worker constructors, effective tool specs, hosted effects,
+provider/catalog/CLI integration and native authority remain separate stages.
+The paused role draft is unregistered and excluded. No dependencies, schema,
+upstream repair, abandoned wrapper, original user documents or remote action
+are included. This checkpoint does not complete F21, F12 or the full fork.

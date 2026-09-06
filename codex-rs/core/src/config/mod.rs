@@ -49,7 +49,9 @@ use codex_config::types::OAuthCredentialsStoreMode;
 use codex_config::types::ResumeCwdMode;
 use codex_config::types::SessionPickerViewMode;
 use codex_config::types::ToolSuggestConfig;
+#[cfg(not(feature = "covenant"))]
 use codex_config::types::ToolSuggestDisabledTool;
+#[cfg(any(not(feature = "covenant"), test))]
 use codex_config::types::ToolSuggestDiscoverable;
 use codex_config::types::TuiKeymap;
 use codex_config::types::TuiNotificationSettings;
@@ -161,6 +163,8 @@ use toml::Value as TomlValue;
 use toml_edit::DocumentMut;
 
 mod auth_keyring;
+#[cfg(feature = "covenant")]
+mod covenant_non_features;
 #[cfg(feature = "covenant")]
 mod covenant_profile;
 pub mod edit;
@@ -2141,15 +2145,23 @@ fn constrain_mcp_servers(
     mcp_servers: HashMap<String, McpServerConfig>,
     mcp_requirements: Option<&Sourced<BTreeMap<String, McpServerRequirement>>>,
 ) -> ConstraintResult<Constrained<HashMap<String, McpServerConfig>>> {
-    if mcp_requirements.is_none() {
-        return Ok(Constrained::allow_any(mcp_servers));
+    #[cfg(feature = "covenant")]
+    {
+        let _ = mcp_requirements;
+        Constrained::normalized(mcp_servers, |_| HashMap::new())
     }
+    #[cfg(not(feature = "covenant"))]
+    {
+        if mcp_requirements.is_none() {
+            return Ok(Constrained::allow_any(mcp_servers));
+        }
 
-    let mcp_requirements = mcp_requirements.cloned();
-    Constrained::normalized(mcp_servers, move |mut servers| {
-        filter_mcp_servers_by_requirements(&mut servers, mcp_requirements.as_ref());
-        servers
-    })
+        let mcp_requirements = mcp_requirements.cloned();
+        Constrained::normalized(mcp_servers, move |mut servers| {
+            filter_mcp_servers_by_requirements(&mut servers, mcp_requirements.as_ref());
+            servers
+        })
+    }
 }
 
 fn apply_requirement_constrained_value<T>(
@@ -2354,70 +2366,86 @@ fn resolve_tool_suggest_config(
 pub(crate) fn resolve_tool_suggest_config_from_layer_stack(
     config_layer_stack: &ConfigLayerStack,
 ) -> ToolSuggestConfig {
-    let tool_suggest = config_layer_stack
-        .effective_config()
-        .get("tool_suggest")
-        .cloned()
-        .and_then(|value| value.try_into::<ToolSuggestConfig>().ok());
-    resolve_tool_suggest_config_from_config(tool_suggest.as_ref(), config_layer_stack)
+    #[cfg(feature = "covenant")]
+    {
+        let _ = config_layer_stack;
+        ToolSuggestConfig::default()
+    }
+    #[cfg(not(feature = "covenant"))]
+    {
+        let tool_suggest = config_layer_stack
+            .effective_config()
+            .get("tool_suggest")
+            .cloned()
+            .and_then(|value| value.try_into::<ToolSuggestConfig>().ok());
+        resolve_tool_suggest_config_from_config(tool_suggest.as_ref(), config_layer_stack)
+    }
 }
 
 fn resolve_tool_suggest_config_from_config(
     tool_suggest: Option<&ToolSuggestConfig>,
     config_layer_stack: &ConfigLayerStack,
 ) -> ToolSuggestConfig {
-    let discoverables = tool_suggest
-        .into_iter()
-        .flat_map(|tool_suggest| tool_suggest.discoverables.iter())
-        .filter_map(|discoverable| {
-            let trimmed = discoverable.id.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(ToolSuggestDiscoverable {
-                    kind: discoverable.kind,
-                    id: trimmed.to_string(),
-                })
-            }
-        })
-        .collect();
-    let mut seen_disabled_tools = HashSet::new();
-    let mut disabled_tools = Vec::new();
-    let mut add_disabled_tool = |disabled_tool: ToolSuggestDisabledTool| {
-        if let Some(disabled_tool) = disabled_tool.normalized()
-            && seen_disabled_tools.insert(disabled_tool.clone())
-        {
-            disabled_tools.push(disabled_tool);
-        }
-    };
-
-    let mut layers = config_layer_stack.layers_low_to_high().peekable();
-    if layers.peek().is_none() {
-        for disabled_tool in tool_suggest
+    #[cfg(feature = "covenant")]
+    {
+        let _ = (tool_suggest, config_layer_stack);
+        ToolSuggestConfig::default()
+    }
+    #[cfg(not(feature = "covenant"))]
+    {
+        let discoverables = tool_suggest
             .into_iter()
-            .flat_map(|tool_suggest| tool_suggest.disabled_tools.iter().cloned())
-        {
-            add_disabled_tool(disabled_tool);
-        }
-    } else {
-        for layer in layers {
-            let Some(tool_suggest) = layer
-                .config
-                .get("tool_suggest")
-                .cloned()
-                .and_then(|value| value.try_into::<ToolSuggestConfig>().ok())
-            else {
-                continue;
-            };
-            for disabled_tool in tool_suggest.disabled_tools {
+            .flat_map(|tool_suggest| tool_suggest.discoverables.iter())
+            .filter_map(|discoverable| {
+                let trimmed = discoverable.id.trim();
+                if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(ToolSuggestDiscoverable {
+                        kind: discoverable.kind,
+                        id: trimmed.to_string(),
+                    })
+                }
+            })
+            .collect();
+        let mut seen_disabled_tools = HashSet::new();
+        let mut disabled_tools = Vec::new();
+        let mut add_disabled_tool = |disabled_tool: ToolSuggestDisabledTool| {
+            if let Some(disabled_tool) = disabled_tool.normalized()
+                && seen_disabled_tools.insert(disabled_tool.clone())
+            {
+                disabled_tools.push(disabled_tool);
+            }
+        };
+
+        let mut layers = config_layer_stack.layers_low_to_high().peekable();
+        if layers.peek().is_none() {
+            for disabled_tool in tool_suggest
+                .into_iter()
+                .flat_map(|tool_suggest| tool_suggest.disabled_tools.iter().cloned())
+            {
                 add_disabled_tool(disabled_tool);
             }
+        } else {
+            for layer in layers {
+                let Some(tool_suggest) = layer
+                    .config
+                    .get("tool_suggest")
+                    .cloned()
+                    .and_then(|value| value.try_into::<ToolSuggestConfig>().ok())
+                else {
+                    continue;
+                };
+                for disabled_tool in tool_suggest.disabled_tools {
+                    add_disabled_tool(disabled_tool);
+                }
+            }
         }
-    }
 
-    ToolSuggestConfig {
-        discoverables,
-        disabled_tools,
+        ToolSuggestConfig {
+            discoverables,
+            disabled_tools,
+        }
     }
 }
 
@@ -3152,6 +3180,14 @@ impl Config {
     ) -> std::io::Result<Self> {
         // Keep the large config-construction future off small test thread stacks.
         Box::pin(async move {
+        #[cfg(feature = "covenant")]
+        let mut overrides = overrides;
+        #[cfg(feature = "covenant")]
+        covenant_non_features::apply_config_profile(
+            &mut cfg,
+            &mut overrides,
+            config_layer_stack.requirements(),
+        )?;
         if cfg.experimental_thread_store_endpoint.is_some() {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -4018,6 +4054,8 @@ impl Config {
             active_permission_profile = None;
             profile_workspace_roots.clear();
         }
+        #[cfg(feature = "covenant")]
+        covenant_non_features::freeze_web_search_mode(&mut constrained_web_search_mode)?;
         apply_requirement_constrained_value(
             "web_search_mode",
             web_search_mode,
@@ -4775,3 +4813,7 @@ mod config_loader_tests;
 #[cfg(test)]
 #[path = "covenant_profile_tests.rs"]
 mod covenant_profile_tests;
+
+#[cfg(test)]
+#[path = "covenant_config_tests.rs"]
+mod covenant_config_tests;
