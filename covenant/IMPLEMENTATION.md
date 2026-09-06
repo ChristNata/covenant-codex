@@ -1746,3 +1746,27 @@ and stderr; ordinary path checks do not retain filesystem identity. Native
 downloads, product graph/default-feature integration, actual F02 build and
 hosted workflow/artifact validation remain pending. No artifact attestation or
 complete F03/fork acceptance is inferred, and nothing was pushed.
+
+### F21: accepted pinned catalog data extraction
+
+Root accepted independent `f21-catalog-review.md` PASS for data extraction only.
+`covenant/model-catalog.json` contains the four complete, unique pinned records,
+ordered gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.2. Every object equals its source;
+no instruction, capability or other field value changed. The only transformations
+are selection/order and compact UTF-8 serialization with one final LF. The fixed
+gpt-5.5 default remains policy, with no invented catalog field.
+
+Source commit `3d2ee51ca2d5db578f328aa75e20aa22c0197c9a`, path
+`codex-rs/models-manager/models.json`, blob
+`698da6fb7a825cd3ede1696e4ce8579ef5c42c02` has 515,145 LF bytes and SHA-256
+`d7136a413cfac1b5b1686d9e0dcc5c80ca05bebed5e9fc3911376561d0ef6ee8`.
+The 516,510-byte checkout differs only through CRLF conversion; its digest is
+not the pinned blob digest. The extracted artifact has 154,094 bytes, below the
+256 KiB bound, and SHA-256
+`c9bdd5ab88895f50d5d6f2205e2c71f451ca09cf6bc6adb5583593b384af7e0d`.
+
+Extraction evidence and independent review integrity records reconstruct the
+exact output. No static-value tests, loader/source wiring, dependency changes or
+builds were introduced. Catalog/provider immutability and published-product
+behavior remain pending. Concurrent MCP work and all protected locks are
+preserved; this data checkpoint does not complete F21 or the fork. No push.
