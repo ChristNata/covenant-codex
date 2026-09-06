@@ -3778,6 +3778,20 @@ impl Config {
             .clone()
             .filter(|value| !value.is_empty());
 
+        #[cfg(feature = "covenant")]
+        if model_provider
+            .as_deref()
+            .or(cfg.model_provider.as_deref())
+            .unwrap_or("openai")
+            != "openai"
+            || openai_base_url.is_some()
+        {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Covenant model provider refused",
+            ));
+        }
+
         let model_providers =
             merge_configured_model_providers(built_in_model_providers(openai_base_url), cfg.model_providers)
                 .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidData, message))?;

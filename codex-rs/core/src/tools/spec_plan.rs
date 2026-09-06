@@ -102,6 +102,9 @@ use std::collections::btree_map::Entry;
 use std::sync::Arc;
 use tracing::instrument;
 
+#[path = "covenant_spec_plan.rs"]
+mod covenant_spec_plan;
+
 const MULTI_AGENT_V2_NAMESPACE_DESCRIPTION: &str = "Tools for spawning and managing sub-agents.";
 const IMAGE_GEN_NAMESPACE: &str = "image_gen";
 const IMAGEGEN_TOOL_NAME: &str = "imagegen";
@@ -149,6 +152,9 @@ pub(crate) fn build_tool_router(
         default_agent_type_description: &default_agent_type_description,
         wait_agent_timeouts: wait_agent_timeout_options(turn_context),
     };
+    if cfg!(feature = "covenant") {
+        return Ok(covenant_spec_plan::build_tool_router(&context));
+    }
     let mut registry = ToolRegistry::default();
     add_core_tool_sources(&context, &mut registry);
 
