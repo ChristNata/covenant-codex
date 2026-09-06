@@ -8,6 +8,10 @@ use framing::HttpDecoder;
 mod mcp;
 use mcp::McpExchange;
 
+#[path = "covenant_effect_http_responses.rs"]
+mod responses;
+use responses::ResponsesExchange;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Framing,
@@ -45,6 +49,10 @@ struct HttpReply {
     content_type: Option<&'static str>,
     body: Vec<u8>,
 }
+
+#[cfg(test)]
+#[path = "covenant_effect_http_responses_tests.rs"]
+mod responses_tests;
 
 #[cfg(test)]
 #[path = "covenant_effect_http_mcp_tests.rs"]

@@ -101,3 +101,9 @@ retries = 0
 platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(http::mcp_tests::mcp_)'
 retries = 0
+
+# Only the new private ordinary Responses protocol cases.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(http::responses_tests::ordinary_responses_)'
+retries = 0

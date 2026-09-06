@@ -2060,3 +2060,20 @@ hosted product proof. A timeout is failure, not cleanup proof. No push.
   cohort, not independently green stages; evidence is under `f21-effects-mcp-*`.
 - Acceptance covers pure protocol state and retained requests/replies only. It
   proves no live peer, HTTP write/settlement, hook/MCP effect, native or actual CLI gate.
+
+### Criterion 5 prerequisite: private Responses protocol exchange
+
+- Added the bounded ordinary Responses classifier/SSE fixture and four frozen
+  supplied-request tests; no live transport or actual CLI case was added.
+- Actual nextest run `c82c4f4f-242a-47fd-8cb9-43c0d5eedee7` passed all four cases;
+  fourteen prior framing/MCP cases were deliberately unselected. No behavioral RED
+  is claimed for this new API; exact local-profile selection/retry-zero gates passed.
+- Committed raw/canonical MCP preimages were rebound before application. Original
+  locked/offline metadata and Bazel update/check passed; Cargo/MODULE locks stayed exact.
+- Scoped target Clippy `--no-deps -- -D warnings` and three-file rustfmt/check passed.
+  Six helper layouts exactly reconstruct the tested bytes; the152-line tests stayed
+  byte-identical and no tests were repeated. This is one tested checkpoint cohort.
+- Evidence under `f21-effects-responses-*` records four actual cases, correcting
+  inherited runner prose; that wording did not affect matrix or selection enforcement.
+- Acceptance covers pure retained request/reply behavior only, not a live peer,
+  HTTP write/settlement, WebSocket server, marker effects, native or actual CLI gate.
