@@ -90,6 +90,8 @@ rust_test(
         "covenant_effect_http_mcp_tests.rs",
         "covenant_effect_http_responses.rs",
         "covenant_effect_http_responses_tests.rs",
+        "covenant_effect_marker.rs",
+        "covenant_effect_marker_tests.rs",
         "covenant_hook_mcp_effects.rs",
     ],
     crate_name = "covenant_hook_mcp_effects",
@@ -99,6 +101,7 @@ rust_test(
     target_compatible_with = ["@platforms//os:windows"],
     deps = [
         "@crates//:pretty_assertions",
+        "@crates//:serde",
         "@crates//:serde_json",
         "@crates//:tokio",
     ],

@@ -113,3 +113,9 @@ retries = 0
 platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(http::owner_tests::owner_)'
 retries = 0
+
+# Only the five owned marker parser cases; preserve inherited timeout behavior.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & (test(=http::marker_tests::marker_preserves_the_complete_observed_record) | test(=http::marker_tests::marker_refuses_wrong_nonce_event_source_cwd_model_or_process_identity) | test(=http::marker_tests::marker_refuses_incomplete_extra_or_non_utf8_records) | test(=http::marker_tests::marker_byte_limit_applies_before_json_parsing) | test(=http::marker_tests::marker_failure_does_not_echo_observed_contents))'
+retries = 0

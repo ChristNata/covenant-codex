@@ -20,8 +20,14 @@ mod peer;
 use peer::HttpPeer;
 use peer::PeerProtocol;
 
+#[path = "covenant_effect_marker.rs"]
+mod marker;
+use marker::MarkerExpectation;
+use marker::parse_marker;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
+    Marker,
     Framing,
     Limit,
     Incomplete,
@@ -77,3 +83,7 @@ mod tests;
 #[cfg(test)]
 #[path = "covenant_effect_http_owner_tests.rs"]
 mod owner_tests;
+
+#[cfg(test)]
+#[path = "covenant_effect_marker_tests.rs"]
+mod marker_tests;
