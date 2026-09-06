@@ -27,6 +27,10 @@ use std::process::Stdio;
 
 const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
 
+#[path = "covenant_auth/auto_persistence_support.rs"]
+mod auto_persistence_support;
+#[path = "covenant_auth/auto_persistence_tests.rs"]
+mod auto_persistence_tests;
 #[path = "covenant_auth/cancellation_support.rs"]
 mod cancellation_support;
 #[path = "covenant_auth/cancellation_tests.rs"]

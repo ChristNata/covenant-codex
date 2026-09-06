@@ -414,7 +414,7 @@ impl AuthStorageBackend for SecretsKeyringAuthStorage {
 #[derive(Clone, Debug)]
 struct AutoAuthStorage {
     keyring_storage: Arc<dyn AuthStorageBackend>,
-    file_storage: Arc<FileAuthStorage>,
+    file_storage: Arc<dyn AuthStorageBackend>,
 }
 
 impl AutoAuthStorage {
@@ -518,12 +518,22 @@ pub(super) fn create_auth_storage(
     #[cfg(windows)]
     let codex_home = auth_home.clone().unwrap_or(codex_home);
     let keyring_store: Arc<dyn KeyringStore> = Arc::new(DefaultKeyringStore);
-    let storage =
-        create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind);
     #[cfg(windows)]
     if let Some(home) = auth_home
         && mode != AuthCredentialsStoreMode::Ephemeral
     {
+        let storage: Arc<dyn AuthStorageBackend> = if mode == AuthCredentialsStoreMode::Auto
+            && keyring_backend_kind == AuthKeyringBackendKind::Direct
+        {
+            let mut auto = AutoAuthStorage::new(home.clone(), keyring_store, keyring_backend_kind);
+            auto.file_storage = Arc::new(super::covenant_auth_file::CovenantAuthFile::new(
+                home.clone(),
+                auto.file_storage,
+            ));
+            Arc::new(auto)
+        } else {
+            create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind)
+        };
         let storage: Arc<dyn AuthStorageBackend> = if mode == AuthCredentialsStoreMode::File {
             Arc::new(super::covenant_auth_file::CovenantAuthFile::new(
                 home.clone(),
@@ -536,7 +546,7 @@ pub(super) fn create_auth_storage(
             home, storage,
         ));
     }
-    storage
+    create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind)
 }
 
 fn create_auth_storage_with_store(

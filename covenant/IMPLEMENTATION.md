@@ -1934,3 +1934,22 @@ Acceptance is parser/help only. Pre-parser startup/helper routes, root/global/
 nested option policy, Config/catalog/provider and lifecycle closure, original
 F02 locked product/Bazel integration and same-executable/hosted proof remain
 pending. This does not complete F21 or native authorization.
+
+### F14: accepted opted-in Auto+Direct atomic fallback
+
+Root accepted f14-auto-review.md final PASS. Windows CODEX_AUTH_HOME Auto+Direct
+now uses the accepted atomic File leaf after keyring failure, preserving keyring
+preference/removal, constructor signatures and one outer transaction lock.
+Auto+Secrets, Keyring, unset and Ephemeral behavior remain unchanged.
+Author run bb96ceab-b582-4611-afc1-9d04c577176c had two genuine retained-reader
+REDs and one keyring-preference PASS. Frozen three-case run
+c0413fcb-387b-4328-817b-0ee1ff267dd2 is GREEN (13 prior cases filtered).
+Clippy exited101 before linting with the established nonmember Cargo resolver
+panic; no repair/retry or lint-clean claim. Scoped fmt/check/whitespace passed.
+One line reflow plus CRLF-to-LF reverses to the tested source exactly. Final SHA:
+`e9f8468037e08f975ee1451e81a5576033d936bcc9f9ba6b4d938992292ec880`.
+f14-auto-implementation-evidence.md/final-hashes and independent review retain
+actual logs, unchanged assertions and protected hashes. The isolated test graph
+adds only its edge to existing keyring; root/MODULE locks remain unchanged.
+Secrets persistence, redaction, competing writers and final F14/product/Bazel
+acceptance remain pending. No test/format repeats or push at checkpoint.

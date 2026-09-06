@@ -14,6 +14,7 @@ resolver = "2"
 anyhow = "=1.0.103"
 codex-login = { path = "../../codex-rs/login" }
 codex-protocol = { path = "../../codex-rs/protocol" }
+keyring = { version = "=3.6.3", default-features = false }
 pretty_assertions = "=1.4.1"
 rand = "=0.9.3"
 serde = { version = "=1.0.228", features = ["derive", "rc"] }
