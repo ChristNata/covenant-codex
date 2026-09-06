@@ -5006,3 +5006,7 @@ mod tests {
 #[cfg(test)]
 #[path = "covenant_cli_tests.rs"]
 mod covenant_cli_tests;
+
+#[cfg(test)]
+#[path = "covenant_exec_cli_tests.rs"]
+mod covenant_exec_cli_tests;
