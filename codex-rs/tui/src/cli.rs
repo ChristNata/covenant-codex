@@ -9,7 +9,11 @@ use codex_utils_cli::SharedCliOptions;
 #[command(version)]
 pub struct Cli {
     /// Optional user prompt to start the session.
-    #[arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)]
+    #[cfg_attr(
+        not(feature = "covenant"),
+        arg(value_name = "PROMPT", value_hint = clap::ValueHint::Other)
+    )]
+    #[cfg_attr(feature = "covenant", arg(skip))]
     pub prompt: Option<String>,
 
     /// Error out when config.toml contains fields that are not recognized by this version of Codex.

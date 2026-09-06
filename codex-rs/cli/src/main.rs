@@ -108,8 +108,19 @@ use codex_terminal_detection::TerminalName;
     // The executable is sometimes invoked via a platform‑specific name like
     // `codex-x86_64-unknown-linux-musl`, but the help output should always use
     // the generic `codex` command name that users run.
-    bin_name = "codex",
-    override_usage = "codex [OPTIONS] [PROMPT]\n       codex [OPTIONS] <COMMAND> [ARGS]"
+    bin_name = "codex"
+)]
+#[cfg_attr(
+    not(feature = "covenant"),
+    clap(override_usage = "codex [OPTIONS] [PROMPT]\n       codex [OPTIONS] <COMMAND> [ARGS]")
+)]
+#[cfg_attr(
+    feature = "covenant",
+    clap(
+        subcommand_required = true,
+        long_about = "Codex CLI\n\nA subcommand is required. Use exec, login, or logout.",
+        override_usage = "codex [OPTIONS] <COMMAND> [ARGS]"
+    )
 )]
 struct MultitoolCli {
     #[clap(flatten)]
@@ -129,15 +140,24 @@ struct MultitoolCli {
 }
 
 #[derive(Debug, clap::Subcommand)]
+#[cfg_attr(
+    feature = "covenant",
+    expect(
+        dead_code,
+        reason = "Excluded commands remain typed for ordinary dispatch."
+    )
+)]
 enum Subcommand {
     /// Browse all agent sessions on the shared local app-server daemon.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Agents(AgentsCommand),
 
     /// Run Codex non-interactively.
-    #[clap(visible_alias = "e")]
+    #[cfg_attr(not(feature = "covenant"), clap(visible_alias = "e"))]
     Exec(ExecCli),
 
     /// Run a code review non-interactively.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Review(ReviewCommand),
 
     /// Manage login.
@@ -147,84 +167,109 @@ enum Subcommand {
     Logout(LogoutCommand),
 
     /// Manage external MCP servers for Codex.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Mcp(McpCli),
 
     /// Manage Codex plugins.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Plugin(PluginCli),
 
     /// Start Codex as an MCP server (stdio).
+    #[cfg_attr(feature = "covenant", command(skip))]
     McpServer(McpServerCommand),
 
     /// [experimental] Run the app server or related tooling.
+    #[cfg_attr(feature = "covenant", command(skip))]
     AppServer(AppServerCommand),
 
     /// [experimental] Manage the app-server daemon with remote control enabled.
+    #[cfg_attr(feature = "covenant", command(skip))]
     RemoteControl(RemoteControlCommand),
 
     /// Launch the Desktop app (opens the app installer if missing).
     #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     App(app_cmd::AppCommand),
 
     /// Generate shell completion scripts.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Completion(CompletionCommand),
 
     /// Update Codex to the latest version.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Update,
 
     /// Diagnose local Codex installation, config, auth, and runtime health.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Doctor(DoctorCommand),
 
     /// Run commands within a Codex-provided sandbox.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Sandbox(HostSandboxArgs),
 
     /// Debugging tools.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Debug(DebugCommand),
 
     /// Execpolicy tooling.
-    #[clap(hide = true)]
+    #[cfg_attr(not(feature = "covenant"), clap(hide = true))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     Execpolicy(ExecpolicyCommand),
 
     /// Apply the latest diff produced by Codex agent as a `git apply` to your local working tree.
-    #[clap(visible_alias = "a")]
+    #[cfg_attr(not(feature = "covenant"), clap(visible_alias = "a"))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     Apply(ApplyCommand),
 
     /// Resume a previous interactive session (picker by default; use --last to continue the most recent).
+    #[cfg_attr(feature = "covenant", command(skip))]
     Resume(ResumeCommand),
 
     /// Queue a message for an existing session.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Queue(QueueCommand),
 
     /// Archive a saved session by id or session name.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Archive(SessionArchiveCommand),
 
     /// Permanently delete a saved session by id or session name.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Delete(DeleteCommand),
 
     /// Inspect or migrate legacy local sessions to paginated thread history.
+    #[cfg_attr(feature = "covenant", command(skip))]
     MigrateRollouts(migrate_rollouts::MigrateRolloutsCommand),
 
     /// Unarchive a saved session by id or session name.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Unarchive(SessionArchiveCommand),
 
     /// Fork a previous interactive session (picker by default; use --last to fork the most recent).
+    #[cfg_attr(feature = "covenant", command(skip))]
     Fork(ForkCommand),
 
     /// [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally.
-    #[clap(name = "cloud", alias = "cloud-tasks")]
+    #[cfg_attr(not(feature = "covenant"), clap(name = "cloud", alias = "cloud-tasks"))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     Cloud(CloudTasksCli),
 
     /// Internal: run the responses API proxy.
-    #[clap(hide = true)]
+    #[cfg_attr(not(feature = "covenant"), clap(hide = true))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     ResponsesApiProxy(ResponsesApiProxyArgs),
 
     /// Internal: relay stdio to a Unix domain socket.
-    #[clap(hide = true, name = "stdio-to-uds")]
+    #[cfg_attr(not(feature = "covenant"), clap(hide = true, name = "stdio-to-uds"))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     StdioToUds(StdioToUdsCommand),
 
     /// [EXPERIMENTAL] Run the standalone exec-server service.
+    #[cfg_attr(feature = "covenant", command(skip))]
     ExecServer(ExecServerCommand),
 
     /// Inspect feature flags.
+    #[cfg_attr(feature = "covenant", command(skip))]
     Features(FeaturesCli),
 }
 
@@ -4957,3 +5002,7 @@ mod tests {
             .expect_err("feature should be rejected")
     }
 }
+
+#[cfg(test)]
+#[path = "covenant_cli_tests.rs"]
+mod covenant_cli_tests;

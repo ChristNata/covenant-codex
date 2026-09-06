@@ -1902,3 +1902,35 @@ declarations may remain; effective custom/OSS/AWS/base-URL/profile selection mus
 refuse. Command-auth needs a separate pre-execution gate/capture proof. No new
 transport-trust pinning or provider implementation is accepted here; child-only
 HTTPS_PROXY/CA fixture transport remains an unexecuted design.
+
+### F21: accepted default CLI parser and help boundary
+
+Root accepted final f21-cli-review.md PASS and 26 independent integrity checks.
+The default CLI Covenant feature forwards to core and TUI; those library features
+remain default-off. The actual parser requires a command, retains canonical
+exec/login/logout and generated help/version, removes the e alias and 27 excluded
+variants, and skips only the flattened TUI prompt. Ordinary attributes, typed
+commands and dispatch bodies remain intact; no alternate parser was introduced.
+
+Independent author runs established two genuine constrained REDs and one ordinary
+PASS. Implementation runs 672f65a0-0315-4799-8f9a-64c4ea84e600 (2/2) and
+ab2ec375-d58a-403b-a575-d26aa5ffaf19 (1/1) are GREEN, each filtering 277 upstream
+cases. Scoped default-Covenant CLI-bin Clippy -D warnings passed with zero
+warnings/errors in 25m22s. After the actual 27-variant diagnostic, root approved
+one Covenant-only enum expectation; its exact removal reconstructs tested bytes.
+Final exact fmt/check passed: one expectation wrap and mixed CRLF-to-LF
+normalization only. Independent reversal confirms ordinary/dispatch preservation.
+
+Final main/TUI/frozen 374-line test SHA-256, respectively:
+`0740eb1d47ec76eb57af45946ab202e15dc599cd10f30fa15e6f44988f815e54`,
+`d7c3ef0efd9ef53383905378dc1b95f65178ad02abcd1e8712343a55c4138e3a`,
+`95e516c1af374797cbb38b9fb3110009c212b3d46b3778d29e43fd6af6361ad3`.
+f21-cli-implementation-evidence.md/final-hashes and final review retain actual
+logs, source pairs, formatting provenance and protected graph hashes. No test or
+format repeat at checkpoint; concurrent Auto/native/Config drafts and locks stay
+outside this change. No push.
+
+Acceptance is parser/help only. Pre-parser startup/helper routes, root/global/
+nested option policy, Config/catalog/provider and lifecycle closure, original
+F02 locked product/Bazel integration and same-executable/hosted proof remain
+pending. This does not complete F21 or native authorization.

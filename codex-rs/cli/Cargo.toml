@@ -6,6 +6,10 @@ license.workspace = true
 build = "build.rs"
 default-run = "codex"
 
+[features]
+default = ["covenant"]
+covenant = ["codex-core/covenant", "codex-tui/covenant"]
+
 [[bin]]
 name = "codex"
 path = "src/main.rs"
