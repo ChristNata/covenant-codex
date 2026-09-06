@@ -3,6 +3,7 @@ load("//:defs.bzl", "codex_rust_crate")
 codex_rust_crate(
     name = "core",
     compile_data = glob(["assets/**"]),
+    crate_features = ["covenant"],
     crate_name = "codex_core",
     extra_binaries = [
         "//codex-rs/bwrap:bwrap",

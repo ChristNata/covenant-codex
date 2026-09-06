@@ -208,6 +208,7 @@ def codex_rust_crate(
         test_tags = [],
         test_threads = 0,
         unit_test_timeout = None,
+        exclude_binaries = [],
         extra_binaries = [],
         extra_binaries_non_windows = [],
         run_tests_with_wine_exec = False):
@@ -261,6 +262,7 @@ def codex_rust_crate(
         test_threads: Optional Rust test thread limit for sharded integration tests.
         unit_test_timeout: Optional Bazel timeout for the unit-test target
             generated from `src/**/*.rs`.
+        exclude_binaries: Cargo binary names provided by separate Bazel test-only targets.
         extra_binaries: Additional binary labels to surface as test data and
             `CARGO_BIN_EXE_*` environment variables. These are only needed for binaries from a different crate.
         extra_binaries_non_windows: Like `extra_binaries`, but omitted from
@@ -301,7 +303,11 @@ def codex_rust_crate(
         manifest_relpath = manifest_relpath[len("codex-rs/"):]
     manifest_path = manifest_relpath + "/Cargo.toml"
 
-    binaries = DEP_DATA.get(native.package_name())["binaries"]
+    binaries = {
+        binary: main
+        for binary, main in DEP_DATA.get(native.package_name())["binaries"].items()
+        if binary not in exclude_binaries
+    }
 
     lib_srcs = crate_srcs or native.glob(["src/**/*.rs"], exclude = binaries.values(), allow_empty = True)
 

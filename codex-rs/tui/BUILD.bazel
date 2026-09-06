@@ -6,6 +6,7 @@ codex_rust_crate(
         "assets/**",
         "frames/**",
     ]),
+    crate_features = ["covenant"],
     crate_name = "codex_tui",
     extra_binaries = [
         "//codex-rs/cli:codex",

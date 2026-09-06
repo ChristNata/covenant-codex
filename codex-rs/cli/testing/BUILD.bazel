@@ -1,0 +1,40 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_test")
+load("//:defs.bzl", "WINDOWS_RUSTC_LINK_FLAGS")
+
+rust_binary(
+    name = "codex-covenant-startup-observer",
+    testonly = True,
+    srcs = ["covenant_startup_observer.rs"],
+    crate_name = "codex_covenant_startup_observer",
+    crate_root = "covenant_startup_observer.rs",
+    rustc_flags = WINDOWS_RUSTC_LINK_FLAGS,
+    visibility = ["//codex-rs/cli:__pkg__"],
+    deps = [
+        "//codex-rs/arg0",
+        "@crates//:anyhow",
+        "@crates//:serde_json",
+    ],
+)
+
+# Explicit target avoids the parent macro's ordinary tests/*.rs discovery.
+rust_test(
+    name = "covenant-patch-entry-test",
+    srcs = ["covenant_patch_entry.rs"],
+    crate_features = ["covenant"],
+    crate_name = "covenant_patch_entry",
+    crate_root = "covenant_patch_entry.rs",
+    data = ["//codex-rs/cli:codex"],
+    env = {
+        "CARGO_BIN_EXE_codex": "$(rlocationpath //codex-rs/cli:codex)",
+    },
+    rustc_flags = WINDOWS_RUSTC_LINK_FLAGS,
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        "//codex-rs/utils/cargo-bin",
+        "@crates//:anyhow",
+        "@crates//:assert_cmd",
+        "@crates//:pretty_assertions",
+        "@crates//:tempfile",
+    ],
+)

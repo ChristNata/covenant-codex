@@ -8,7 +8,8 @@ default-run = "codex"
 
 [features]
 default = ["covenant"]
-covenant = ["codex-core/covenant", "codex-tui/covenant"]
+covenant = ["codex-arg0/covenant", "codex-core/covenant", "codex-exec/covenant", "codex-tui/covenant"]
+covenant-startup-test-fixture = []
 
 [[bin]]
 name = "codex"
@@ -17,6 +18,17 @@ path = "src/main.rs"
 [[bin]]
 name = "logs_client"
 path = "src/bin/logs_client.rs"
+
+[[bin]]
+name = "codex-covenant-startup-observer"
+path = "testing/covenant_startup_observer.rs"
+required-features = ["covenant-startup-test-fixture"]
+test = false
+bench = false
+
+[[test]]
+name = "covenant_patch_entry"
+path = "testing/covenant_patch_entry.rs"
 
 [lib]
 name = "codex_cli"

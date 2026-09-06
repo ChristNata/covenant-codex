@@ -5,6 +5,9 @@ edition.workspace = true
 license.workspace = true
 autotests = false
 
+[features]
+covenant = []
+
 [[bin]]
 name = "codex-exec"
 path = "src/main.rs"

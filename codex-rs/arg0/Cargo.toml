@@ -4,6 +4,9 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+covenant = []
+
 [lib]
 name = "codex_arg0"
 path = "src/lib.rs"

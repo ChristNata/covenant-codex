@@ -1,11 +1,19 @@
-load("//:defs.bzl", "MACOS_WEBRTC_RUSTC_LINK_FLAGS", "codex_rust_crate")
+load("@crates//:defs.bzl", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_test")
+load("//:defs.bzl", "MACOS_WEBRTC_RUSTC_LINK_FLAGS", "WINDOWS_RUSTC_LINK_FLAGS", "codex_rust_crate")
 load("//bazel/platforms:release_binaries.bzl", "multiplatform_binaries")
 load("//bazel/rules:e2e_benchmark.bzl", "codex_e2e_benchmark")
 
 codex_rust_crate(
     name = "cli",
+    binary_rustc_flags_extra = {
+        "codex": ["--cfg", 'feature="covenant"'],
+    },
+    crate_features = ["covenant"],
     crate_name = "codex_cli",
+    exclude_binaries = ["codex-covenant-startup-observer"],
     extra_binaries = [
+        "//codex-rs/cli/testing:codex-covenant-startup-observer",
         "//codex-rs/bwrap:bwrap",
     ],
     rustc_flags_extra = MACOS_WEBRTC_RUSTC_LINK_FLAGS,
@@ -19,4 +27,25 @@ multiplatform_binaries(
 codex_e2e_benchmark(
     name = "codex-help",
     binaries = [":codex"],
+)
+
+# Select this explicit target; the generic integration macro does not pass cfg features.
+rust_test(
+    name = "covenant-startup-test",
+    srcs = ["tests/covenant_startup.rs"],
+    crate_features = ["covenant", "covenant-startup-test-fixture"],
+    crate_name = "covenant_startup",
+    crate_root = "tests/covenant_startup.rs",
+    data = [
+        ":codex",
+        "//codex-rs/cli/testing:codex-covenant-startup-observer",
+    ],
+    env = {
+        "CARGO_BIN_EXE_codex": "$(rlocationpath :codex)",
+        "CARGO_BIN_EXE_codex-covenant-startup-observer": "$(rlocationpath //codex-rs/cli/testing:codex-covenant-startup-observer)",
+    },
+    rustc_flags = WINDOWS_RUSTC_LINK_FLAGS,
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = all_crate_deps(normal = True, normal_dev = True),
 )
