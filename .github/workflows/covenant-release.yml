@@ -1,0 +1,114 @@
+name: Covenant Windows artifact
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-artifact:
+    if: github.repository == 'ChristNata/covenant-codex'
+    runs-on: windows-2022
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: codex-rs
+    env:
+      COVENANT_ARTIFACT_DIR: ${{ github.workspace }}/covenant/windows-build/artifacts/${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout the dispatched commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Python 3.12.1
+        id: python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12.1'
+          architecture: x64
+          check-latest: false
+
+      - name: Set up Rust 1.95.0
+        uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Prepare the VS2022 x64 environment
+        env:
+          COVENANT_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'covenant/scripts/prepare_windows_build.py'
+          $output = & $env:COVENANT_PYTHON $script --repo $env:GITHUB_WORKSPACE
+          $nativeExit = $LASTEXITCODE
+          if ($nativeExit -ne 0) { exit $nativeExit }
+          $prepared = $output | ConvertFrom-Json -AsHashtable -Depth 8
+          if ($prepared -isnot [System.Collections.IDictionary] -or
+              $prepared.status -isnot [string] -or
+              $prepared.status -cne 'msvc-environment-prepared' -or
+              $prepared.environment -isnot [System.Collections.IDictionary] -or
+              $prepared.observations -isnot [System.Collections.IDictionary]) {
+            throw 'Windows build preparation returned an invalid result'
+          }
+          $exportKeys = @(
+            'INCLUDE', 'LIB', 'LIBPATH', 'PATH', 'UCRTVersion',
+            'UniversalCRTSdkDir', 'VCINSTALLDIR', 'VCToolsInstallDir',
+            'WindowsLibPath', 'WindowsSdkBinPath', 'WindowsSdkDir',
+            'WindowsSDKLibVersion', 'WindowsSDKVersion',
+            'CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER'
+          )
+          if ($prepared.environment.Count -ne $exportKeys.Count -or
+              @($prepared.environment.Keys | Where-Object { $_ -cnotin $exportKeys }).Count -ne 0) {
+            throw 'Windows build preparation returned unexpected environment keys'
+          }
+          $lines = foreach ($key in $exportKeys) {
+            $value = $prepared.environment[$key]
+            if ($value -isnot [string] -or [string]::IsNullOrEmpty($value) -or $value -match '[\r\n\x00]') {
+              throw 'Windows build preparation returned an invalid environment value'
+            }
+            "$key=$value"
+          }
+          $encoding = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::AppendAllText($env:GITHUB_ENV, ($lines -join "`n") + "`n", $encoding)
+          $prepared.observations | ConvertTo-Json -Compress -Depth 8
+          @{ image_os = $env:ImageOS; image_version = $env:ImageVersion } | ConvertTo-Json -Compress
+
+      - name: Build and record the Windows executable
+        env:
+          COVENANT_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $parent = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts'
+          [System.IO.Directory]::CreateDirectory($parent) | Out-Null
+          $script = Join-Path $env:GITHUB_WORKSPACE 'covenant/scripts/build_windows.py'
+          $recipe = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-repro.toml'
+          & $env:COVENANT_PYTHON $script --repo $env:GITHUB_WORKSPACE --recipe $recipe --output-dir $env:COVENANT_ARTIFACT_DIR
+          $nativeExit = $LASTEXITCODE
+          if ($nativeExit -ne 0) { exit $nativeExit }
+
+      - name: Verify the executable and digest pair
+        env:
+          COVENANT_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'covenant/scripts/verify_windows_artifact.py'
+          & $env:COVENANT_PYTHON $script --repo $env:GITHUB_WORKSPACE --artifact-dir $env:COVENANT_ARTIFACT_DIR
+          $nativeExit = $LASTEXITCODE
+          if ($nativeExit -ne 0) { exit $nativeExit }
+
+      - name: Upload the development artifact pair
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: covenant-windows-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.COVENANT_ARTIFACT_DIR }}/codex-x86_64-pc-windows-msvc.exe
+            ${{ env.COVENANT_ARTIFACT_DIR }}/codex.exe.sha256
+          archive: true
+          if-no-files-found: error
+          overwrite: false
+          include-hidden-files: false

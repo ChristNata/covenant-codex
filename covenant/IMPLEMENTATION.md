@@ -1798,3 +1798,26 @@ logs and protected-source/lock provenance. No checkpoint test/format repeat,
 dependency change or push. Caller discovery, constructors, other MCP methods,
 connection/session lifecycle and published CLI reachability remain pending;
 this manager projection stage does not complete F21 or the fork.
+
+### F03: accepted local workflow wiring
+
+Root accepted independent `f03-workflow-review.md` PASS for the 114-line manual
+Windows workflow. Exact source SHA-256:
+`784af51ad370746be7123fb0bc0c95ee919fc16565277de63c70d2684404d8ff`.
+The inputless dispatch is fork-guarded with contents-read permission and pinned
+actions. It retains the selected Python interpreter, validates MSVC exports,
+propagates native exits, builds into a new run/attempt directory, verifies the
+pair and uploads only its executable and digest. Existing helpers/recipe and
+other workflows remain unchanged.
+
+Author-observed actionlint 1.7.12 completed with exit 0/no diagnostics. PowerShell
+7.6.5 parsed all three actual run blocks with zero errors without executing them.
+The independent review checked pinned action interfaces, helper ordering and all
+40 protected hashes; `f03-workflow-implementation-evidence.md`, parser/result
+records and review retain the source/validation provenance. No checks repeated
+at checkpoint and no workflow dispatch or push occurred.
+
+Acceptance is local syntax/source wiring only. Final product graph/lock/Bazel
+integration, proven native build prerequisites, a real constrained Windows build,
+and hosted upload/retrieval/verification remain pending. The locked build must
+refuse unresolved prerequisites; this does not complete F03 or the fork.
