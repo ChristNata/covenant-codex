@@ -8,6 +8,7 @@ use codex_config::McpServerConfig;
 use codex_connectors::ConnectorRuntimeManager;
 use codex_connectors::ConnectorSnapshot;
 use codex_connectors::PluginConnectorSource;
+use codex_core_plugins::PluginLoadOutcome;
 use codex_core_plugins::PluginsManager;
 use codex_exec_server::ExecutorCapabilityDiscoverySnapshot;
 use codex_extension_api::ExtensionData;
@@ -157,6 +158,19 @@ impl McpManager {
         environment_scope: McpEnvironmentScope<'_>,
     ) -> McpRuntimeProjection {
         let config = context.config();
+        if cfg!(feature = "covenant") {
+            let mut mcp_config = config.to_mcp_config_with_loaded_plugins(
+                &PluginLoadOutcome::default(),
+                std::iter::empty(),
+            );
+            mcp_config.mcp_server_catalog = Default::default();
+            mcp_config.connector_snapshot = Default::default();
+            return McpRuntimeProjection {
+                config: mcp_config,
+                plugins_available: false,
+                selected_plugins: SelectedPluginSnapshot::default(),
+            };
+        }
         let mut selected_plugin_available = false;
         let mut selected_plugin_connector_sources = Vec::new();
         let mut selected_plugin_registrations = Vec::new();
@@ -356,3 +370,7 @@ impl McpManager {
         effective_mcp_servers(&mcp_config, auth)
     }
 }
+
+#[cfg(test)]
+#[path = "covenant_mcp_projection_tests.rs"]
+mod covenant_projection_tests;

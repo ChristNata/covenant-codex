@@ -1770,3 +1770,31 @@ exact output. No static-value tests, loader/source wiring, dependency changes or
 builds were introduced. Catalog/provider immutability and published-product
 behavior remain pending. Concurrent MCP work and all protected locks are
 preserved; this data checkpoint does not complete F21 or the fork. No push.
+
+### F21: accepted MCP manager projection gate
+
+Root accepted independent `f21-mcp-review.md` FINAL bounded PASS. The shared
+global/step owner returns the constrained projection immediately after borrowing
+Config, before contributor entry, plugin input/loading, environment selection or
+overlay processing. Existing metadata and permission/auth constraints remain;
+catalog/connectors and selected-plugin results are empty even after public map
+replacement. Pure temporary configured-map construction remains permitted.
+Removing the exact 14-line production insertion reconstructs all ordinary bytes.
+
+The frozen 503-line fixture established two genuine author failures in
+`3bf1c3e7-73a2-49fe-955c-13ae37e81d08`; ordinary baseline
+`6e6f02e9-2895-416c-a7b2-e4e892d6fc0c` passed. Final constrained run
+`77f851de-c5d0-468d-9092-444bf88148bd` passed 2/2; ordinary
+`5250547b-4d70-4aa2-a0cc-8862ba3a523c` passed 1/1. Complete metadata/security and
+catalog/provenance checks accompany actual contributor-entry, owned-read and
+exact plugin-span counts: zero constrained, [1,1,1] ordinary in both scopes.
+Core-library Clippy with warnings denied passed in 3m55s; exact-file format/check
+changed zero bytes. Final source/test SHA-256 respectively:
+`a587c40042e6b70a7dcd5bf618b2fc078c9438e54aa2932f35ada57f94e19c0e`,
+`08585827ae1e8318cc0b75a02cb47c6524178f64dbb62ecfaf17a1e3caec14df`.
+
+`f21-mcp-implementation-evidence.md`, final hashes and independent review retain
+logs and protected-source/lock provenance. No checkpoint test/format repeat,
+dependency change or push. Caller discovery, constructors, other MCP methods,
+connection/session lifecycle and published CLI reachability remain pending;
+this manager projection stage does not complete F21 or the fork.
