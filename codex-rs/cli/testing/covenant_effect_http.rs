@@ -4,11 +4,16 @@
 mod framing;
 use framing::HttpDecoder;
 
+#[path = "covenant_effect_http_mcp.rs"]
+mod mcp;
+use mcp::McpExchange;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Framing,
     Limit,
     Incomplete,
+    Protocol,
 }
 
 impl std::fmt::Display for FixtureFailure {
@@ -26,13 +31,24 @@ struct HttpLimits {
     total: usize,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct HttpRequest {
     method: String,
     target: String,
     headers: Vec<(String, String)>,
     body: Vec<u8>,
 }
+
+#[derive(Debug, Eq, PartialEq)]
+struct HttpReply {
+    status: u16,
+    content_type: Option<&'static str>,
+    body: Vec<u8>,
+}
+
+#[cfg(test)]
+#[path = "covenant_effect_http_mcp_tests.rs"]
+mod mcp_tests;
 
 #[cfg(test)]
 #[path = "covenant_effect_http_framing_tests.rs"]

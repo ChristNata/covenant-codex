@@ -83,6 +83,8 @@ rust_test(
         "covenant_effect_http.rs",
         "covenant_effect_http_framing.rs",
         "covenant_effect_http_framing_tests.rs",
+        "covenant_effect_http_mcp.rs",
+        "covenant_effect_http_mcp_tests.rs",
         "covenant_hook_mcp_effects.rs",
     ],
     crate_name = "covenant_hook_mcp_effects",
@@ -90,5 +92,8 @@ rust_test(
     rustc_flags = WINDOWS_RUSTC_LINK_FLAGS,
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:windows"],
-    deps = ["@crates//:pretty_assertions"],
+    deps = [
+        "@crates//:pretty_assertions",
+        "@crates//:serde_json",
+    ],
 )

@@ -2043,3 +2043,20 @@ hosted product proof. A timeout is failure, not cleanup proof. No push.
   evidence under `f21-effects-framing-*`; this checkpoint is one tested cohort.
 - Acceptance covers private framing only: no marker, protocol, owned peer,
   hook/MCP effect, native authority, or actual CLI side-effect proof is claimed.
+
+### Criterion 5 prerequisite: private MCP protocol exchange
+
+- Added the private bounded MCP exchange and seven independently authored tests;
+  Responses, marker and peer drafts remain ignored and unregistered.
+- Actual nextest run `2ef04579-712e-4bd3-a996-df3e2c1804ae` passed all seven MCP
+  cases; seven framing cases were deliberately unselected. No behavioral RED is
+  claimed for this new API. Exact local-profile selection and retry-zero gates passed.
+- Original locked/offline Windows metadata, Bazel update/check and scoped target
+  Clippy `--no-deps -- -D warnings` passed with root/snapshot/MODULE locks unchanged.
+- Three-file rustfmt/check passed. Four helper layouts and deletion of one extra
+  terminal test blank line exactly reconstruct the tested bytes; assertions stayed
+  intact and no tests were repeated. Original tested250/final formatted249 is recorded.
+- The test and implementation checkpoints are snapshots of this single tested
+  cohort, not independently green stages; evidence is under `f21-effects-mcp-*`.
+- Acceptance covers pure protocol state and retained requests/replies only. It
+  proves no live peer, HTTP write/settlement, hook/MCP effect, native or actual CLI gate.

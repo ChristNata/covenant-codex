@@ -95,3 +95,9 @@ retries = 0
 platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(http::tests::framing_)'
 retries = 0
+
+# Only the new private MCP protocol cases; keep inherited timeout behavior.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(http::mcp_tests::mcp_)'
+retries = 0
