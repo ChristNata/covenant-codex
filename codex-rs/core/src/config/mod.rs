@@ -4853,3 +4853,7 @@ mod covenant_role_tests;
 #[cfg(test)]
 #[path = "covenant_catalog_tests.rs"]
 mod covenant_catalog_tests;
+
+#[cfg(test)]
+#[path = "covenant_provider_tests.rs"]
+mod covenant_provider_tests;
