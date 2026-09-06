@@ -38,3 +38,40 @@ rust_test(
         "@crates//:tempfile",
     ],
 )
+
+# Owned initial-request capture uses the actual non-libtest codex runfile.
+rust_test(
+    name = "covenant-initial-request-test",
+    srcs = [
+        "covenant_initial_request.rs",
+        "covenant_responses_connection.rs",
+        "covenant_responses_proxy.rs",
+        "covenant_transport_io.rs",
+        "covenant_transport_observation.rs",
+        "covenant_transport_observation_tests.rs",
+    ],
+    crate_features = ["covenant"],
+    crate_name = "covenant_initial_request",
+    crate_root = "covenant_initial_request.rs",
+    data = ["//codex-rs/cli:codex"],
+    env = {
+        "CARGO_BIN_EXE_codex": "$(rlocationpath //codex-rs/cli:codex)",
+    },
+    rustc_flags = WINDOWS_RUSTC_LINK_FLAGS,
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:windows"],
+    deps = [
+        "//codex-rs/utils/cargo-bin",
+        "@crates//:anyhow",
+        "@crates//:futures",
+        "@crates//:http",
+        "@crates//:pretty_assertions",
+        "@crates//:rcgen",
+        "@crates//:serde_json",
+        "@crates//:tempfile",
+        "@crates//:tokio",
+        "@crates//:tokio-rustls",
+        "@crates//:tokio-tungstenite",
+        "@crates//:toml",
+    ],
+)

@@ -2004,3 +2004,26 @@ f21-combined-implementation-evidence.md and final-review.md retain full results.
 Acceptance remains bounded to these owners. SC5 outbound capture, retained
 helper authority, full lifecycle/native closure and final F02/hosted product
 proof remain pending. No tests were repeated for comments/format; no push.
+
+### F21: accepted SC5 initial request and completion fixture
+
+The seven source/setup checkpoints form one tested cohort; intermediate commits
+are not independently runnable or GREEN proofs. The private observation helpers
+and actual Windows CLI fixture retain independently frozen assertions.
+Pure run788ebcb9-ef29-4563-bf88-96247293af0d passed23 cases; actual CLI run
+a3499084-9b93-4f50-a25a-637455a701ed passed its one separately selected case.
+Actual lists bound the built codex artifact and Windows/local90s×1/fail/retries0
+settings. Request/schema, JSONL completion and settlement assertions passed.
+Nextest suppressed successful stdout: no realized complete tool array or warmup/
+connection counts are archived, and no repeat was made to obtain those prints.
+Scoped integration Clippy passed after reviewed panic-helper removal and three
+method references; both earlier lint failures and exact inverses remain recorded.
+Exact six-file fmt/check passed with only two chain wraps and no EOL change.
+Frozen tests were not rerun for these lint/format changes. Final75 source/input
+hashes and ten-path preimages are in f21-sc5-final-hashes.json/checkpoint-proposal;
+f21-sc5-implementation-evidence.md and independent reviews retain actual outcomes.
+Required locked metadata and Bazel update/check passed. The only dependency
+changes are CLI dev edges to existing rcgen/tokio-rustls; other package records
+and MODULE bytes remain unchanged. This bounded fixture acceptance does not
+complete lifecycle/native authority, F22/F33 raw capture/receipts or final F02/
+hosted product proof. A timeout is failure, not cleanup proof. No push.

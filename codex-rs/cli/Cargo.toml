@@ -30,6 +30,10 @@ bench = false
 name = "covenant_patch_entry"
 path = "testing/covenant_patch_entry.rs"
 
+[[test]]
+name = "covenant_initial_request"
+path = "testing/covenant_initial_request.rs"
+
 [lib]
 name = "codex_cli"
 path = "src/lib.rs"
@@ -135,8 +139,10 @@ futures = { workspace = true }
 insta = { workspace = true }
 predicates = { workspace = true }
 pretty_assertions = { workspace = true }
+rcgen = { workspace = true }
 sqlx = { workspace = true }
 tar = { workspace = true }
+tokio-rustls = { workspace = true }
 tokio-tungstenite = { workspace = true }
 wiremock = { workspace = true }
 zstd = { workspace = true }
