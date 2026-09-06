@@ -89,3 +89,9 @@ platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(=covenant_initial_request_captures_canonical_wss_catalog_and_jsonl_completion)'
 slow-timeout = { period = "90s", terminate-after = 1, on-timeout = "fail" }
 retries = 0
+
+# Only the new private framing cases: preserve all existing retry/time limits.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(http::tests::framing_)'
+retries = 0

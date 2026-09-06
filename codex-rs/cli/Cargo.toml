@@ -34,6 +34,10 @@ path = "testing/covenant_patch_entry.rs"
 name = "covenant_initial_request"
 path = "testing/covenant_initial_request.rs"
 
+[[test]]
+name = "covenant_hook_mcp_effects"
+path = "testing/covenant_hook_mcp_effects.rs"
+
 [lib]
 name = "codex_cli"
 path = "src/lib.rs"

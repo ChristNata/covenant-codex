@@ -2027,3 +2027,19 @@ changes are CLI dev edges to existing rcgen/tokio-rustls; other package records
 and MODULE bytes remain unchanged. This bounded fixture acceptance does not
 complete lifecycle/native authority, F22/F33 raw capture/receipts or final F02/
 hosted product proof. A timeout is failure, not cleanup proof. No push.
+
+### Criterion 5 prerequisite: private HTTP framing
+
+- Added one Windows-only integration target with a private bounded decoder and
+  seven frozen byte-framing tests; the marker draft remains ignored/unregistered.
+- Actual nextest run `c373e813-89fb-40cc-9586-b71fbd59dd6c`: seven PASS, zero
+  skipped. Exact package/target/list selection and local retry-zero profile were
+  inspected; no pre-implementation behavioral RED is claimed for this new API.
+- Original locked/offline Windows metadata, Bazel lock update/check, and scoped
+  target Clippy `--no-deps -- -D warnings` passed. Cargo/MODULE locks stayed exact.
+- Exact four-file rustfmt/check passed; three decoder layouts reconstruct the
+  tested bytes exactly. Frozen assertions stayed unchanged; no tests were repeated.
+- Source/setup review and final outcome review are retained in ignored session
+  evidence under `f21-effects-framing-*`; this checkpoint is one tested cohort.
+- Acceptance covers private framing only: no marker, protocol, owned peer,
+  hook/MCP effect, native authority, or actual CLI side-effect proof is claimed.
