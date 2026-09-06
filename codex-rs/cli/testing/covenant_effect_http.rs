@@ -25,6 +25,9 @@ mod marker;
 use marker::MarkerExpectation;
 use marker::parse_marker;
 
+#[path = "covenant_effect_cli_receipt.rs"]
+mod receipt;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Marker,
@@ -91,3 +94,7 @@ mod marker_tests;
 #[cfg(test)]
 #[path = "covenant_effect_http_responses_owner_tests.rs"]
 mod responses_owner_tests;
+
+#[cfg(test)]
+#[path = "covenant_effect_cli_receipt_tests.rs"]
+mod receipt_tests;

@@ -126,3 +126,9 @@ platform = 'cfg(windows)'
 filter = 'package(codex-cli) & (test(=http::responses_owner_tests::responses_owner_completes_upgrade_fallback_and_naturally_joins) | test(=http::responses_owner_tests::responses_owner_keeps_finish_owned_until_late_bytes_are_rejected))'
 slow-timeout = { period = "30s", terminate-after = 1, on-timeout = "fail" }
 retries = 0
+
+# Only the six owned receipt codec cases; preserve inherited timeout behavior.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & (test(=http::receipt_tests::receipt_round_trips_complete_data_under_each_closed_case_name) | test(=http::receipt_tests::receipt_duplicate_is_refused_before_serialization_without_replacing_bytes) | test(=http::receipt_tests::receipt_writer_accepts_exact_raw_limit_and_preserves_a_failed_overflow_artifact) | test(=http::receipt_tests::receipt_reader_checks_raw_limit_before_invoking_the_decoder) | test(=http::receipt_tests::receipt_root_refuses_missing_relative_and_non_directory_inputs_without_creation) | test(=http::receipt_tests::receipt_reader_refuses_malformed_or_extra_data_without_echo_or_mutation))'
+retries = 0

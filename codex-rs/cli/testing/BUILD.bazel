@@ -80,6 +80,8 @@ rust_test(
 rust_test(
     name = "covenant-hook-mcp-effects-test",
     srcs = [
+        "covenant_effect_cli_receipt.rs",
+        "covenant_effect_cli_receipt_tests.rs",
         "covenant_effect_http.rs",
         "covenant_effect_http_connection.rs",
         "covenant_effect_http_owner_tests.rs",
@@ -104,6 +106,7 @@ rust_test(
         "@crates//:pretty_assertions",
         "@crates//:serde",
         "@crates//:serde_json",
+        "@crates//:tempfile",
         "@crates//:tokio",
     ],
 )
