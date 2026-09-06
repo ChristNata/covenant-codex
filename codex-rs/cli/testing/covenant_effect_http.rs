@@ -87,3 +87,7 @@ mod owner_tests;
 #[cfg(test)]
 #[path = "covenant_effect_marker_tests.rs"]
 mod marker_tests;
+
+#[cfg(test)]
+#[path = "covenant_effect_http_responses_owner_tests.rs"]
+mod responses_owner_tests;

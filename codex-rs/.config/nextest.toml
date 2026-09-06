@@ -119,3 +119,10 @@ retries = 0
 platform = 'cfg(windows)'
 filter = 'package(codex-cli) & (test(=http::marker_tests::marker_preserves_the_complete_observed_record) | test(=http::marker_tests::marker_refuses_wrong_nonce_event_source_cwd_model_or_process_identity) | test(=http::marker_tests::marker_refuses_incomplete_extra_or_non_utf8_records) | test(=http::marker_tests::marker_byte_limit_applies_before_json_parsing) | test(=http::marker_tests::marker_failure_does_not_echo_observed_contents))'
 retries = 0
+
+# Only the two real Responses socket cases; timeout is failure, not cleanup proof.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & (test(=http::responses_owner_tests::responses_owner_completes_upgrade_fallback_and_naturally_joins) | test(=http::responses_owner_tests::responses_owner_keeps_finish_owned_until_late_bytes_are_rejected))'
+slow-timeout = { period = "30s", terminate-after = 1, on-timeout = "fail" }
+retries = 0

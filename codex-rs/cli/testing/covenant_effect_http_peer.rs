@@ -2,6 +2,7 @@ use super::FixtureFailure;
 use super::HttpLimits;
 use super::HttpRequest;
 use super::McpExchange;
+use super::ResponsesExchange;
 use super::connection::RequestWork;
 use super::connection::serve_connection;
 use std::process::ExitStatus;
@@ -15,7 +16,20 @@ use tokio::task::JoinSet;
 use tokio::time::Instant;
 
 pub(super) enum PeerProtocol {
-    Mcp { target: String },
+    Mcp {
+        target: String,
+    },
+    Responses {
+        target: String,
+        api_key: String,
+        prompt: String,
+        marker: String,
+    },
+}
+
+enum Exchange {
+    Mcp(McpExchange),
+    Responses(ResponsesExchange),
 }
 
 #[derive(Debug)]
@@ -109,12 +123,28 @@ async fn serve(
     protocol: PeerProtocol,
     mut command: oneshot::Receiver<Finish>,
 ) -> PeerReport {
-    let PeerProtocol::Mcp { target } = protocol;
-    let mut exchange = McpExchange::new(target);
-    let limits = HttpLimits {
-        headers: 8192,
-        body: 32768,
-        total: 32768,
+    let (mut exchange, limits) = match protocol {
+        PeerProtocol::Mcp { target } => (
+            Exchange::Mcp(McpExchange::new(target)),
+            HttpLimits {
+                headers: 8192,
+                body: 32768,
+                total: 32768,
+            },
+        ),
+        PeerProtocol::Responses {
+            target,
+            api_key,
+            prompt,
+            marker,
+        } => (
+            Exchange::Responses(ResponsesExchange::new(target, api_key, prompt, marker)),
+            HttpLimits {
+                headers: 8192,
+                body: 262144,
+                total: 270336,
+            },
+        ),
     };
     let mut listener = Some(listener);
     let (requests, mut received) = mpsc::channel::<RequestWork>(/*buffer*/ 4);
@@ -179,7 +209,10 @@ async fn serve(
             work = received.recv(), if !tasks.is_empty() => {
                 match work {
                     Some(work) => {
-                        let response = exchange.respond(work.request);
+                        let response = match &mut exchange {
+                            Exchange::Mcp(exchange) => exchange.respond(work.request),
+                            Exchange::Responses(exchange) => exchange.respond(work.request),
+                        };
                         match response {
                             Ok(response) => {
                                 if work.reply.send(response).is_err() {
@@ -229,7 +262,10 @@ async fn serve(
             }
         }
     }
-    let requests = exchange.requests().to_vec();
+    let requests = match exchange {
+        Exchange::Mcp(exchange) => exchange.requests().to_vec(),
+        Exchange::Responses(exchange) => exchange.requests().to_vec(),
+    };
     PeerReport {
         accepted,
         requests,

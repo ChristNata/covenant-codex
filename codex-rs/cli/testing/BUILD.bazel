@@ -90,6 +90,7 @@ rust_test(
         "covenant_effect_http_mcp_tests.rs",
         "covenant_effect_http_responses.rs",
         "covenant_effect_http_responses_tests.rs",
+        "covenant_effect_http_responses_owner_tests.rs",
         "covenant_effect_marker.rs",
         "covenant_effect_marker_tests.rs",
         "covenant_hook_mcp_effects.rs",
