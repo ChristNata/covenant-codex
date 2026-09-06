@@ -1845,3 +1845,20 @@ identity schema semantics, E02 home adapter and C7 inventory/attestation remain
 missing (harness-external-blockers-c78e2a25.md); no new remote asset observation
 or adoption is claimed. Concurrent CLI/catalog/startup work and locks are
 preserved outside these checkpoints.
+
+### F40: accepted wire, release, residual and draft-index preparation
+
+The second reviewed document group completes the prepared set alongside the
+operating context; it does not certify final F40/index completeness. Independent
+review R1 corrected the distinct AncestorIdentity closed fields against the
+actual F10 schema. Removing only that correction reconstructs the prior reviewed
+wire document; final SHA-256 is
+`b6ebe17db90d09744da4165eb2be779978893c71438a79f125b4ca43a7866785`.
+The examples remain illustrative, with no schema/native/G4 execution claim.
+
+The draft index accounts for accepted components and support files while keeping
+native F12/F13, remaining F14/F21, inventory, F31/F33 and external adoption
+obligations explicit. The final review and f40-docs-r1-correction.json retain
+provenance; all other reviewed document bytes are unchanged. Exact staging
+preserves concurrent source/drafts, root/snapshot locks and the user pack. No
+verification repeats, dispatch, push, final hunk hashes or certificate invented.
