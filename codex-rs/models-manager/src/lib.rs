@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod collaboration_mode_presets;
 pub(crate) mod config;
+mod covenant_catalog;
 pub mod manager;
 pub mod model_info;
 pub mod model_presets;
@@ -8,6 +9,8 @@ pub mod test_support;
 
 pub use codex_protocol::auth::AuthMode;
 pub use config::ModelsManagerConfig;
+pub use covenant_catalog::covenant_model_catalog;
+pub use covenant_catalog::covenant_selected_model;
 
 /// Load the bundled model catalog shipped with `codex-models-manager`.
 pub fn bundled_models_response()

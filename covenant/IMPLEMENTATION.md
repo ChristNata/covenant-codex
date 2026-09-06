@@ -1862,3 +1862,43 @@ obligations explicit. The final review and f40-docs-r1-correction.json retain
 provenance; all other reviewed document bytes are unchanged. Exact staging
 preserves concurrent source/drafts, root/snapshot locks and the user pack. No
 verification repeats, dispatch, push, final hunk hashes or certificate invented.
+
+### F21: accepted bounded catalog decoder and selector
+
+Root accepted final f21-catalog-review.md PASS and 29 focused integrity checks.
+The private 146-line owner checks original 256 KiB bytes and duplicate keys at every
+object depth, preserving serde_json recursion protection. Its preliminary Value
+checks transport/shape only; ModelsResponse reads original bytes through actual
+legacy/default semantics. One four-ID table owns exact selection/default and
+fixed InvalidData refusals. Lib exposes only the two approved APIs; both BUILD
+files declare the already committed catalog resource without dependency changes.
+
+Missing API was discovery, not behavioral RED. The first registered attempt ran
+zero tests because the independent fixture moved a non-Copy field (E0507); the
+author's sole ownership clone reconstructs all prior assertions when reversed.
+Run 39c21121-01f5-4431-a728-b4ab5d93a757 then passed 7/7 (48 filtered). Clippy found
+only nonminimal_bool; root approved the equivalent Option predicate rewrite.
+Final scoped library -Dwarnings passed in 20.78s. Exact fmt/check passed with two
+layout wraps only; independent review reverses both formatting and lint changes
+to the tested bytes. No tests repeated after lint/format.
+
+Final source/test SHA-256:
+`c107a1be83e8ee0f38a9279c2135baaddb0bb9f429beb37d35e3d27d59d78057`,
+`ce579f58d58a6c1957c50170f020d6926f39092e7e423d34207dfe4507455eb9`.
+Implementation evidence/final hashes retain actual logs, discovery and exact
+source/resource pairs. Protected locks and concurrent CLI/Auto/drafts remain
+unchanged. Config/turn/provider/lifecycle integration, final product and live
+Bazel acceptance remain pending; this is not complete F21. No push.
+
+The accepted F03 selected-graph report records one locked/offline CLI query,
+exit 0 in 74.399s, against the provisional snapshot. Existing MSVC/SDK preparation
+is supported; no speculative native downloads or SQLite flag change were made.
+NASM availability can select a different assembly path, so no byte-equivalence
+claim follows. Final product graph/build and hosted acceptance remain pending.
+
+Root's next provider-plan decision retains canonical built-in OpenAI with
+existing API/ChatGPT auth and HTTP/WS/proxy/CA transport behavior. Inert unselected
+declarations may remain; effective custom/OSS/AWS/base-URL/profile selection must
+refuse. Command-auth needs a separate pre-execution gate/capture proof. No new
+transport-trust pinning or provider implementation is accepted here; child-only
+HTTPS_PROXY/CA fixture transport remains an unexecuted design.

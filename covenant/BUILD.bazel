@@ -1,0 +1,4 @@
+exports_files(
+    ["model-catalog.json"],
+    visibility = ["//codex-rs/models-manager:__pkg__"],
+)
