@@ -1953,3 +1953,28 @@ actual logs, unchanged assertions and protected hashes. The isolated test graph
 adds only its edge to existing keyring; root/MODULE locks remain unchanged.
 Secrets persistence, redaction, competing writers and final F14/product/Bazel
 acceptance remain pending. No test/format repeats or push at checkpoint.
+
+### F21: accepted Config catalog and effective model selection
+
+Root accepted final f21-config-catalog-review.md PASS. The frozen test checkpoint
+878b5fd3bfed42a204bfe07dbb51c8869c3013b6 and this implementation are one tested
+tranche; the earlier unregistered file checkpoint is not independently executed.
+Covenant resolves the existing effective model through the compiled four-ID
+selector/default and refuses any effective caller catalog path before the direct
+reader. Config and manager results use the accepted complete embedded catalog.
+Ordinary reader/precedence behavior remains unchanged; no API/schema/dependency
+or resource change was needed.
+Author baseline e66994d8-42dd-4cfd-9f8e-deb39cd95231 had three genuine REDs;
+ordinary c21c5b50-8eb5-4326-a64d-619809dea8b6 passed. Production runs
+3ecd9fd9-2098-44f9-8b4e-ecbe6d38cc17 (3/3) and
+1f5ec971-24b5-4237-a189-076c9b48bb2c (1/1) passed. Scoped core-library Clippy
+returned0 with zero warnings; exact-source fmt/check passed with zero byte delta.
+Final source and frozen484-line test SHA-256, respectively:
+`a56d53c9534c0b2284d0025f8c180cf7ea669313f01d65bade948387661fbe85`,
+`74f527520df6f617fa6e0ebcd1483e62ce69552b8f0104cf9f237782c83afaba`.
+f21-catalog-config-tests-evidence.md and f21-config-catalog-implementation-evidence.md,
+final-hashes and independent review retain actual outcomes and protected hashes.
+This accepts Config/manager outputs, not read-attempt or zero-HTTP counters.
+Provider/public Config mutation, Session/startup/factory closure, native gates,
+original product/Bazel/same-executable and full F21 acceptance remain pending.
+Protected locks and concurrent drafts are excluded; no check repeat or push.

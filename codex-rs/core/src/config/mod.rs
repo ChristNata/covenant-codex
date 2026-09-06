@@ -2057,6 +2057,7 @@ pub fn validate_feature_requirements_for_config_toml(
     managed_features::validate_feature_requirements_in_config_toml(cfg, feature_requirements)
 }
 
+#[cfg(not(feature = "covenant"))]
 fn load_catalog_json(path: &AbsolutePathBuf) -> std::io::Result<ModelsResponse> {
     let file_contents = std::fs::read_to_string(path)?;
     let catalog = serde_json::from_str::<ModelsResponse>(&file_contents).map_err(|err| {
@@ -2083,9 +2084,22 @@ fn load_catalog_json(path: &AbsolutePathBuf) -> std::io::Result<ModelsResponse> 
 fn load_model_catalog(
     model_catalog_json: Option<AbsolutePathBuf>,
 ) -> std::io::Result<Option<ModelsResponse>> {
-    model_catalog_json
-        .map(|path| load_catalog_json(&path))
-        .transpose()
+    #[cfg(feature = "covenant")]
+    {
+        if model_catalog_json.is_some() {
+            return Err(std::io::Error::new(
+                ErrorKind::InvalidData,
+                "Covenant model catalog refused",
+            ));
+        }
+        codex_models_manager::covenant_model_catalog().map(Some)
+    }
+    #[cfg(not(feature = "covenant"))]
+    {
+        model_catalog_json
+            .map(|path| load_catalog_json(&path))
+            .transpose()
+    }
 }
 
 fn filter_mcp_servers_by_requirements(
@@ -3904,6 +3918,9 @@ impl Config {
         let forced_login_method = cfg.forced_login_method;
 
         let model = model.or(cfg.model);
+        #[cfg(feature = "covenant")]
+        let model =
+            Some(codex_models_manager::covenant_selected_model(model.as_deref())?.to_owned());
         let notices = cfg.notice.unwrap_or_default();
         let service_tier = match service_tier_override {
             Some(Some(service_tier)) => Some(service_tier),
@@ -4832,3 +4849,7 @@ mod covenant_config_tests;
 #[cfg(test)]
 #[path = "covenant_role_tests.rs"]
 mod covenant_role_tests;
+
+#[cfg(test)]
+#[path = "covenant_catalog_tests.rs"]
+mod covenant_catalog_tests;
