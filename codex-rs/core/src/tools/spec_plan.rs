@@ -1534,3 +1534,7 @@ fn code_mode_namespace_name<'a>(
 #[cfg(test)]
 #[path = "spec_plan_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "covenant_spec_plan_tests.rs"]
+mod covenant_spec_plan_tests;
