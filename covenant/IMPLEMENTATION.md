@@ -1682,3 +1682,36 @@ pipes/handle cleanup, cancellation and policy authority remain later stages.
 Concurrent metadata source/tests, user docs and abandoned wrapper are excluded.
 No F13 experiment, dependency refresh or remote push is included. This does
 not complete F12, F21 or the fork.
+
+### F21: accepted Config metadata override
+
+Root accepted independent `f21-metadata-review.md` FINAL bounded PASS (292
+integrity checks). The compiled profile returns `Some(Disabled)` from the
+existing Config override owner; its two existing priority consumers and exact
+ordinary body are preserved. The 118 appended test lines preserve the prior
+429-line role-I/O fixture byte for byte. Direct agents-field mutations, managed
+Collab/V2 setter attempts, cloning and all four model metadata values are covered.
+
+Separate author RED `fccc077f-65ea-4226-a8c2-a947c9872b32` reached the final
+whole-observation assertion; ordinary baseline
+`1b3dbef5-c854-4f6c-9c5d-94876641649b` passed all four precedence rows.
+Implementation runs `b2e52f0b-0392-4524-a0cf-981b2c741e1b` and
+`f61dc017-a5a8-44fa-b2ab-996d397b121c` each passed 1/1, with 2,364 and 2,345
+unrelated tests filtered respectively. Core-library Clippy with warnings denied
+passed in 14m02s; exact one-source format/check changed zero bytes across all
+28 config paths. No review/checkpoint or post-format test repeat occurred.
+
+Final config source and complete test SHA-256 respectively:
+`33eb06a9fef43069bac3fce3af9c2588c37feb905e9a8402889c53d42064aa7c`,
+`abf9e98c18feca8dbac8748a8fdffa878b2f69b1c01f62fdc9a2107acf883982`.
+Evidence `f21-metadata-implementation-evidence.md` SHA-256 is
+`e213b97f7a0f089ec7e1e96d24c7dce9df8cd1e8508a0598abb579d1b3ddb1b4`;
+the final manifest and independent review retain complete logs and provenance.
+Root/MODULE/snapshot locks and all 1,232 external package records remain exact;
+the isolated graph retains only its prior 149 local version substitutions.
+
+Acceptance covers Config metadata methods, not Session/cached lifecycle,
+MCP/hook/worker effects, tool registry, provider/catalog/CLI or native authority.
+The unregistered MCP draft, user documents and abandoned wrapper are excluded.
+No dependency repair, native experiment or remote push is included; full F21
+and fork acceptance remain pending.

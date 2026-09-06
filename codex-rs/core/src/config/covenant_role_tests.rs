@@ -427,3 +427,121 @@ async fn covenant_roles_ordinary_preserves_loading() -> std::io::Result<()> {
     assert_eq!(actual, expected);
     Ok(())
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Versions {
+    override_value: Option<MultiAgentVersion>,
+    features: MultiAgentVersion,
+    model: [MultiAgentVersion; 4],
+}
+
+fn versions(config: &Config) -> Versions {
+    Versions {
+        override_value: config.multi_agent_version_override(),
+        features: config.multi_agent_version_from_features(),
+        model: [
+            None,
+            Some(MultiAgentVersion::Disabled),
+            Some(MultiAgentVersion::V1),
+            Some(MultiAgentVersion::V2),
+        ]
+        .map(|metadata| config.multi_agent_version_for_model(metadata)),
+    }
+}
+
+fn disabled_versions() -> Versions {
+    Versions {
+        override_value: Some(MultiAgentVersion::Disabled),
+        features: MultiAgentVersion::Disabled,
+        model: [MultiAgentVersion::Disabled; 4],
+    }
+}
+
+#[cfg(feature = "covenant")]
+#[tokio::test]
+async fn covenant_roles_metadata_stays_disabled_after_mutation() -> std::io::Result<()> {
+    let fixture = Fixture::new()?;
+    let (mut config, _) = fixture.load(Layers::User, Agents::Enabled).await?;
+    let permissions = security(&config);
+    let mut actual = vec![("initial", versions(&config))];
+    for enabled in [true, false] {
+        config.agents_enabled = enabled;
+        for (name, feature, requested) in [
+            ("collab_on", Feature::Collab, true),
+            ("v2_on", Feature::MultiAgentV2, true),
+            ("v2_off", Feature::MultiAgentV2, false),
+            ("collab_off", Feature::Collab, false),
+        ] {
+            config.features.set_enabled(feature, requested).unwrap();
+            actual.push((name, versions(&config)));
+        }
+    }
+    let mut cloned = config.clone();
+    cloned.agents_enabled = true;
+    cloned.features.enable(Feature::MultiAgentV2).unwrap();
+    actual.push(("clone", versions(&cloned)));
+    actual.push(("original", versions(&config)));
+    assert_eq!(
+        [security(&config), security(&cloned)],
+        [permissions.clone(), permissions]
+    );
+    let expected: Vec<_> = actual
+        .iter()
+        .map(|(name, _)| (*name, disabled_versions()))
+        .collect();
+    assert_eq!(actual.len(), 11);
+    assert_eq!(actual, expected);
+    Ok(())
+}
+
+#[cfg(not(feature = "covenant"))]
+#[tokio::test]
+async fn covenant_roles_metadata_ordinary_preserves_precedence() -> std::io::Result<()> {
+    use MultiAgentVersion::{Disabled, V1, V2};
+    let fixture = Fixture::new()?;
+    let (mut config, _) = fixture.load(Layers::User, Agents::Enabled).await?;
+    let permissions = security(&config);
+    config.features.disable(Feature::Collab).unwrap();
+    config.features.disable(Feature::MultiAgentV2).unwrap();
+    let mut actual = vec![("enabled", versions(&config))];
+    config.agents_enabled = false;
+    actual.push(("disabled", versions(&config)));
+    config.features.enable(Feature::MultiAgentV2).unwrap();
+    actual.push(("v2", versions(&config)));
+    config.features.disable(Feature::MultiAgentV2).unwrap();
+    config.features.enable(Feature::Collab).unwrap();
+    config.agents_enabled = true;
+    actual.push(("v1", versions(&config)));
+    assert_eq!(security(&config), permissions);
+    assert_eq!(
+        actual,
+        vec![
+            (
+                "enabled",
+                Versions {
+                    override_value: None,
+                    features: Disabled,
+                    model: [Disabled, Disabled, V1, V2]
+                }
+            ),
+            ("disabled", disabled_versions()),
+            (
+                "v2",
+                Versions {
+                    override_value: Some(V2),
+                    features: V2,
+                    model: [V2; 4]
+                }
+            ),
+            (
+                "v1",
+                Versions {
+                    override_value: None,
+                    features: V1,
+                    model: [V1, Disabled, V1, V2]
+                }
+            ),
+        ]
+    );
+    Ok(())
+}

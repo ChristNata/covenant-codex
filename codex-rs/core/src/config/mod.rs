@@ -1538,12 +1538,19 @@ impl Config {
     }
 
     pub(crate) fn multi_agent_version_override(&self) -> Option<MultiAgentVersion> {
-        if self.features.enabled(Feature::MultiAgentV2) {
-            Some(MultiAgentVersion::V2)
-        } else if !self.agents_enabled {
+        #[cfg(feature = "covenant")]
+        {
             Some(MultiAgentVersion::Disabled)
-        } else {
-            None
+        }
+        #[cfg(not(feature = "covenant"))]
+        {
+            if self.features.enabled(Feature::MultiAgentV2) {
+                Some(MultiAgentVersion::V2)
+            } else if !self.agents_enabled {
+                Some(MultiAgentVersion::Disabled)
+            } else {
+                None
+            }
         }
     }
 
