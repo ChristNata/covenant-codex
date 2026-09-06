@@ -1978,3 +1978,29 @@ This accepts Config/manager outputs, not read-attempt or zero-HTTP counters.
 Provider/public Config mutation, Session/startup/factory closure, native gates,
 original product/Bazel/same-executable and full F21 acceptance remain pending.
 Protected locks and concurrent drafts are excluded; no check repeat or push.
+
+### F21: accepted provider, factory and process-entry cohort
+
+The seven reviewed checkpoints form one accepted tested cohort; intermediate
+fixture/setup commits are not independently executed or complete F21 stages.
+Covenant refuses effective non-OpenAI/base-URL provider selection, constructs the
+existing guarded shell/apply-patch router directly, skips normal dotenv/PATH
+startup after required helper dispatch, and refuses direct patch entrypoints.
+Nested exec subcommands are absent from the Covenant parser; ordinary behavior
+and existing authentication/permission/transport rules remain intact.
+Final author baseline cf30bd45 had eight genuine REDs and one canonical-factory
+PASS. Ordinary controls comprise four retained PASSes plus corrected startup
+55f770e3 PASS. Earlier compiler/fixture failures are discovery only; the reserved
+openai declaration premise was withdrawn, preserving upstream refusal.
+Production f00a51f6 (9/9) and 6b555e7a (5/5) are GREEN. Scoped Clippy --no-deps
+-D warnings and exact five-file fmt/check passed. Formatter changed zero bytes;
+only two approved argument comments followed testing, with exact raw inverse.
+Required original locked/offline metadata and Bazel regeneration/check passed;
+149 local package-version rows were reconciled, retaining all 1,232 external
+records and other local fields. MODULE bytes and runtime dependency edges stayed
+unchanged. Final 56 input hashes, source pairs, 203 format guards and seven-group
+preimages are in f21-combined-final-hashes.json/final-checkpoint-proposal.json;
+f21-combined-implementation-evidence.md and final-review.md retain full results.
+Acceptance remains bounded to these owners. SC5 outbound capture, retained
+helper authority, full lifecycle/native closure and final F02/hosted product
+proof remain pending. No tests were repeated for comments/format; no push.

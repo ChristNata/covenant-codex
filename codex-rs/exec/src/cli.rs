@@ -8,13 +8,21 @@ use codex_utils_cli::SharedCliOptions;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(
-    version,
-    override_usage = "codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]"
+#[command(version)]
+#[cfg_attr(
+    feature = "covenant",
+    command(override_usage = "codex exec [OPTIONS] [PROMPT]")
+)]
+#[cfg_attr(
+    not(feature = "covenant"),
+    command(
+        override_usage = "codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]"
+    )
 )]
 pub struct Cli {
     /// Action to perform. If omitted, runs a new non-interactive session.
-    #[command(subcommand)]
+    #[cfg_attr(not(feature = "covenant"), command(subcommand))]
+    #[cfg_attr(feature = "covenant", clap(skip))]
     pub command: Option<Command>,
 
     /// Error out when config.toml contains fields that are not recognized by this version of Codex.

@@ -96,6 +96,10 @@ pub fn arg0_dispatch() -> Option<Arg0PathEntryGuard> {
         // Safety: [`run_main`] never returns.
         codex_linux_sandbox::run_main();
     } else if exe_name == APPLY_PATCH_ARG0 || exe_name == MISSPELLED_APPLY_PATCH_ARG0 {
+        if cfg!(feature = "covenant") {
+            eprintln!("Covenant patch entrypoint refused");
+            std::process::exit(/*code*/ 2);
+        }
         codex_apply_patch::main();
     }
 
@@ -112,6 +116,10 @@ pub fn arg0_dispatch() -> Option<Arg0PathEntryGuard> {
         codex_windows_sandbox::run_windows_sandbox_wrapper_main();
     }
     if argv1 == CODEX_CORE_APPLY_PATCH_ARG1 {
+        if cfg!(feature = "covenant") {
+            eprintln!("Covenant patch entrypoint refused");
+            std::process::exit(/*code*/ 2);
+        }
         let patch_arg = args.next().and_then(|s| s.to_str().map(str::to_owned));
         let exit_code = match patch_arg {
             Some(patch_arg) => {
@@ -152,6 +160,10 @@ pub fn arg0_dispatch() -> Option<Arg0PathEntryGuard> {
             }
         };
         std::process::exit(exit_code);
+    }
+
+    if cfg!(feature = "covenant") {
+        return None;
     }
 
     // This modifies the environment, which is not thread-safe, so do this
