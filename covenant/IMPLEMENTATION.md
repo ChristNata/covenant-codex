@@ -1715,3 +1715,34 @@ MCP/hook/worker effects, tool registry, provider/catalog/CLI or native authority
 The unregistered MCP draft, user documents and abandoned wrapper are excluded.
 No dependency repair, native experiment or remote push is included; full F21
 and fork acceptance remain pending.
+
+### F03: accepted MSVC environment preparation
+
+Root accepted independent `f03-msvc-rereview.md` PASS for the new 202-line
+helper. Frozen 346-line tests are checkpointed separately as
+`4a6446692b40f44d9bd98e29315ee7fe5cb12b31`; that test-only commit requires the
+helper here and is not claimed independently runnable. Initial missing-helper
+discovery ran zero tests, not behavioral RED. Review then found a bounded nested
+JSON query escaping as RecursionError; the separate regression reproduced it,
+and the existing owner now normalizes that exception to its fixed refusal.
+All seven amended tests passed in 11.586s. Scoped Ruff and final format/check
+passed with zero formatting bytes; review/checkpoint repeated no tests or native
+invocation. Final helper and test SHA-256 respectively:
+`c6c6cf9b2d0b3db36c0531b3ae2c8574311f225c4673919b0c19cebacbef6a3a`,
+`da96dbf11cc9567d861ef7fc1a49b63a0a200ec6662ad1e6164764491307241a`.
+
+One local invocation from codex-rs validated the complete success schema and
+observed VS 17.12.35527.113, MSVC 14.42.34433 and SDK 10.0.22621.0. The selected
+Hostx64/x64/link.exe hash was
+`f627ee8b9983af24d4b5ab6efab25f4a3be7a02bb09253aa2f5abab3c1fb2c6b`.
+Its full environment capture stays private. `f03-msvc-correction-evidence.md`,
+the frozen manifest and `f03-msvc-native-result.json` retain exact provenance.
+Only the approved environment keys are returned; paths, x64 selection, query
+bounds and linker bytes are checked. Existing helpers/tests/recipe/locks and
+concurrent MCP changes remain preserved. No dependency, workflow or remote edit.
+
+Acceptance is MSVC preparation only. The adapter inherits parent environment
+and stderr; ordinary path checks do not retain filesystem identity. Native
+downloads, product graph/default-feature integration, actual F02 build and
+hosted workflow/artifact validation remain pending. No artifact attestation or
+complete F03/fork acceptance is inferred, and nothing was pushed.
