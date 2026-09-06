@@ -1603,3 +1603,42 @@ provider/catalog/CLI integration and native authority remain separate stages.
 The paused role draft is unregistered and excluded. No dependencies, schema,
 upstream repair, abandoned wrapper, original user documents or remote action
 are included. This checkpoint does not complete F21, F12 or the full fork.
+
+
+### F21 role-I/O: accepted early loader exclusion
+
+Root accepted independent `f21-role-review.md` FINAL bounded PASS. The frozen
+429-line test (SHA-256 below), four registration lines and five production
+lines form one coherent checkpoint. The existing private profile initializes
+agents.enabled=false; the final Config owner selects an empty role map before
+constructing the role-loader future. Ordinary import/call/await remain exact.
+No role parser, public API, metadata method, permission/auth or schema changed.
+
+The separate author obtained genuine RED `8647a759-2382-4d26-bb2f-4cb6a76e7291`
+after all six fixture/provenance/security controls; ordinary baseline
+`326b5591-0e38-4c14-8436-d12e866e69e0` passed. Final constrained run
+`5ede7a89-c428-4ba3-9b1d-7019a4f0ef61` passed 1/1, 2,363 unrelated tests
+filtered; ordinary `f4d20660-0874-4825-8f92-da3b90523b8c` passed 1/1, 2,344
+filtered. Both include all six input rows and complete role/counter objects.
+Eleven filesystem forwards and 33 saturating counters prove early owned-role
+I/O exclusion, with actual declared/discovered reads as ordinary controls.
+
+Scoped core-library Clippy with warnings denied passed in 46.22s. Exact
+two-source format/check passed with zero byte changes across 28 config paths.
+Independent review verified final logs/source; no review/checkpoint or
+post-format test repeat. Test, helper and config/mod.rs SHA-256 respectively:
+`0d656585ab8e502c0019ed92e506540cf621dfb7a88c8d20f461f45cd3715649`,
+`e69a40f1f01c056aba1a6a77bc8f28c89c939613430598c6fab85455397fb876`,
+`a3b1c2bae03afca7be3792f9d310753842e586b275e27e610face23fc2dd984f`.
+Evidence `f21-role-implementation-evidence.md` has SHA-256
+`a67e00800e4657e4344ecc8d2cb35d101d7f3cbaa60dcf40074dbf17242d1bf7`;
+its final manifest and review retain complete run/hash/provenance details.
+Root/MODULE locks and protected source copies remain exact; the disposable
+graph retains 149 prior local version changes and all 1,232 external records.
+
+Acceptance covers initial Config agents/roles and owned role-path I/O only.
+Direct field mutation, model metadata, Session/contributor/worker lifecycle,
+effective tool specs, provider/catalog/CLI and native authority remain separate.
+Concurrent runtime author files, deferred metadata draft, user docs and abandoned
+wrapper are excluded. No dependency/Bazel repair, native experiment or remote
+push is included; full F21/F12/fork acceptance remains pending.

@@ -34,6 +34,7 @@ pub(super) fn apply_config_profile(
             enabled: Some(false),
         }),
     });
+    cfg.agents.get_or_insert_default().enabled = Some(false);
     cfg.mcp_servers.clear();
     cfg.web_search = Some(WebSearchMode::Disabled);
     cfg.notify = None;

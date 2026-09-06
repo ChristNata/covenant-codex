@@ -8,6 +8,7 @@ use crate::unified_exec::MIN_EMPTY_YIELD_TIME_MS;
 use crate::windows_sandbox::WindowsSandboxLevelExt;
 use crate::windows_sandbox::resolve_windows_sandbox_mode;
 use crate::windows_sandbox::resolve_windows_sandbox_private_desktop;
+#[cfg(not(feature = "covenant"))]
 use codex_agent_roles::load_agent_roles;
 use codex_config::CloudConfigBundleLoader;
 use codex_config::ConfigLayerSource;
@@ -3745,6 +3746,9 @@ impl Config {
             .unwrap_or_default();
         let terminal_resize_reflow = resolve_terminal_resize_reflow_config(&cfg);
 
+        #[cfg(feature = "covenant")]
+        let agent_roles = BTreeMap::new();
+        #[cfg(not(feature = "covenant"))]
         let agent_roles =
             load_agent_roles(fs, &cfg, &config_layer_stack, &mut startup_warnings).await?;
 
@@ -4817,3 +4821,7 @@ mod covenant_profile_tests;
 #[cfg(test)]
 #[path = "covenant_config_tests.rs"]
 mod covenant_config_tests;
+
+#[cfg(test)]
+#[path = "covenant_role_tests.rs"]
+mod covenant_role_tests;
