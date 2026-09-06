@@ -23,3 +23,6 @@ pretty_assertions = "=1.4.1"
 [[test]]
 name = "decide_v1"
 path = "tests/decide_v1.rs"
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_UI_Shell", "Win32_Foundation"] }

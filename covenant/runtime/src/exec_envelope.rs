@@ -2,6 +2,9 @@
 //!
 //! Lexical validation does not establish filesystem identity or launch authority.
 
+#[path = "windows_command_line.rs"]
+mod windows_command_line;
+
 use crate::DecideV1;
 use crate::FrozenWindowsEnvironment;
 use serde::Serialize;
@@ -41,6 +44,7 @@ pub struct FinalExecInput {
 pub struct ExecEvent {
     program: PathBuf,
     argv: Vec<String>,
+    native_command_line: Vec<u16>,
     cwd: PathBuf,
     environment: FrozenWindowsEnvironment,
     sandbox: String,
@@ -93,6 +97,7 @@ impl ExecEvent {
                 .ok_or(ExecEventError)?;
             argv.push(text.to_owned());
         }
+        let native_command_line = windows_command_line::encode(&argv)?;
 
         let decide = {
             let bytes = bounded_json(&ExecRequest {
@@ -119,6 +124,7 @@ impl ExecEvent {
         Ok(Self {
             program: input.program,
             argv,
+            native_command_line,
             cwd: input.cwd,
             environment: input.environment,
             sandbox: input.sandbox,
@@ -137,6 +143,11 @@ impl ExecEvent {
 
     pub fn argv(&self) -> &[String] {
         &self.argv
+    }
+
+    /// CRT-style representation including its final NUL, bound to this event's argv.
+    pub fn native_command_line(&self) -> &[u16] {
+        &self.native_command_line
     }
 
     pub fn cwd(&self) -> &Path {
@@ -236,3 +247,11 @@ fn bounded_json(value: &impl Serialize) -> Result<Vec<u8>, ExecEventError> {
 #[cfg(test)]
 #[path = "exec_envelope_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "windows_command_line_admission_tests.rs"]
+mod windows_command_line_admission_tests;
+
+#[cfg(test)]
+#[path = "windows_command_line_tests.rs"]
+mod windows_command_line_tests;

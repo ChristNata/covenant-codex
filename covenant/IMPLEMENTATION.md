@@ -1642,3 +1642,43 @@ effective tool specs, provider/catalog/CLI and native authority remain separate.
 Concurrent runtime author files, deferred metadata draft, user docs and abandoned
 wrapper are excluded. No dependency/Bazel repair, native experiment or remote
 push is included; full F21/F12/fork acceptance remains pending.
+
+
+### F12d1: accepted bounded native command-line representation
+
+Root accepted independent `f12d1-review.md` bounded PASS with 41 integrity checks.
+The two frozen test files are checkpointed alone as
+`10409fe8177d48202a1c49feb5f7030c927d5df2` (391 added lines); that unregistered
+checkpoint is not claimed independently executed. Their exact registrations
+and the approved Windows-only Shell32 dev stanza accompany production here.
+The separate author obtained two genuine existing-constructor failures in
+`4f554ba8-5fd5-4ba3-aeed-4bc7313422b0`; four future-getter cases were frozen
+unregistered and first executed only with the real implementation.
+
+The private std-only encoder retains one command buffer from the envelope's
+single bound program/argv. It rejects embedded program quotes, applies minimal
+argv0 and CRT-style tail quoting, and checks every extension against 32,767
+UTF-16 units including exactly one final NUL. The getter only borrows owned
+data. Existing G4 JSON, environment, path/raw limits and safe errors remain.
+
+Actual new-case run `5a8f08e7-04d2-45df-861d-4b04af107832` passed 6/6 with
+50 unrelated tests filtered; affected envelope run
+`06784942-a048-404f-9e62-11180c41efd9` passed all seven, 49 filtered. Library
+Clippy with warnings denied passed in 2.16s. Final exact two-file format/check
+changed zero bytes; no review/checkpoint or post-format test repeat occurred.
+Encoder and envelope SHA-256 respectively are
+`c800f3345379596943d07ccf95a5c08ff8bb17f3d606f696b116afd81bfc24d9` and
+`4f0489d8eb118ed2a8818fa949bc8157ddf4aac59f60f4429f09def7941ef75a`.
+Evidence `f12d1-implementation-evidence.md` SHA-256 is
+`d439e34c0eba73a1476683b81c97e4aff1706f0d7860c0fe1eda9f92b69da217`;
+its frozen manifest/review retain exact test/source/log hashes and run counts.
+
+All 103 runtime lock records/raw bytes, old tests/lib/schema and root/MODULE
+locks remain unchanged. A08 standalone/Bazel handling and author feature-view
+limits remain explicit; no product release/link/Bazel proof is inferred.
+Actual Shell32 parsing is representation evidence, not child argv delivery.
+Image/ancestor identity, application-name binding at native creation, Jobs,
+pipes/handle cleanup, cancellation and policy authority remain later stages.
+Concurrent metadata source/tests, user docs and abandoned wrapper are excluded.
+No F13 experiment, dependency refresh or remote push is included. This does
+not complete F12, F21 or the fork.
