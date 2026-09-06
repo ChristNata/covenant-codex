@@ -1490,3 +1490,71 @@ hostile directory/name/ACL races, old security descriptor preservation,
 Auto/Secrets atomicity, competing metadata/login/revoke semantics and complete
 secret redaction remain separate test-first obligations. No full F14/F21,
 native sidecar, unrelated concurrent source or remote push is accepted here.
+
+
+### F21a: accepted immutable managed feature foundation
+
+Root accepted independent `f21-profile-review.md` bounded PASS. Frozen tests
+were checkpointed separately as `aa6ce04632079bdf5f69e5f6e2cea2a4cc98c8d1`,
+exactly 490 added lines, with verified staged blobs and an empty index afterward.
+Test SHA-256 is
+`04b6ce6054352fac6331185f5772f65246b7598be5c31e0b59a24dc0d6ea262d`.
+The four frozen registration lines follow in this production checkpoint; the
+unregistered test-only checkpoint alone is not represented as an executed target.
+The separate author established five unique behavioral reds plus an ordinary
+positive control. Fixture/compile/formatter discoveries were excluded from red.
+
+The private profile has 56 immutable rows: ShellTool on and 55 approved features
+off. All managed constructors and mutations use the same retained policy.
+Default/no-requirement/test conversion share an infallible constructor; external
+requirements are validated before warnings, then compatible pins are merged.
+Compiled pins are reapplied after dependency normalization. A shared existing-key
+resolver rejects unknown, contradictory-alias and opposite mandatory settings
+with fixed content-free InvalidData text. Ordinary feature behavior and explicit
+managed-conflict semantics remain intact; no public API or schema was added.
+
+Actual implementation run `4c74697b-247e-452d-b65c-6c54d0567ad2` passed all five
+constrained cases, 2,355 unrelated tests filtered, 0.647s. Feature-off run
+`ce6b8acd-d9de-409c-b71d-db5c6f56fb61` passed its one ordinary control, 2,342
+filtered, 0.102s. Scoped actual-core library Clippy with warnings denied passed
+in 6m00s. Exact three-file final format/check passed; one iterator-chain wrap
+plus CRLF-to-LF normalization affected managed_features.rs. Independent reversal
+of both changes reproduced the exact tested hash. No review/checkpoint or
+post-format test repeat occurred. An accidental unchanged-snapshot run remains
+separately logged and excluded from implementation evidence.
+
+Final profile/managed/config hashes respectively are
+`fa611537febc525f788d7ab311ffb9ae99077eacef43bfd77a88f23b6d9d3d6b`,
+`b11a428dc2c1b1068350f5f73e7357908ba9ce6aed4f198e749b3efcb0eea2f7`,
+`5b165b8970ed48694b29c0a0687295d17a7508da0657145a9af8d94a9e58ead6`.
+Corrected evidence is `f21-profile-implementation-evidence.md`, SHA-256
+`933167b6ef9db81148e61af2fa2a125e40df2bdd9b28c429e06835c655779bfa`;
+final source/log/run provenance is `f21-profile-implementation-final-hashes.json`.
+Both actual-source copies and protected inputs were verified. All other 25
+config paths, including the next unregistered test draft, remain byte-identical.
+The original root and MODULE locks never changed. The disposable full-source
+graph retains only the approved 149 local version-field reconciliations, with
+all 1,232 complete external package records identical. No dependency repair,
+manifest edit, unrelated source, abandoned wrapper or remote push is included.
+
+Acceptance covers ManagedFeatures and the tested ConfigBuilder/rebuild/bootstrap
+paths only. Non-feature settings, role/model metadata, session raw reloads,
+MCP/hooks/contributor/worker construction, effective tool specs, hosted effects,
+provider/catalog/CLI product integration and native authority remain separate.
+F21b1 is approved design with an unregistered draft, not tested implementation.
+No full F21, F14, sidecar or fork completion follows from this checkpoint.
+
+### Session prerequisite: verified actionlint 1.7.12
+
+The official pinned Windows amd64 release was installed under the existing
+session tool area after checking its release checksum row and GitHub asset
+digests before extraction/execution. Archive SHA-256 is
+`6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9`;
+executable SHA-256 is
+`54ca21be3de4c7cfa26914aa8b61bd76bf573ef3caac5f80d110558cdf241718`.
+Version execution and session activation confirmed 1.7.12. Only ignored
+load-env.ps1 gained the versioned PATH entry; existing tool pins and global
+settings were preserved. Provenance is `actionlint-installation-evidence.md`
+and `actionlint-installation.json`. No covenant release workflow exists yet,
+so this records tool availability, not workflow validation, dispatch or F03
+completion. The existing sync workflow was untouched.

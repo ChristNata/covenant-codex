@@ -28,6 +28,11 @@ pub struct ManagedFeatures {
 
 impl Default for ManagedFeatures {
     fn default() -> Self {
+        #[cfg(feature = "covenant")]
+        {
+            Self::from_compiled_profile(Features::default())
+        }
+        #[cfg(not(feature = "covenant"))]
         Self {
             value: ConstrainedWithSource::new(
                 Constrained::allow_any(Features::default()),
@@ -39,6 +44,22 @@ impl Default for ManagedFeatures {
 }
 
 impl ManagedFeatures {
+    #[cfg(feature = "covenant")]
+    fn from_compiled_profile(configured_features: Features) -> Self {
+        let pinned_features = super::covenant_profile::FEATURE_PINS
+            .iter()
+            .copied()
+            .collect();
+        let normalized = normalize_candidate(configured_features, &pinned_features);
+        Self {
+            value: ConstrainedWithSource::new(
+                Constrained::allow_any(normalized),
+                /*source*/ None,
+            ),
+            pinned_features,
+        }
+    }
+
     pub(crate) fn from_configured(
         configured_features: Features,
         feature_requirements: Option<Sourced<FeatureRequirementsToml>>,
@@ -67,6 +88,13 @@ impl ManagedFeatures {
         feature_requirements: Option<Sourced<FeatureRequirementsToml>>,
         startup_warnings: Option<&mut Vec<String>>,
     ) -> std::io::Result<Self> {
+        #[cfg(feature = "covenant")]
+        if let Some(requirements) = &feature_requirements {
+            super::covenant_profile::validate_feature_requirements(&requirements.value)?;
+        } else {
+            return Ok(Self::from_compiled_profile(configured_features));
+        }
+
         let (pinned_features, source) = match feature_requirements {
             Some(Sourced {
                 value: feature_requirements,
@@ -76,6 +104,12 @@ impl ManagedFeatures {
                 Some(source),
             ),
             None => (BTreeMap::new(), None),
+        };
+        #[cfg(feature = "covenant")]
+        let pinned_features = {
+            let mut pinned_features = pinned_features;
+            pinned_features.extend(super::covenant_profile::FEATURE_PINS.iter().copied());
+            pinned_features
         };
 
         let normalized_features = normalize_candidate(configured_features, &pinned_features);
@@ -130,6 +164,11 @@ impl ManagedFeatures {
 #[cfg(test)]
 impl From<Features> for ManagedFeatures {
     fn from(features: Features) -> Self {
+        #[cfg(feature = "covenant")]
+        {
+            Self::from_compiled_profile(features)
+        }
+        #[cfg(not(feature = "covenant"))]
         Self {
             value: ConstrainedWithSource::new(
                 Constrained::allow_any(features),
@@ -162,6 +201,10 @@ fn normalize_candidate(
         candidate.set_enabled(*feature, *enabled);
     }
     candidate.normalize_dependencies();
+    #[cfg(feature = "covenant")]
+    for (feature, enabled) in super::covenant_profile::FEATURE_PINS {
+        candidate.set_enabled(*feature, *enabled);
+    }
     candidate
 }
 
@@ -209,6 +252,14 @@ fn feature_requirements_display(feature_requirements: &BTreeMap<Feature, bool>) 
     format!("[{}]", values.join(", "))
 }
 
+pub(super) fn feature_for_requirement_key(key: &str) -> Option<Feature> {
+    if key == "auto_review" {
+        Some(Feature::GuardianApproval)
+    } else {
+        feature_for_key(key)
+    }
+}
+
 fn parse_feature_requirements(
     feature_requirements: FeatureRequirementsToml,
     source: &RequirementSource,
@@ -216,24 +267,16 @@ fn parse_feature_requirements(
 ) -> BTreeMap<Feature, bool> {
     let mut pinned_features = BTreeMap::new();
     for (key, enabled) in feature_requirements.entries {
-        if key == "auto_review" {
-            pinned_features.insert(Feature::GuardianApproval, enabled);
-            continue;
-        }
-
-        if let Some(feature) = canonical_feature_for_key(&key) {
-            pinned_features.insert(feature, enabled);
-            continue;
-        }
-
-        if let Some(feature) = feature_for_key(&key) {
-            push_feature_requirement_warning(
-                &mut startup_warnings,
-                format!(
-                    "Using legacy `features` requirement `{key}` from {source}; prefer canonical feature key `{}`",
-                    feature.key()
-                ),
-            );
+        if let Some(feature) = feature_for_requirement_key(&key) {
+            if key != "auto_review" && canonical_feature_for_key(&key).is_none() {
+                push_feature_requirement_warning(
+                    &mut startup_warnings,
+                    format!(
+                        "Using legacy `features` requirement `{key}` from {source}; prefer canonical feature key `{}`",
+                        feature.key()
+                    ),
+                );
+            }
             pinned_features.insert(feature, enabled);
             continue;
         }
@@ -288,6 +331,9 @@ pub(crate) fn validate_explicit_feature_settings_in_config_toml(
     else {
         return Ok(());
     };
+
+    #[cfg(feature = "covenant")]
+    super::covenant_profile::validate_feature_requirements(feature_requirements)?;
 
     let pinned_features = parse_feature_requirements(
         feature_requirements.clone(),

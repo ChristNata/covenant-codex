@@ -161,6 +161,8 @@ use toml::Value as TomlValue;
 use toml_edit::DocumentMut;
 
 mod auth_keyring;
+#[cfg(feature = "covenant")]
+mod covenant_profile;
 pub mod edit;
 mod managed_features;
 mod network_proxy_spec;
@@ -4769,3 +4771,7 @@ mod tests;
 #[cfg(test)]
 #[path = "config_loader_tests.rs"]
 mod config_loader_tests;
+
+#[cfg(test)]
+#[path = "covenant_profile_tests.rs"]
+mod covenant_profile_tests;
