@@ -107,3 +107,9 @@ retries = 0
 platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(http::responses_tests::ordinary_responses_)'
 retries = 0
+
+# Only the new owned-socket cases; preserve inherited timeout behavior.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(http::owner_tests::owner_)'
+retries = 0

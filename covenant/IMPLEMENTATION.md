@@ -2077,3 +2077,13 @@ hosted product proof. A timeout is failure, not cleanup proof. No push.
   inherited runner prose; that wording did not affect matrix or selection enforcement.
 - Acceptance covers pure retained request/reply behavior only, not a live peer,
   HTTP write/settlement, WebSocket server, marker effects, native or actual CLI gate.
+
+### F21 criterion 5: owned MCP peer helper - completed local phase
+
+Base for this local phase: `7ce8d15febd6f6b14e1f8dc9836c61a8905e5ccc`. The real private peer retains its listener, supervisor and accepted tasks, counts ready accepts before closing the listener, preserves decoded requests/late-byte errors, naturally joins on success and aborts then joins on failure. This is helper acceptance only; criterion 5 remains incomplete.
+
+- Native listing selected exactly eight nonignored owner cases, excluding 18 earlier cases. Run `c61b802b-3079-43d0-82c4-db26b117a8f1` exited 0: **8 PASS, 18 excluded, 0.774s**. Execution/final evidence: `.git/covenant-session/f21-effects-peer-execution-final.json`, SHA-256 `7222ee76046cc3b6aae79d9b47b379fb99543899ff55a59db0024ba5d06f1909`; list SHA-256 `b2ea4ac4e425c3184095ea09c75f20bd4c296f78c3b59ce034bedfe7c1595b4b`.
+- Scoped Clippy fixer exited 0 with zero diagnostics and no source change. Required `just fmt` exited 1 with Windows error 206; all 191 unrelated touches were restored. Approved four-file format/check exited 0, retaining the nightly-only `imports_granularity` warning. Only peer/connection layout changed, with exact tested-source inverses; the 281-line/eight-case tests and metadata remained unchanged. No tests were rerun after formatting. Hygiene evidence: `.git/covenant-session/f21-effects-peer-hygiene-final.json`, SHA-256 `ff2655d05ffe100ccc2ce5d180088c2890d9a0f1e4a10c44510287d31b2a06e4`.
+- Independent post-test review PASS: `.git/covenant-session/f21-effects-peer-post-test-review.md`, SHA-256 `3107b6e8e6d1a9a6432300cefa939c6ddadb8360248cdca6a2c3664f57acc24c`. Final hygiene and ledger review PASS: `.git/covenant-session/f21-effects-peer-final-review.md`, SHA-256 `757cb19dbbd7b93fce08925d66a6a98f681d5e755f963e6e02e87971c6837066`. The bounded local helper phase is complete.
+
+The tests use owned loopback sockets and synthetic child exit statuses. Actual Codex child effects, the deferred Responses peer adapter, and the caller's outer cancellation wrapper remain unproven here. No global absence, native descendant containment, finite cleanup-return guarantee, G4 or release acceptance is claimed.

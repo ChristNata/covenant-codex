@@ -12,12 +12,24 @@ use mcp::McpExchange;
 mod responses;
 use responses::ResponsesExchange;
 
+#[path = "covenant_effect_http_connection.rs"]
+mod connection;
+
+#[path = "covenant_effect_http_peer.rs"]
+mod peer;
+use peer::HttpPeer;
+use peer::PeerProtocol;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Framing,
     Limit,
     Incomplete,
     Protocol,
+    Transport,
+    Child,
+    Cancelled,
+    Deadline,
 }
 
 impl std::fmt::Display for FixtureFailure {
@@ -61,3 +73,7 @@ mod mcp_tests;
 #[cfg(test)]
 #[path = "covenant_effect_http_framing_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "covenant_effect_http_owner_tests.rs"]
+mod owner_tests;

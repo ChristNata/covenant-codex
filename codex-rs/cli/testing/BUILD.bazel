@@ -81,6 +81,9 @@ rust_test(
     name = "covenant-hook-mcp-effects-test",
     srcs = [
         "covenant_effect_http.rs",
+        "covenant_effect_http_connection.rs",
+        "covenant_effect_http_owner_tests.rs",
+        "covenant_effect_http_peer.rs",
         "covenant_effect_http_framing.rs",
         "covenant_effect_http_framing_tests.rs",
         "covenant_effect_http_mcp.rs",
@@ -97,5 +100,6 @@ rust_test(
     deps = [
         "@crates//:pretty_assertions",
         "@crates//:serde_json",
+        "@crates//:tokio",
     ],
 )
