@@ -50,7 +50,7 @@ external-pending status.
 | A01 | Map `covenant-capital/codex` to `ChristNata/covenant-codex`, and behavioral branch `covenant` to existing `covenant-ver`. | Existing user-owned topology and `FORK_INTEGRATION.md` govern. Keep `main` clean and untouched. URLs, workflow guards, and contributor instructions must use the actual repository. |
 | A02 | F01 records the verified existing `rust-v0.153.4` parent; it does not adopt a newer release. | User scope forbids unrelated upstream updates. Record current lineage honestly; the first historical Covenant commit cannot be retroactively replaced with F01. |
 | A03 | F00/F14 re-anchor auth from absent `core/src/auth.rs` to `codex-rs/login/src/auth/`. | Scout found `mod.rs`, `manager.rs`, and `storage.rs`. Root approved this bounded amendment; freeze the actual centralized load/write/refresh paths before F14 edits. Do not claim the master auth seam survived unchanged. |
-| A04 | Recover missing local context `CLAUDE.md` from sibling harness canonical pack, then explicitly align published context with A01-A03 and current user constraints. | All seven local pack files hash-identical to the corresponding sibling files. The eighth canonical file exists at `../Covenant-Harness/docs/master-plans/cross/codex-fork/repo-context/CLAUDE.md`; do not invent it. Preserve source attribution and distinguish recovered source bytes from amended published documents. Exact byte-copy criteria require this recorded amendment wherever naming/seams/instructions change. |
+| A04 | Preserve all eight existing canonical input files, then explicitly align published context with A01-A03 and current user constraints. | Discovery correction: CLAUDE.md was already present and unchanged; .gitignore:33 hid it from the original search. f40-context-provenance.json verifies all eight b6 Git blobs, sibling worktrees and local pack bytes. Preserve attribution and distinguish canonical input from adapted published documents; naming/seam/instruction changes require this recorded amendment. |
 | A05 | Separate local phase implementation from external/remote phase acceptance. | User prohibits intermediate pushes. F03's live dispatch, F33's real audited release/attestation, and F32's external harness pin cannot be manufactured locally. Prepare implementations and local evidence; keep external acceptance pending until the required inputs/authorization exist. |
 | A06 | Add the minimum module declarations, dedicated tests, Cargo/Bazel source-data wiring, and regeneration outputs required by approved integration changes. | Master `Produces` omits routine compilation/test registration files. Integrator owns these shared edits and records exact paths before accepting a checkpoint. This does not authorize unrelated feature work or new executor paths. |
 | A07 | F01 uses an offline bootstrap validator and strictly resolves the recorded local tag to the pinned commit. | Root authorizes the implementation worker to fetch only already-verified `rust-v0.153.4` from `https://github.com/openai/codex.git` into that local tag name to supply verification evidence. No branch/checkout/baseline change; no validator network access or missing-tag bypass. |
@@ -92,7 +92,7 @@ acceptance. A skipped, unavailable, or not-yet-authored test is not a pass.
 | F31 | F00, F11, F12, F13, F14, F22, F40 | audit: `.github/workflows/covenant-reaudit.yml`, `covenant/tests/sink_instrumentation.rs`, minimal test/build wiring | Check commit-bound inventory, every gate placement, effective admission effects and packaging; execute negative mutations per inventoried family including alias/wrapper/direct/generated/hosted routes. Ungated golden fixtures must fail and unchanged patched tree must pass. Static symbol grep alone cannot certify semantic domination/completeness. |
 | F33 | F03, F31, F22; E01 green | release, exclusive reuse of F03 workflow and `COVENANT_PATCHES.md` after F40 | Prepare promote job: record hunk hashes, immutable commit, re-audit that tree, pinned Windows build/hash, real inventory, provenance and build attestation, five release assets. Manual artifact job stays nonpublishing. No live release without actual green prerequisites and final remote authorization. |
 | F32 | F33; E01, E02, E03 | external harness handoff; no external file edits authorized in this session | Prepare exact adoption evidence/instructions only in this fork. Actual `backend/covenant-utils/src/pinned_versions.rs` row requires landed S2, four-field source/version/url/sha256, verified real release attestation and separation tests. No fake pin, parallel constant, extra fields, Actions-artifact URL, or local claim of harness adoption. |
-| F40 | F01; A01-A04 | context: eight published context files, upstream README pointer, narrowly necessary fork integration index update | Recover eighth source, align actual topology/auth seams, preserve applicable upstream/user instructions and upstream README content. Publish complete patch index for F11-F14/F21/F22. Record authored amendments; never claim all copies remained byte-identical if edited. No static-copy tests; inspect links/content and use direct hash evidence where byte identity is actually required. |
+| F40 | F01; A01-A04 | context: eight published context files, upstream README pointer, narrowly necessary fork integration index update | All eight canonical inputs already existed. Align actual topology/auth seams, preserve upstream/user instructions and README bytes, and prepare the F11-F14/F21/F22 index. Final completeness requires frozen integration/F31/F33; record adaptations without claiming edited outputs remain byte-identical. No static-copy tests; inspect content and direct byte provenance. |
 
 ## Test-first work packages
 
@@ -183,9 +183,9 @@ No credential stores were inspected, and neither checkout was modified.
 
 | ID | Observed gap | Required input/evidence before acceptance |
 | --- | --- | --- |
-| E01 | Harness `backend/covenant-cli/src/cli.rs` BashGuardClient has only ClaudeCode/Opencode/Cursor. `hooks/decision.rs` has no decide_v1/full-env/Windows identity fields. No sidecar-fixture pin exists. Paginated GitHub release inspection returned 15 draft installer-only releases, with no standalone G4 sidecar asset. | A real Windows `covenant-cli` Release asset supporting `hook decide --client codex`, URL + SHA-256 + attested F10 schema/hash and complete-env/volume/file/digest/auth-Read semantics id; policy fixtures producing all discriminating decision pairs. F12/F13 real integration and F33 promotion stay pending. A local stub is never a substitute. |
+| E01 | Refreshed local c78e2a25 source accepts `--client codex`; its policy remains S4 defaults, without F10 G4 decide_v1/full-env/Windows identity semantics or a sidecar-fixture pin. The earlier 15 draft installer-only release observation is historical, not a fresh remote verification. | A real Windows `covenant-cli` Release asset supporting `hook decide --client codex`, URL + SHA-256 + attested F10 schema/hash and complete-env/volume/file/digest/auth-Read semantics id; policy fixtures producing all discriminating decision pairs. F12/F13 real integration and F33 promotion stay pending. A local stub is never a substitute. |
 | E02 | No `dispatch_run/codex_adapter.rs` in inspected harness checkout; source search found no CODEX_AUTH_HOME/COVENANT_DECIDER_PATH contract. | Landed CRN C3+C6 adapter/home-probe implementation, stable auth root versus selected mutable-home routing, immutable launch env, and real-adapter separation test evidence; aligned C2 auth deny and P6 canary. F14 local behavior can be tested independently; F32 adoption cannot. |
-| E03 | `backend/covenant-utils/src/pinned_versions.rs` has no CODEX_PIN or official/fork discriminant. | Landed S2 four-field Codex pin schema plus C7 runtime inventory consumer. Actual harness pin write remains outside this fork-only session until explicitly authorized, after real F33 attestation verification. |
+| E03 | Refreshed c78e2a25 source contains four-field CODEX_PIN with Official/Fork discriminant; active pin is Official 0.153.4. C7 runtime inventory/attestation consumption is still missing. | Complete C7 acceptance and real F33 attestation verification. Existing S2 source is not adoption evidence; an actual harness pin write remains outside this fork-only session until explicitly authorized. |
 | E04 | Actual fork has no GitHub Releases. Planned `covenant-capital/codex` did not resolve through gh; actual public fork is ChristNata/covenant-codex. | Real audited immutable fork commit, Windows build, exact five Release assets and GitHub build-provenance attestation. Never invent a digest, URL, run id, tag or provenance claim. |
 | E05 | User forbids intermediate remote pushes; F03/F33/F32 live acceptance inherently follows remote availability. | User-directed final remote sequence once local work and prerequisite evidence are complete, or a clear pending external handoff. This ordering constraint cannot be solved by relabeling local checks as hosted/release evidence. |
 
@@ -1821,3 +1821,27 @@ Acceptance is local syntax/source wiring only. Final product graph/lock/Bazel
 integration, proven native build prerequisites, a real constrained Windows build,
 and hosted upload/retrieval/verification remain pending. The locked build must
 refuse unresolved prerequisites; this does not complete F03 or the fork.
+
+### F40: accepted operating context preparation
+
+Root accepted f40-docs-independent-review.md PASS after its single wire-table
+correction. Canonical source is harness b6e933a4590a2ef848755c4a593a7e9e8f2072d4;
+all eight source blobs/local-pack copies already existed unchanged. The former
+CLAUDE-missing premise is corrected above: .gitignore:33 hid its discovery.
+Published outputs explicitly document their approved adaptations. Existing raw
+AGENTS/README prefixes and the user pack remain intact; FORK_INTEGRATION changes
+only its draft-index pointer. Root explicitly authorized the exact ignored
+CLAUDE.md force-add without changing ignore rules.
+
+This operating-context group and the following wire/release/residual/index group
+form one prepared document set. Neither checkpoint independently certifies F40
+or a complete patch index. f40-docs-validation.json, canonical provenance and
+independent review retain exact hashes/content checks; no static-value tests,
+format/lint/build repeats or remote actions were performed.
+
+The refreshed c78e2a25 source corrects E01/E03 above: --client codex and the four
+Official/Fork pin fields exist, with Official0.153.4 still active. G4 complete-env/
+identity schema semantics, E02 home adapter and C7 inventory/attestation remain
+missing (harness-external-blockers-c78e2a25.md); no new remote asset observation
+or adoption is claimed. Concurrent CLI/catalog/startup work and locks are
+preserved outside these checkpoints.

@@ -79,3 +79,22 @@ You can also use Codex with an API key, but this requires [additional setup](htt
 - [**Open source fund**](./docs/open-source-fund.md)
 
 This repository is licensed under the [Apache-2.0 License](LICENSE).
+
+
+## Covenant fork documents
+
+This checkout is implementing the managed Windows Covenant fork. The upstream
+overview above is preserved; it does not certify the unfinished constrained
+artifact. The adapted context documents and implementation ledger distinguish
+accepted components from pending integration, audit and release gates.
+
+| Document | Purpose |
+| --- | --- |
+| [README-COVENANT.md](README-COVENANT.md) | Fork scope, adoption status and source attribution. |
+| [CLAUDE.md](CLAUDE.md) | Covenant operating instructions and required runtime contract. |
+| [AGENTS.md](AGENTS.md) | Preserved upstream guidance plus the Covenant appendix. |
+| [COVENANT_PATCHES.md](COVENANT_PATCHES.md) | Draft patch surface and pending acceptance. |
+| [DECIDE_V1.md](docs/DECIDE_V1.md) | Wire schema and exec/patch contract. |
+| [RELEASE.md](docs/RELEASE.md) | Build evidence and future promotion/harness requirements. |
+| [RESIDUALS.md](docs/RESIDUALS.md) | Required controls and unresolved native boundaries. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Fork change, upgrade and review procedure. |

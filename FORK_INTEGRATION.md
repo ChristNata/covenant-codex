@@ -37,4 +37,4 @@ Release builds of Covenant Codex are intended to target Windows only, but upstre
 
 Document important custom behavior here as it is added:
 
-- None yet.
+- See [COVENANT_PATCHES.md](COVENANT_PATCHES.md) for the draft maintained patch surface and pending acceptance.

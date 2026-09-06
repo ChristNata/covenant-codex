@@ -320,3 +320,37 @@ Tests and features must support Linux, macOS and Windows unless feature is expli
 
 Codex supports running connected app-server and exec-server on different operating systems. See the
 `$remote-tests` skill for details about integration testing these configurations.
+
+
+## Covenant fork scope
+
+This appendix adapts the [canonical Covenant instructions](https://github.com/ChristNata/Covenant-Harness/blob/b6e933a4590a2ef848755c4a593a7e9e8f2072d4/docs/master-plans/cross/codex-fork/repo-context/AGENTS.md)
+under the [approved fork amendments](covenant/IMPLEMENTATION.md). The upstream
+instructions above are preserved. Read [CLAUDE.md](CLAUDE.md) for the full fork
+contract and [COVENANT_PATCHES.md](COVENANT_PATCHES.md) for its draft surface.
+
+- This is `ChristNata/covenant-codex`, with clean `main`, behavioral
+  `covenant-ver`, and `upgrade/*` integration branches. Follow
+  [FORK_INTEGRATION.md](FORK_INTEGRATION.md); do not upgrade the pinned upstream
+  baseline as incidental feature work.
+- The target is managed local Windows `codex exec`, with optional JSON output.
+  Keep upstream agent/turn/reasoning orchestration. Retain required internal
+  app-server code while excluding public server and other alternate authorities.
+- F11 admits only unqualified function `exec_command` and custom `apply_patch`.
+  This is identity classification. Separate F12 final-exec and F13 guarded-patch
+  gates must authorize effects; their native integration remains unfinished.
+- F14 native auth belongs to `codex-rs/login/src/auth/`. Keep credential bytes in
+  Codex; do not copy login material into mutable CODEX_HOME or expose it to
+  Covenant. Standalone runtime concepts belong outside codex-core.
+- For the currently authorized fork effort, test new fork behavior and format
+  only owned/changed files. The user's no-unrelated-upstream-change/test scope
+  overrides broad suite/format suggestions for this effort. Use `just test` for
+  Rust and preserve original locks except for separately approved integration.
+- The eight specifically requested F40 context documents include
+  docs/DECIDE_V1.md, docs/RELEASE.md and docs/RESIDUALS.md. This limited fork
+  exception does not broaden the general upstream documentation policy.
+- Local component green is not final native/product/inventory/re-audit/release
+  acceptance. Keep pending gates visible. An audited Release and verified
+  harness integration must precede changing the pin to fork; Official remains
+  the current fallback. Do not push intermediate work or publish/dispatch merely
+  to make a phase appear complete. Existing authorization still governs actions.
