@@ -139,3 +139,10 @@ platform = 'cfg(windows)'
 filter = 'package(codex-cli) & (test(=http::child_tests::child_preserves_full_utf8_io_cwd_arguments_and_native_status) | test(=http::child_tests::child_enforces_input_and_both_output_caps_with_real_waited_controls) | test(=http::child_tests::child_deadline_and_caller_cancellation_retain_the_same_settlement_owner))'
 slow-timeout = { period = "45s", terminate-after = 1, on-timeout = "fail" }
 retries = 0
+
+# Only the generated hook command case; timeout is failure, not cleanup proof.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(=http::hook_command_tests::hook_command_creates_exact_marker_and_refuses_reuse_or_invalid_input)'
+slow-timeout = { period = "60s", terminate-after = 1, on-timeout = "fail" }
+retries = 0

@@ -31,6 +31,9 @@ mod receipt;
 #[path = "covenant_effect_cli_child.rs"]
 mod child;
 
+#[path = "covenant_effect_hook_command.rs"]
+mod hook_command;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Marker,
@@ -105,3 +108,7 @@ mod receipt_tests;
 #[cfg(test)]
 #[path = "covenant_effect_cli_child_tests.rs"]
 mod child_tests;
+
+#[cfg(test)]
+#[path = "covenant_effect_hook_command_tests.rs"]
+mod hook_command_tests;

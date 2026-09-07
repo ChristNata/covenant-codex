@@ -84,6 +84,8 @@ rust_test(
         "covenant_effect_cli_child_tests.rs",
         "covenant_effect_cli_receipt.rs",
         "covenant_effect_cli_receipt_tests.rs",
+        "covenant_effect_hook_command.rs",
+        "covenant_effect_hook_command_tests.rs",
         "covenant_effect_http.rs",
         "covenant_effect_http_connection.rs",
         "covenant_effect_http_owner_tests.rs",
