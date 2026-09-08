@@ -18,6 +18,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::ExitStatus;
 use std::time::Duration;
+use tokio::net::TcpListener;
 use tokio::time::Instant;
 
 // Exact synthetic data from covenant_responses_proxy.rs; no proxy runtime is loaded.
@@ -73,6 +74,8 @@ pub(super) struct Fixture {
     effects: PathBuf,
     hook_script: PathBuf,
     hook_attempts: PathBuf,
+    pub(super) mcp_listener: Option<TcpListener>,
+    pub(super) mcp_url: Option<String>,
 }
 
 impl Fixture {
@@ -235,7 +238,38 @@ try {{\n\
             effects,
             hook_script,
             hook_attempts,
+            mcp_listener: None,
+            mcp_url: None,
         })
+    }
+
+    pub(super) async fn mcp_only() -> Result<Self> {
+        let mut fixture = Self::hook_only()?;
+        let listener =
+            tokio::time::timeout_at(fixture.deadline, TcpListener::bind("127.0.0.1:0")).await??;
+        let address = listener.local_addr()?;
+        let mcp_url = format!("http://{address}/mcp/{}", fixture.expected.nonce);
+        let project_key = &fixture.expected.cwd;
+        let mut config = toml::Value::try_from(json!({
+            "cli_auth_credentials_store":"file", "forced_login_method":"api",
+            "projects":{project_key:{"trust_level":"trusted"}},
+            "features":{"hooks":true,"mcp_2026_07_28":false},
+            "mcp_servers":{"covenant_effect_probe":{
+                "url":mcp_url,"enabled":true,"required":true
+            }}
+        }))?;
+        let server = config["mcp_servers"]["covenant_effect_probe"]
+            .as_table_mut()
+            .ok_or_else(|| anyhow!("owned MCP declaration shape refused"))?;
+        server.insert("startup_timeout_sec".to_owned(), toml::Value::Float(10.0));
+        server.insert("tool_timeout_sec".to_owned(), toml::Value::Float(10.0));
+        let config = toml::to_string(&config)?;
+        ensure!(config.len() <= 65_536, "owned declaration too large");
+        fs::write(fixture.root.join("home/config.toml"), config)?;
+        fs::remove_file(fixture.root.join("home/hooks.json"))?;
+        fixture.mcp_listener = Some(listener);
+        fixture.mcp_url = Some(mcp_url);
+        Ok(fixture)
     }
 
     pub(super) fn expectation(&self) -> &MarkerExpectation {

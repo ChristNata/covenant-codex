@@ -102,6 +102,13 @@ platform = 'cfg(windows)'
 filter = 'package(codex-cli) & test(http::mcp_tests::mcp_)'
 retries = 0
 
+# The ordinary actual-CLI MCP case includes child and two-peer cleanup.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(=http::cli_mcp_tests::ordinary_mcp_requests_are_observed)'
+slow-timeout = { period = "90s", terminate-after = 1, on-timeout = "fail" }
+retries = 0
+
 # Only the new private ordinary Responses protocol cases.
 [[profile.local.overrides]]
 platform = 'cfg(windows)'
