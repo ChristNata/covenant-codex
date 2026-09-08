@@ -34,7 +34,6 @@ mod child;
 #[path = "covenant_effect_hook_command.rs"]
 mod hook_command;
 
-#[cfg(not(feature = "covenant"))]
 #[path = "covenant_effect_cli_fixture.rs"]
 mod cli_fixture;
 
@@ -54,6 +53,15 @@ mod cli_hook_tests;
 #[path = "covenant_effect_cli_mcp_tests.rs"]
 mod cli_mcp_tests;
 
+#[cfg(feature = "covenant")]
+#[path = "covenant_effect_cli_constrained_run.rs"]
+mod cli_constrained_run;
+#[cfg(all(test, feature = "covenant"))]
+#[path = "covenant_effect_cli_constrained_tests.rs"]
+mod cli_constrained_tests;
+#[cfg(feature = "covenant")]
+#[path = "covenant_responses_proxy.rs"]
+mod proxy;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum FixtureFailure {
     Marker,

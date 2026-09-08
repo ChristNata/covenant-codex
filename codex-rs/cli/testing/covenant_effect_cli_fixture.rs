@@ -1,6 +1,7 @@
 //! Private Codex fixture for checkpoint A's first ordinary session.
 use super::MarkerExpectation;
 use super::hook_command::HookCommand;
+#[cfg(not(feature = "covenant"))]
 use super::peer::PeerReport;
 use super::receipt::ReceiptRoot;
 use anyhow::Result;
@@ -16,16 +17,21 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+#[cfg(not(feature = "covenant"))]
 use std::process::ExitStatus;
 use std::time::Duration;
 use tokio::net::TcpListener;
 use tokio::time::Instant;
 
 // Exact synthetic data from covenant_responses_proxy.rs; no proxy runtime is loaded.
+#[cfg(not(feature = "covenant"))]
 pub(super) const API_KEY: &str = "covenant-sc5-synthetic-noncredential";
+#[cfg(not(feature = "covenant"))]
 pub(super) const PROMPT: &str = "Return the owned SC5 completion marker.";
+#[cfg(not(feature = "covenant"))]
 pub(super) const MARKER: &str = "COVENANT_SC5_TEXT_COMPLETE";
 
+#[cfg(not(feature = "covenant"))]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum RunLabel {
     First,
@@ -46,6 +52,7 @@ pub(super) struct HookAttemptObservation {
     pub(super) after: BTreeMap<String, Vec<u8>>,
 }
 
+#[cfg(not(feature = "covenant"))]
 pub(super) struct RunObservation {
     pub(super) binary: PathBuf,
     pub(super) exit: ExitStatus,
@@ -74,6 +81,7 @@ pub(super) struct Fixture {
     effects: PathBuf,
     hook_script: PathBuf,
     hook_attempts: PathBuf,
+    hook_command: String,
     pub(super) mcp_listener: Option<TcpListener>,
     pub(super) mcp_url: Option<String>,
 }
@@ -145,6 +153,7 @@ impl Fixture {
         };
         let hook_script = root.join("writer '$' \u{03bb} with spaces.ps1");
         let hook = HookCommand::prepare(&hook_script, &effects.join("marker.json"), &expected)?;
+        let hook_command = hook.command_line().to_owned();
         let script_metadata = fs::symlink_metadata(&hook_script)?;
         ensure!(
             script_metadata.file_type().is_file() && script_metadata.len() <= 32 * 1024,
@@ -218,7 +227,7 @@ try {{\n\
         let config = toml::to_string(&config)?;
         let hooks = serde_json::to_vec(&json!({"hooks":{"SessionStart":[{
             "matcher":"^startup$", "hooks":[{
-                "type":"command", "command":hook.command_line(), "timeout":10
+                "type":"command", "command":hook_command, "timeout":10
             }]
         }]}}))?;
         ensure!(
@@ -238,6 +247,7 @@ try {{\n\
             effects,
             hook_script,
             hook_attempts,
+            hook_command,
             mcp_listener: None,
             mcp_url: None,
         })
@@ -269,6 +279,18 @@ try {{\n\
         fs::remove_file(fixture.root.join("home/hooks.json"))?;
         fixture.mcp_listener = Some(listener);
         fixture.mcp_url = Some(mcp_url);
+        Ok(fixture)
+    }
+
+    pub(super) async fn hook_and_mcp() -> Result<Self> {
+        let fixture = Self::mcp_only().await?;
+        let hooks = serde_json::to_vec(&json!({"hooks":{"SessionStart":[{
+            "matcher":"^startup$", "hooks":[{
+                "type":"command", "command":fixture.hook_command, "timeout":10
+            }]
+        }]}}))?;
+        ensure!(hooks.len() <= 65_536, "owned declaration too large");
+        fs::write(fixture.root.join("home/hooks.json"), hooks)?;
         Ok(fixture)
     }
 

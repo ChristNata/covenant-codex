@@ -109,6 +109,13 @@ filter = 'package(codex-cli) & test(=http::cli_mcp_tests::ordinary_mcp_requests_
 slow-timeout = { period = "90s", terminate-after = 1, on-timeout = "fail" }
 retries = 0
 
+# The constrained actual-CLI absence case includes child, proxy and peer cleanup.
+[[profile.local.overrides]]
+platform = 'cfg(windows)'
+filter = 'package(codex-cli) & test(=http::cli_constrained_tests::covenant_hook_mcp_effects_are_absent)'
+slow-timeout = { period = "90s", terminate-after = 1, on-timeout = "fail" }
+retries = 0
+
 # Only the new private ordinary Responses protocol cases.
 [[profile.local.overrides]]
 platform = 'cfg(windows)'
