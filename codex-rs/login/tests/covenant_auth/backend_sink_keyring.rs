@@ -13,17 +13,53 @@ use std::sync::Mutex;
 use std::sync::PoisonError;
 
 type EntryKey = (Option<String>, String, String);
+const JOURNAL_LIMIT: usize = 256;
+const VALUE_ENTRY_LIMIT: usize = 16;
+const VALUE_LIMIT: usize = 1_048_576;
+const VALUE_BYTES_LIMIT: usize = 4_194_304;
 
 #[derive(Default)]
 pub(super) struct MemoryStore {
     values: BTreeMap<EntryKey, Vec<u8>>,
-    operations: usize,
+    journal: Vec<JournalEntry>,
+    journal_overflowed: bool,
 }
 
 impl MemoryStore {
     pub(super) fn operation_count(&self) -> usize {
-        self.operations
+        self.journal.len()
     }
+
+    pub(super) fn snapshot(&self) -> KeyringSnapshot {
+        KeyringSnapshot {
+            values: self.values.values().cloned().collect(),
+            journal: self.journal.iter().map(JournalEntry::summary).collect(),
+            journal_overflowed: self.journal_overflowed,
+        }
+    }
+}
+
+#[derive(Clone)]
+struct JournalEntry {
+    operation: &'static str,
+    key: EntryKey,
+    bytes: usize,
+}
+
+impl JournalEntry {
+    fn summary(&self) -> Vec<u8> {
+        format!(
+            "{}|{:?}|{}|{}|{}",
+            self.operation, self.key.0, self.key.1, self.key.2, self.bytes
+        )
+        .into_bytes()
+    }
+}
+
+pub(super) struct KeyringSnapshot {
+    pub(super) values: Vec<Vec<u8>>,
+    pub(super) journal: Vec<Vec<u8>>,
+    pub(super) journal_overflowed: bool,
 }
 
 struct Builder {
@@ -65,20 +101,54 @@ struct MemoryCredential {
 }
 
 impl MemoryCredential {
-    fn with_store<T>(&self, operation: impl FnOnce(&mut MemoryStore) -> T) -> T {
+    fn with_store<T>(
+        &self,
+        name: &'static str,
+        bytes: usize,
+        operation: impl FnOnce(&mut MemoryStore) -> keyring::Result<T>,
+    ) -> keyring::Result<T> {
         let mut store = self.store.lock().unwrap_or_else(PoisonError::into_inner);
-        store.operations += 1;
+        if store.journal.len() == JOURNAL_LIMIT {
+            store.journal_overflowed = true;
+            return Err(keyring::Error::Invalid(
+                "synthetic keyring".into(),
+                "fixture operation limit exceeded".into(),
+            ));
+        }
+        store.journal.push(JournalEntry {
+            operation: name,
+            key: self.key.clone(),
+            bytes,
+        });
         operation(&mut store)
     }
 }
 
 impl CredentialApi for MemoryCredential {
     fn set_secret(&self, secret: &[u8]) -> keyring::Result<()> {
-        self.with_store(|store| {
+        self.with_store("set", secret.len(), |store| {
             if !self.accept_writes {
                 return Err(keyring::Error::Invalid(
                     "synthetic keyring".into(),
                     "fixture rejected write".into(),
+                ));
+            }
+            let is_new = !store.values.contains_key(&self.key);
+            let prior_bytes = store.values.get(&self.key).map_or(0, Vec::len);
+            let total_bytes = store
+                .values
+                .values()
+                .map(Vec::len)
+                .sum::<usize>()
+                .saturating_sub(prior_bytes)
+                .saturating_add(secret.len());
+            if secret.len() > VALUE_LIMIT
+                || total_bytes > VALUE_BYTES_LIMIT
+                || (is_new && store.values.len() == VALUE_ENTRY_LIMIT)
+            {
+                return Err(keyring::Error::Invalid(
+                    "synthetic keyring".into(),
+                    "fixture value limit exceeded".into(),
                 ));
             }
             store.values.insert(self.key.clone(), secret.to_vec());
@@ -87,7 +157,7 @@ impl CredentialApi for MemoryCredential {
     }
 
     fn get_secret(&self) -> keyring::Result<Vec<u8>> {
-        self.with_store(|store| {
+        self.with_store("get", /*bytes*/ 0, |store| {
             store
                 .values
                 .get(&self.key)
@@ -97,7 +167,7 @@ impl CredentialApi for MemoryCredential {
     }
 
     fn delete_credential(&self) -> keyring::Result<()> {
-        self.with_store(|store| {
+        self.with_store("delete", /*bytes*/ 0, |store| {
             store
                 .values
                 .remove(&self.key)

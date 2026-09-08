@@ -92,6 +92,22 @@ pub(super) enum Scenario {
 }
 
 impl Scenario {
+    fn accepts_keyring(self) -> bool {
+        match self {
+            Self::Refresh(case) => case.accepts_keyring(),
+            Self::EphemeralDirectLogout
+            | Self::EphemeralFreshProbe
+            | Self::PersistentManagerLogout
+            | Self::EphemeralManagerLogout
+            | Self::ApiKeyLoginProbeLogout
+            | Self::AccessTokenLoginProbe
+            | Self::BrowserCallbackProbe
+            | Self::DeviceCodeProbe
+            | Self::RevokeSuccess
+            | Self::RevokeFailure => true,
+        }
+    }
+
     fn is_public_route(self) -> bool {
         matches!(
             self,
@@ -191,6 +207,9 @@ fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
         .context("fixture child stdin unavailable")?
         .write_all(&bytes)?;
     let output = wait_output(&mut child, fixture.scenario)?;
+    let sentinels = super::backend_sink_audit::Sentinels::new(fixture)?;
+    super::backend_sink_audit::assert_clean_bytes(&output.stdout, &sentinels)?;
+    super::backend_sink_audit::assert_clean_bytes(&output.stderr, &sentinels)?;
     let stdout = redact(&output.stdout, fixture);
     let stderr = redact(&output.stderr, fixture);
     ensure!(
@@ -258,14 +277,17 @@ fn read_bounded(input: impl Read) -> Result<Vec<u8>> {
 
 fn run_child() -> Result<()> {
     let fixture: Fixture = serde_json::from_reader(std::io::stdin().take(INPUT_LIMIT))?;
+    let traces = super::backend_sink_audit::TraceCapture::install()?;
+    let keyring = super::backend_sink_keyring::install(fixture.scenario.accepts_keyring());
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
     if fixture.scenario.is_public_route() {
         runtime.block_on(super::backend_route_support::exercise(&fixture))?;
     } else {
-        runtime.block_on(super::backend_refresh_support::exercise(&fixture))?;
+        runtime.block_on(super::backend_refresh_support::exercise(&fixture, &keyring))?;
     }
+    super::backend_sink_audit::audit_retained(&fixture, &traces, &keyring)?;
     println!("{COMPLETE}");
     std::io::stdout().flush()?;
     Ok(())

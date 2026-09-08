@@ -5,7 +5,6 @@
 use super::auth_document;
 use super::backend_sink_http::HttpFixture;
 use super::backend_sink_http::Step;
-use super::backend_sink_keyring;
 use super::backend_sink_keyring::MemoryStore;
 use super::backend_sink_support::BackendCase;
 use super::backend_sink_support::Fixture;
@@ -32,12 +31,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::PoisonError;
 
-pub(super) async fn exercise(fixture: &Fixture) -> Result<()> {
+pub(super) async fn exercise(fixture: &Fixture, keyring: &Arc<Mutex<MemoryStore>>) -> Result<()> {
     match fixture.scenario {
-        Scenario::Refresh(case) => {
-            let keyring = backend_sink_keyring::install(case.accepts_keyring());
-            refresh(fixture, case, &keyring).await
-        }
+        Scenario::Refresh(case) => refresh(fixture, case, keyring).await,
         Scenario::EphemeralDirectLogout => ephemeral_direct_logout(fixture),
         Scenario::EphemeralFreshProbe => ephemeral_fresh_probe(fixture),
         Scenario::PersistentManagerLogout => persistent_manager_logout(fixture).await,

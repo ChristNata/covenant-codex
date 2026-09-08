@@ -2224,3 +2224,33 @@ new-fixture lint fix and exited zero; required `just fmt` passed, unrelated
 formatter changes were restored, and tests were not rerun. Evidence is
 `.git/covenant-session/f14-wave1-route-001/evidence.json`. Retained-sink
 observation remains the next W1.2 checkpoint.
+
+### F14 W1.2b retained-sink observation - existing behavior verified
+
+The ten combined backend, logout and public-route entrypoints now capture TRACE
+output and inspect child stdout/stderr, the process-local keyring journal and
+values, and every retained name and file under the isolated test root. Random
+sentinels cover API and personal-access tokens, token seeds, ID claims, and
+both initial and refreshed token generations in raw, JSON, percent-encoded and
+standard/URL base64 forms. Exact credential documents are allowed only in the
+scenario's authoritative File or Direct store and remain subject to the prior
+whole-document behavior checks.
+
+Review closed false-negative and resource-bound gaps before acceptance. The
+observer now rejects Windows reparse points before recursion and caps trace and
+child output, tree depth and entries, actual file bytes read, keyring operations,
+keyring entries, individual values and aggregate value bytes. Final focused
+Nextest run `49205f22-6427-4ad1-a90a-28c3267e58ff` passed 10/10 with 21 cases
+excluded. Existing production retained no observed sentinel, so no production
+auth code changed.
+
+The isolated test manifest adds its already-locked tracing dependencies; its
+lock changes only by those two root dependency edges. Required Bazel lock
+regeneration completed without `MODULE.bazel.lock` drift. Independent review
+returned PASS at 462 pre-ledger changed lines with every changed Rust module
+below 500 physical lines. Scoped `just fix -p codex-login` passed with only the
+20 previously recorded warnings, and required `just fmt` passed; unrelated
+formatter changes were restored and tests were not rerun afterward. Evidence is
+`.git/covenant-session/f14-wave1-sink-001/evidence.json`. Mutation/owner-loss,
+deterministic file faults, source anchors, product/Bazel and external Harness
+acceptance remain pending.
