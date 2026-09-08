@@ -2205,3 +2205,22 @@ agreement, stale fallback removal, selected-home convergence and prior-reader
 atomicity. Scoped `just fix -p codex-login` and required `just fmt` passed after
 testing; only the 20 inherited warnings remained and tests were not rerun.
 Evidence is `.git/covenant-session/f14-wave1b-keyring-auto-001/evidence.json`.
+
+### F14 W1.2a public auth routes - existing behavior verified
+
+Three new Windows entrypoints exercise API-key and personal-access-token login,
+browser callback, device-code completion, probe, logout, and revoke success and
+failure through public `codex-login` functions and bounded local authorities.
+The browser fixture was corrected to follow the real local success redirect and
+the synthetic ID token now carries the account claims consumed by persistence;
+neither fixture defect reached production code.
+
+The combined backend/route run `89bc2150-1131-49d2-a73d-d639335faa89`
+passed 10/10 with 21 cases excluded. After review added an explicit no-mutable-
+home-file assertion, focused route run `e9767ba8-1da3-4380-84eb-85f0fe14e1e0`
+passed 3/3 with 28 excluded. Existing production satisfied every route oracle,
+so no production edit was made. Scoped `just fix -p codex-login` applied one
+new-fixture lint fix and exited zero; required `just fmt` passed, unrelated
+formatter changes were restored, and tests were not rerun. Evidence is
+`.git/covenant-session/f14-wave1-route-001/evidence.json`. Retained-sink
+observation remains the next W1.2 checkpoint.

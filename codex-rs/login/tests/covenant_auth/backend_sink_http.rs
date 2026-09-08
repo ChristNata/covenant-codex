@@ -44,6 +44,7 @@ impl Step {
 }
 
 pub(super) struct HttpFixture {
+    url: String,
     result: mpsc::Receiver<Result<()>>,
     thread: Option<thread::JoinHandle<()>>,
 }
@@ -56,16 +57,22 @@ impl HttpFixture {
         let listener = TcpListener::bind(("127.0.0.1", 0))?;
         listener.set_nonblocking(true)?;
         let address = listener.local_addr()?;
-        configure(&format!("http://{address}"))?;
+        let url = format!("http://{address}");
+        configure(&url)?;
         let (sender, result) = mpsc::channel();
         let thread = thread::spawn(move || {
             let outcome = serve_steps(listener, steps);
             let _ = sender.send(outcome);
         });
         Ok(Self {
+            url,
             result,
             thread: Some(thread),
         })
+    }
+
+    pub(super) fn url(&self) -> &str {
+        &self.url
     }
 
     pub(super) fn finish(mut self) -> Result<()> {
@@ -76,6 +83,21 @@ impl HttpFixture {
             .map_err(|_| anyhow::anyhow!("HTTP fixture panicked"))?;
         Ok(())
     }
+}
+
+pub(super) fn raw_get(port: u16, path: &str) -> Result<String> {
+    let mut stream = TcpStream::connect(("127.0.0.1", port))?;
+    stream.set_read_timeout(Some(DEADLINE))?;
+    write!(
+        stream,
+        "GET {path} HTTP/1.1\r\nHost: localhost:{port}\r\nConnection: close\r\n\r\n"
+    )?;
+    stream.flush()?;
+    let mut response = String::new();
+    stream
+        .take(2 * HTTP_LIMIT as u64)
+        .read_to_string(&mut response)?;
+    Ok(response)
 }
 
 fn serve_steps(listener: TcpListener, steps: Vec<Step>) -> Result<()> {

@@ -42,6 +42,12 @@ pub(super) async fn exercise(fixture: &Fixture) -> Result<()> {
         Scenario::EphemeralFreshProbe => ephemeral_fresh_probe(fixture),
         Scenario::PersistentManagerLogout => persistent_manager_logout(fixture).await,
         Scenario::EphemeralManagerLogout => ephemeral_manager_logout(fixture).await,
+        Scenario::ApiKeyLoginProbeLogout
+        | Scenario::AccessTokenLoginProbe
+        | Scenario::BrowserCallbackProbe
+        | Scenario::DeviceCodeProbe
+        | Scenario::RevokeSuccess
+        | Scenario::RevokeFailure => anyhow::bail!("public route sent to backend refresh fixture"),
     }
 }
 

@@ -83,12 +83,33 @@ pub(super) enum Scenario {
     EphemeralFreshProbe,
     PersistentManagerLogout,
     EphemeralManagerLogout,
+    ApiKeyLoginProbeLogout,
+    AccessTokenLoginProbe,
+    BrowserCallbackProbe,
+    DeviceCodeProbe,
+    RevokeSuccess,
+    RevokeFailure,
+}
+
+impl Scenario {
+    fn is_public_route(self) -> bool {
+        matches!(
+            self,
+            Self::ApiKeyLoginProbeLogout
+                | Self::AccessTokenLoginProbe
+                | Self::BrowserCallbackProbe
+                | Self::DeviceCodeProbe
+                | Self::RevokeSuccess
+                | Self::RevokeFailure
+        )
+    }
 }
 
 #[derive(Deserialize, Serialize)]
 pub(super) struct Fixture {
     pub(super) root: PathBuf,
     pub(super) api_key: String,
+    pub(super) personal_access_token: String,
     pub(super) access_seed: String,
     pub(super) refresh_seed: String,
     pub(super) id_payload: String,
@@ -119,6 +140,7 @@ fn run_parent(test_name: &str, scenario: Scenario) -> Result<()> {
     let mut fixture = Fixture {
         root,
         api_key: random_sentinel("api"),
+        personal_access_token: format!("at-{}", random_sentinel("pat")),
         access_seed: random_sentinel("access"),
         refresh_seed: random_sentinel("refresh"),
         id_payload: format!("{}@example.invalid", random_sentinel("id")),
@@ -168,7 +190,7 @@ fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
         .take()
         .context("fixture child stdin unavailable")?
         .write_all(&bytes)?;
-    let output = wait_output(&mut child)?;
+    let output = wait_output(&mut child, fixture.scenario)?;
     let stdout = redact(&output.stdout, fixture);
     let stderr = redact(&output.stderr, fixture);
     ensure!(
@@ -197,7 +219,7 @@ impl Drop for OwnedChild {
     }
 }
 
-fn wait_output(child: &mut OwnedChild) -> Result<std::process::Output> {
+fn wait_output(child: &mut OwnedChild, scenario: Scenario) -> Result<std::process::Output> {
     let stdout = child.0.stdout.take().context("child stdout unavailable")?;
     let stderr = child.0.stderr.take().context("child stderr unavailable")?;
     let out = thread::spawn(move || read_bounded(stdout));
@@ -207,7 +229,10 @@ fn wait_output(child: &mut OwnedChild) -> Result<std::process::Output> {
         if let Some(status) = child.0.try_wait()? {
             break status;
         }
-        ensure!(Instant::now() < deadline, "backend child timed out");
+        ensure!(
+            Instant::now() < deadline,
+            "backend child timed out for {scenario:?}"
+        );
         thread::sleep(Duration::from_millis(/*millis*/ 5));
     };
     Ok(std::process::Output {
@@ -233,10 +258,14 @@ fn read_bounded(input: impl Read) -> Result<Vec<u8>> {
 
 fn run_child() -> Result<()> {
     let fixture: Fixture = serde_json::from_reader(std::io::stdin().take(INPUT_LIMIT))?;
-    tokio::runtime::Builder::new_current_thread()
+    let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
-        .build()?
-        .block_on(super::backend_refresh_support::exercise(&fixture))?;
+        .build()?;
+    if fixture.scenario.is_public_route() {
+        runtime.block_on(super::backend_route_support::exercise(&fixture))?;
+    } else {
+        runtime.block_on(super::backend_refresh_support::exercise(&fixture))?;
+    }
     println!("{COMPLETE}");
     std::io::stdout().flush()?;
     Ok(())
@@ -245,6 +274,12 @@ fn run_child() -> Result<()> {
 pub(super) fn document(fixture: &Fixture, generation: u32) -> Result<AuthDotJson> {
     let payload = serde_json::to_vec(&json!({
         "email": fixture.id_payload,
+        "chatgpt_account_id": "covenant-synthetic-account",
+        "https://api.openai.com/auth": {
+            "chatgpt_account_id": "covenant-synthetic-account",
+            "chatgpt_plan_type": "business",
+            "chatgpt_user_id": "covenant-synthetic-user",
+        },
     }))?;
     let payload = base64_url(&payload).trim_end_matches('=').to_string();
     Ok(serde_json::from_value(json!({
@@ -275,6 +310,7 @@ fn redact(bytes: &[u8], fixture: &Fixture) -> String {
     let mut text = String::from_utf8_lossy(bytes).into_owned();
     for value in [
         &fixture.api_key,
+        &fixture.personal_access_token,
         &fixture.access_seed,
         &fixture.refresh_seed,
         &fixture.id_payload,

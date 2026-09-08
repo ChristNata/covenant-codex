@@ -74,3 +74,35 @@ fn covenant_auth_ephemeral_manager_logout_does_not_guess_persistent_stores() -> 
         Scenario::EphemeralManagerLogout,
     )
 }
+
+#[test]
+fn covenant_auth_public_api_key_and_access_token_routes_use_selected_home() -> Result<()> {
+    let test_name = "backend_sink_tests::covenant_auth_public_api_key_and_access_token_routes_use_selected_home";
+    support::run_all(
+        test_name,
+        &[
+            Scenario::ApiKeyLoginProbeLogout,
+            Scenario::AccessTokenLoginProbe,
+        ],
+    )
+}
+
+#[test]
+fn covenant_auth_public_browser_and_device_completion_use_selected_home() -> Result<()> {
+    let test_name =
+        "backend_sink_tests::covenant_auth_public_browser_and_device_completion_use_selected_home";
+    support::run_all(
+        test_name,
+        &[Scenario::BrowserCallbackProbe, Scenario::DeviceCodeProbe],
+    )
+}
+
+#[test]
+fn covenant_auth_public_revoke_success_and_failure_both_logout_cleanly() -> Result<()> {
+    let test_name =
+        "backend_sink_tests::covenant_auth_public_revoke_success_and_failure_both_logout_cleanly";
+    support::run_all(
+        test_name,
+        &[Scenario::RevokeSuccess, Scenario::RevokeFailure],
+    )
+}
