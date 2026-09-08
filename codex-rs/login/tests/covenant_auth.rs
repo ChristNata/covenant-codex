@@ -31,6 +31,14 @@ const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
 mod auto_persistence_support;
 #[path = "covenant_auth/auto_persistence_tests.rs"]
 mod auto_persistence_tests;
+#[path = "covenant_auth/backend_refresh_support.rs"]
+mod backend_refresh_support;
+#[path = "covenant_auth/backend_sink_http.rs"]
+mod backend_sink_http;
+#[path = "covenant_auth/backend_sink_support.rs"]
+mod backend_sink_support;
+#[path = "covenant_auth/backend_sink_tests.rs"]
+mod backend_sink_tests;
 #[path = "covenant_auth/cancellation_support.rs"]
 mod cancellation_support;
 #[path = "covenant_auth/cancellation_tests.rs"]

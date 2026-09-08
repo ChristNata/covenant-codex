@@ -2167,3 +2167,21 @@ The reconciliation preserved the parallel F14 changes and user-owned untracked g
 The five registered Windows cases passed as nextest run `56041a85-f8ca-4779-9d98-14fdc5033a5c`, with 16 cases excluded by the exact `home_selection_tests::covenant_auth_` selector. They verify new-root creation, canonical/alias store identity, and fail-closed empty, relative and nondirectory overrides through the public login/load paths while preserving mutable-home decoys and keeping the synthetic sentinel out of child output. Current production already satisfies the contract, so no production home-selection edit was made.
 
 The final 347-line test SHA-256 is `ee79920cbd9a960f9f91a4b5d2f96215b3189e7edc191dcf127b14abfae28a1d`; its two-line registration SHA-256 is `c476981f019b4c7beeb783d0b63ddbdda94854282afd65ee8a345eeedb3b2907`. Scoped `just fix -p codex-login` completed with the new file warning-free and twenty inherited warnings in earlier accepted fixtures; required `just fmt` passed, unrelated formatter changes were restored, and tests were not rerun afterward. Later F14 backend, retained-sink, mutation, deterministic-file, source-anchor and cross-platform gates remain pending.
+
+### F14 W1.1a File refresh and logout - existing behavior verified
+
+Four Windows child-process cases passed as nextest run
+`e8330f2f-07f3-47e5-819b-19f04899a202`, with 21 cases excluded by the exact
+`backend_sink_tests::covenant_auth_` selector. They exercise public File refresh
+and manager/storage logout routes, require the local authority exchange, compare
+the complete persisted winner and cached tokens, retain the prior open reader,
+keep mutable home and an unrelated sibling unchanged, and prove Ephemeral state
+is process-local. Existing production satisfied every oracle, so no production
+edit was made.
+
+The formatted checkpoint is 730 changed lines; its largest new module is 259
+lines. Scoped `just fix -p codex-login` and required `just fmt` passed after the
+test run, with only the 20 previously recorded inherited fixture warnings and
+no test repeat. Evidence is `.git/covenant-session/f14-wave1a-file-ephemeral-001/evidence.json`.
+Direct/Secrets/Auto refresh, public retained sinks, mutation/owner-loss, Wave 2,
+external Harness-home separation and final F14 acceptance remain pending.
