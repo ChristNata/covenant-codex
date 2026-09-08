@@ -179,11 +179,13 @@ fn mcp_request_cap_includes_auxiliary_requests() {
 }
 
 #[test]
-fn mcp_accepts_codex_client_metadata_and_both_valid_empty_list_params_forms() {
+fn mcp_accepts_codex_client_metadata_and_supported_list_params() {
     for elicitation in [json!({}), json!({"form":{}, "url":{}})] {
         for list in [
             json!({"jsonrpc":"2.0", "id":"list-id", "method":"tools/list", "params":{}}),
             json!({"jsonrpc":"2.0", "id":"list-id", "method":"tools/list"}),
+            json!({"jsonrpc":"2.0", "id":"list-id", "method":"tools/list",
+                "params":{"_meta":{"progressToken":0}}}),
         ] {
             let mut first = initialize(json!(37));
             let mut body: Value = serde_json::from_slice(&first.body).unwrap();
@@ -213,6 +215,31 @@ fn mcp_accepts_codex_client_metadata_and_both_valid_empty_list_params_forms() {
             assert_eq!(exchange.requests(), &[first, notification, discovery]);
             assert!(exchange.discovery_complete());
         }
+    }
+}
+
+#[test]
+fn mcp_rejects_unreviewed_tool_list_metadata() {
+    for params in [
+        json!({"_meta":{}}),
+        json!({"_meta":{"progressToken":1}}),
+        json!({"_meta":{"progressToken":"unissued"}}),
+        json!({"_meta":{"progressToken":0,"extra":true}}),
+        json!({"_meta":{"progressToken":0},"cursor":"unissued"}),
+    ] {
+        let mut exchange = McpExchange::new("/mcp/nonce".to_owned());
+        exchange.respond(initialize(json!(1))).unwrap();
+        exchange.respond(initialized()).unwrap();
+        let request = post(
+            "/mcp/nonce",
+            json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":params}),
+        );
+        assert_eq!(
+            exchange.respond(request.clone()),
+            Err(FixtureFailure::Protocol)
+        );
+        assert_eq!(exchange.requests().last(), Some(&request));
+        assert!(!exchange.discovery_complete());
     }
 }
 

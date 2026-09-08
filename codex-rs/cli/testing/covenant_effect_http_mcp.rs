@@ -86,6 +86,25 @@ fn empty_params(params: Option<&Value>) -> bool {
     params.is_none_or(|value| value.as_object().is_some_and(Map::is_empty))
 }
 
+fn list_params(params: Option<&Value>) -> bool {
+    if empty_params(params) {
+        return true;
+    }
+    let Some(params) = params else {
+        return false;
+    };
+    let Ok(params) = object(params, &["_meta"]) else {
+        return false;
+    };
+    let Some(metadata) = params.get("_meta") else {
+        return false;
+    };
+    let Ok(metadata) = object(metadata, &["progressToken"]) else {
+        return false;
+    };
+    metadata.get("progressToken") == Some(&json!(0))
+}
+
 fn classify(
     request: &HttpRequest,
     target: &str,
@@ -199,7 +218,7 @@ fn classify(
                 }),
             )
         }
-        (Phase::Ready, Some("tools/list")) if empty_params(params) => {
+        (Phase::Ready, Some("tools/list")) if list_params(params) => {
             (Phase::Complete, json!({"tools":[]}))
         }
         _ => return Err(FixtureFailure::Protocol),
