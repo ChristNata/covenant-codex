@@ -2185,3 +2185,23 @@ test run, with only the 20 previously recorded inherited fixture warnings and
 no test repeat. Evidence is `.git/covenant-session/f14-wave1a-file-ephemeral-001/evidence.json`.
 Direct/Secrets/Auto refresh, public retained sinks, mutation/owner-loss, Wave 2,
 external Harness-home separation and final F14 acceptance remain pending.
+
+### F14 W1.1b keyring and Auto refresh - reached defect fixed
+
+The initial seven-case runs separated two fixture defects from one product
+defect. Removing an override after the process-wide auth-home `OnceLock` had
+frozen was an invalid oracle, and accepted Windows sockets needed to be returned
+to blocking mode before bounded reads. After those corrections, Direct and
+Secrets passed independently as run `2d6ca587-bc58-4b17-86b8-f84a551006bf`.
+The remaining red case was `AutoSecretsFallback`: its retained open reader saw
+generation N+1 instead of exact generation N.
+
+The reached `auth/storage.rs` branch now applies the existing
+`CovenantAuthFile` wrapper to the File fallback for every Auto keyring kind.
+The final focused run `344b4d52-560e-4280-a22a-58e7c680dee9` passed all seven
+backend/logout entrypoints with 21 cases excluded. It covers File, Direct,
+Secrets, accepting Auto and rejected-keyring Auto fallback, exact store/cache
+agreement, stale fallback removal, selected-home convergence and prior-reader
+atomicity. Scoped `just fix -p codex-login` and required `just fmt` passed after
+testing; only the 20 inherited warnings remained and tests were not rerun.
+Evidence is `.git/covenant-session/f14-wave1b-keyring-auto-001/evidence.json`.

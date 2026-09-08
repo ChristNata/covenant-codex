@@ -35,6 +35,8 @@ mod auto_persistence_tests;
 mod backend_refresh_support;
 #[path = "covenant_auth/backend_sink_http.rs"]
 mod backend_sink_http;
+#[path = "covenant_auth/backend_sink_keyring.rs"]
+mod backend_sink_keyring;
 #[path = "covenant_auth/backend_sink_support.rs"]
 mod backend_sink_support;
 #[path = "covenant_auth/backend_sink_tests.rs"]

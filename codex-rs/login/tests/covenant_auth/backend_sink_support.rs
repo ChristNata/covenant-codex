@@ -5,7 +5,9 @@
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::ensure;
+use codex_login::AuthCredentialsStoreMode;
 use codex_login::AuthDotJson;
+use codex_login::AuthKeyringBackendKind;
 use pretty_assertions::assert_eq;
 use serde::Deserialize;
 use serde::Serialize;
@@ -29,8 +31,54 @@ const OUTPUT_LIMIT: u64 = 131_072;
 const DEADLINE: Duration = Duration::from_secs(/*secs*/ 30);
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub(super) enum BackendCase {
+    File,
+    Direct,
+    Secrets,
+    AutoDirect,
+    AutoDirectFallback,
+    AutoSecrets,
+    AutoSecretsFallback,
+}
+
+impl BackendCase {
+    pub(super) fn mode(self) -> AuthCredentialsStoreMode {
+        match self {
+            Self::File => AuthCredentialsStoreMode::File,
+            Self::Direct | Self::Secrets => AuthCredentialsStoreMode::Keyring,
+            Self::AutoDirect
+            | Self::AutoDirectFallback
+            | Self::AutoSecrets
+            | Self::AutoSecretsFallback => AuthCredentialsStoreMode::Auto,
+        }
+    }
+
+    pub(super) fn keyring_kind(self) -> AuthKeyringBackendKind {
+        match self {
+            Self::Secrets | Self::AutoSecrets | Self::AutoSecretsFallback => {
+                AuthKeyringBackendKind::Secrets
+            }
+            Self::File | Self::Direct | Self::AutoDirect | Self::AutoDirectFallback => {
+                AuthKeyringBackendKind::Direct
+            }
+        }
+    }
+
+    pub(super) fn accepts_keyring(self) -> bool {
+        !matches!(self, Self::AutoDirectFallback | Self::AutoSecretsFallback)
+    }
+
+    pub(super) fn allows_auth_file(self) -> bool {
+        matches!(
+            self,
+            Self::File | Self::AutoDirectFallback | Self::AutoSecretsFallback
+        )
+    }
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub(super) enum Scenario {
-    FileRefresh,
+    Refresh(BackendCase),
     EphemeralDirectLogout,
     EphemeralFreshProbe,
     PersistentManagerLogout,
@@ -125,7 +173,8 @@ fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
     let stderr = redact(&output.stderr, fixture);
     ensure!(
         output.status.success(),
-        "backend child failed\nstdout:\n{stdout}\nstderr:\n{stderr}"
+        "backend child failed for {:?}\nstdout:\n{stdout}\nstderr:\n{stderr}",
+        fixture.scenario
     );
     ensure!(
         output

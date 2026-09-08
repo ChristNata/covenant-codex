@@ -522,9 +522,7 @@ pub(super) fn create_auth_storage(
     if let Some(home) = auth_home
         && mode != AuthCredentialsStoreMode::Ephemeral
     {
-        let storage: Arc<dyn AuthStorageBackend> = if mode == AuthCredentialsStoreMode::Auto
-            && keyring_backend_kind == AuthKeyringBackendKind::Direct
-        {
+        let storage: Arc<dyn AuthStorageBackend> = if mode == AuthCredentialsStoreMode::Auto {
             let mut auto = AutoAuthStorage::new(home.clone(), keyring_store, keyring_backend_kind);
             auto.file_storage = Arc::new(super::covenant_auth_file::CovenantAuthFile::new(
                 home.clone(),

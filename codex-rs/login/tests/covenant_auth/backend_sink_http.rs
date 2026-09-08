@@ -7,7 +7,6 @@ use anyhow::Result;
 use anyhow::ensure;
 use std::io::Read;
 use std::io::Write;
-use std::net::SocketAddr;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::sync::mpsc;
@@ -45,30 +44,28 @@ impl Step {
 }
 
 pub(super) struct HttpFixture {
-    address: SocketAddr,
     result: mpsc::Receiver<Result<()>>,
     thread: Option<thread::JoinHandle<()>>,
 }
 
 impl HttpFixture {
-    pub(super) fn start(steps: Vec<Step>) -> Result<Self> {
+    pub(super) fn start(
+        steps: Vec<Step>,
+        configure: impl FnOnce(&str) -> Result<()>,
+    ) -> Result<Self> {
         let listener = TcpListener::bind(("127.0.0.1", 0))?;
         listener.set_nonblocking(true)?;
         let address = listener.local_addr()?;
+        configure(&format!("http://{address}"))?;
         let (sender, result) = mpsc::channel();
         let thread = thread::spawn(move || {
             let outcome = serve_steps(listener, steps);
             let _ = sender.send(outcome);
         });
         Ok(Self {
-            address,
             result,
             thread: Some(thread),
         })
-    }
-
-    pub(super) fn url(&self) -> String {
-        format!("http://{}", self.address)
     }
 
     pub(super) fn finish(mut self) -> Result<()> {
@@ -94,6 +91,7 @@ fn serve_steps(listener: TcpListener, steps: Vec<Step>) -> Result<()> {
                 Err(error) => return Err(error.into()),
             }
         };
+        stream.set_nonblocking(false)?;
         let request = read_http_request(&mut stream)?;
         let request_line = request.lines().next().context("request line missing")?;
         ensure!(

@@ -5,6 +5,9 @@
 use super::auth_document;
 use super::backend_sink_http::HttpFixture;
 use super::backend_sink_http::Step;
+use super::backend_sink_keyring;
+use super::backend_sink_keyring::MemoryStore;
+use super::backend_sink_support::BackendCase;
 use super::backend_sink_support::Fixture;
 use super::backend_sink_support::Scenario;
 use super::backend_sink_support::document;
@@ -25,10 +28,16 @@ use serde_json::json;
 use std::fs;
 use std::io::Read;
 use std::path::Path;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::PoisonError;
 
 pub(super) async fn exercise(fixture: &Fixture) -> Result<()> {
     match fixture.scenario {
-        Scenario::FileRefresh => refresh_file(fixture).await,
+        Scenario::Refresh(case) => {
+            let keyring = backend_sink_keyring::install(case.accepts_keyring());
+            refresh(fixture, case, &keyring).await
+        }
         Scenario::EphemeralDirectLogout => ephemeral_direct_logout(fixture),
         Scenario::EphemeralFreshProbe => ephemeral_fresh_probe(fixture),
         Scenario::PersistentManagerLogout => persistent_manager_logout(fixture).await,
@@ -36,7 +45,11 @@ pub(super) async fn exercise(fixture: &Fixture) -> Result<()> {
     }
 }
 
-async fn refresh_file(fixture: &Fixture) -> Result<()> {
+async fn refresh(
+    fixture: &Fixture,
+    case: BackendCase,
+    keyring: &Arc<Mutex<MemoryStore>>,
+) -> Result<()> {
     let home = fixture.root.join("mutable");
     let selected = fixture.root.join("auth");
     let decoy = auth_document("covenant-decoy");
@@ -49,43 +62,45 @@ async fn refresh_file(fixture: &Fixture) -> Result<()> {
         .context("initial refresh token missing")?
         .refresh_token
         .clone();
-    let authority = HttpFixture::start(vec![Step::json(
-        "POST",
-        "/oauth/token",
-        /*status*/ 200,
-        token_body(&next)?,
-        Some(refresh_token),
-    )?])?;
-    // SAFETY: this isolated child uses a current-thread runtime. Its fixture
-    // server does not inspect or modify the process environment.
-    unsafe {
-        std::env::set_var(
-            codex_login::REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR,
-            format!("{}/oauth/token", authority.url()),
-        );
-    }
-    save_auth(
-        &home,
-        &initial,
-        AuthCredentialsStoreMode::File,
-        AuthKeyringBackendKind::Direct,
+    let authority = HttpFixture::start(
+        vec![Step::json(
+            "POST",
+            "/oauth/token",
+            /*status*/ 200,
+            token_body(&next)?,
+            Some(refresh_token),
+        )?],
+        |url| {
+            // SAFETY: the isolated child uses a current-thread runtime, and
+            // the HTTP fixture has bound its listener but starts no thread
+            // until this callback returns.
+            unsafe {
+                std::env::set_var(
+                    codex_login::REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR,
+                    format!("{url}/oauth/token"),
+                );
+            }
+            Ok(())
+        },
     )?;
-    let path = selected.join("auth.json");
-    let mut retained_reader = fs::File::open(&path)?;
-    let prior = fs::read(&path)?;
+    save_auth(&home, &initial, case.mode(), case.keyring_kind())?;
+    let retained = if case.allows_auth_file() {
+        let path = selected.join("auth.json");
+        Some((fs::File::open(&path)?, fs::read(path)?))
+    } else {
+        None
+    };
     let started_at = rotation_support::unix_seconds()?;
-    let manager = manager(&home, AuthCredentialsStoreMode::File).await;
-    manager.refresh_token_from_authority().await?;
-    authority.finish()?;
+    let manager = manager(&home, case.mode(), case.keyring_kind()).await;
+    let refresh_result = manager.refresh_token_from_authority().await;
+    let authority_result = authority.finish();
+    authority_result.context("refresh authority fixture failed")?;
+    refresh_result?;
 
     let mut expected = initial;
     expected.tokens = next.tokens;
-    let loaded = load_auth_dot_json(
-        &home,
-        AuthCredentialsStoreMode::File,
-        AuthKeyringBackendKind::Direct,
-    )?
-    .context("refreshed document missing")?;
+    let loaded = load_auth_dot_json(&home, case.mode(), case.keyring_kind())?
+        .context("refreshed document missing")?;
     ensure!(
         rotation_support::whole_document_matches(&loaded, &expected, started_at),
         "refreshed whole document mismatch"
@@ -96,13 +111,35 @@ async fn refresh_file(fixture: &Fixture) -> Result<()> {
         .clone()
         .context("expected refreshed tokens missing")?;
     assert_eq!(cached.get_token_data()?, expected_tokens);
+    assert_eq!(
+        selected.join("auth.json").is_file(),
+        case.allows_auth_file()
+    );
     ensure!(
         !home.join("auth.json").exists(),
         "refresh wrote mutable home"
     );
-    let mut retained_bytes = Vec::new();
-    retained_reader.read_to_end(&mut retained_bytes)?;
-    assert_eq!(retained_bytes, prior);
+    let alternate_caller = fixture.root.join("alternate-caller");
+    fs::create_dir(&alternate_caller)?;
+    let routed = load_auth_dot_json(&alternate_caller, case.mode(), case.keyring_kind())?;
+    assert_eq!(routed, Some(loaded));
+    ensure!(
+        !alternate_caller.join("auth.json").exists(),
+        "refresh wrote alternate caller home"
+    );
+    if let Some((mut reader, prior)) = retained {
+        let mut retained_bytes = Vec::new();
+        reader.read_to_end(&mut retained_bytes)?;
+        assert_eq!(retained_bytes, prior);
+    }
+    let operation_count = keyring
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+        .operation_count();
+    ensure!(
+        operation_count > 0 || matches!(case, BackendCase::File),
+        "keyring route was not exercised"
+    );
     Ok(())
 }
 
@@ -171,7 +208,12 @@ async fn persistent_manager_logout(fixture: &Fixture) -> Result<()> {
         AuthCredentialsStoreMode::Ephemeral,
         AuthKeyringBackendKind::Direct,
     )?;
-    let manager = manager(&home, AuthCredentialsStoreMode::File).await;
+    let manager = manager(
+        &home,
+        AuthCredentialsStoreMode::File,
+        AuthKeyringBackendKind::Direct,
+    )
+    .await;
     ensure!(manager.logout().await?, "manager logout removed nothing");
     ensure!(
         manager.auth().await.is_none(),
@@ -212,7 +254,12 @@ async fn ephemeral_manager_logout(fixture: &Fixture) -> Result<()> {
         AuthCredentialsStoreMode::Ephemeral,
         AuthKeyringBackendKind::Direct,
     )?;
-    let manager = manager(&home, AuthCredentialsStoreMode::Ephemeral).await;
+    let manager = manager(
+        &home,
+        AuthCredentialsStoreMode::Ephemeral,
+        AuthKeyringBackendKind::Direct,
+    )
+    .await;
     ensure!(manager.logout().await?, "ephemeral manager removed nothing");
     assert_eq!(
         load_auth_dot_json(
@@ -233,14 +280,18 @@ async fn ephemeral_manager_logout(fixture: &Fixture) -> Result<()> {
     Ok(())
 }
 
-async fn manager(home: &Path, mode: AuthCredentialsStoreMode) -> std::sync::Arc<AuthManager> {
+async fn manager(
+    home: &Path,
+    mode: AuthCredentialsStoreMode,
+    keyring_kind: AuthKeyringBackendKind,
+) -> std::sync::Arc<AuthManager> {
     AuthManager::shared(
         home.to_path_buf(),
         /*enable_codex_api_key_env*/ false,
         mode,
         /*forced_chatgpt_workspace_id*/ None,
         /*chatgpt_base_url*/ None,
-        AuthKeyringBackendKind::Direct,
+        keyring_kind,
         codex_login::test_support::transport_default_auth_route_config(),
     )
     .await
