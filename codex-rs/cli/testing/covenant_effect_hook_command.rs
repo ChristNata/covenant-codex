@@ -5,7 +5,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-const SCRIPT: &str = r#"param([string]$Marker, [string]$Nonce, [string]$ExpectedCwd, [string]$ExpectedModel)
+pub(super) const SCRIPT: &str = r#"param([string]$Marker, [string]$Nonce, [string]$ExpectedCwd, [string]$ExpectedModel)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 function Refuse-HookInput {

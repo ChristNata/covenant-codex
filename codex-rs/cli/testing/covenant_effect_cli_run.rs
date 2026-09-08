@@ -5,8 +5,10 @@ use super::child::OwnedChild;
 use super::cli_fixture::API_KEY;
 use super::cli_fixture::DeclarationBytes;
 use super::cli_fixture::Fixture;
+use super::cli_fixture::HookAttemptObservation;
 use super::cli_fixture::MARKER;
 use super::cli_fixture::PROMPT;
+use super::cli_fixture::RunLabel;
 use super::cli_fixture::RunObservation;
 use super::peer::HttpPeer;
 use super::peer::PeerProtocol;
@@ -15,6 +17,7 @@ use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::ensure;
 use serde::Serialize;
+use std::collections::BTreeMap;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
@@ -63,10 +66,19 @@ struct Archive<'a> {
     effects: &'a [String],
     model: ArchivedModel<'a>,
     mcp: Option<()>,
+    hook_attempts: &'a HookAttemptObservation,
 }
 
 impl Fixture {
-    pub(super) async fn run(&self) -> Result<RunObservation> {
+    pub(super) async fn run(&self, label: RunLabel) -> Result<RunObservation> {
+        let script_before = read_bounded(self.hook_script_path(), /*limit*/ 32 * 1024)?;
+        let attempts_before = read_attempts(self.hook_attempt_directory())?;
+        let (phase, name) = match label {
+            RunLabel::First => ("first", ReceiptName::OrdinaryHookFirst),
+            RunLabel::ExistingMarker => {
+                ("existing-marker", ReceiptName::OrdinaryHookExistingMarker)
+            }
+        };
         let before = DeclarationBytes {
             config: read_bounded(&self.root.join("home/config.toml"), /*limit*/ 65_536)?,
             hooks: Some(read_bounded(
@@ -196,8 +208,12 @@ impl Fixture {
             .collect::<Result<Vec<_>>>()?;
         ensure!(effects.len() <= 3, "owned effect entry cap exceeded");
         effects.sort();
-        let phase = "first";
-        let name = ReceiptName::OrdinaryHookFirst;
+        let hook_attempts = HookAttemptObservation {
+            script_before,
+            script_after: read_bounded(self.hook_script_path(), /*limit*/ 32 * 1024)?,
+            before: attempts_before,
+            after: read_attempts(self.hook_attempt_directory())?,
+        };
         let requests = model
             .requests
             .iter()
@@ -209,7 +225,7 @@ impl Fixture {
             })
             .collect::<Vec<_>>();
         let archive = Archive {
-            format: "covenant-effects-observation-v1",
+            format: "covenant-effects-hook-observation-v2",
             case: "ordinary_hook_effect_is_observed",
             mode: "ordinary",
             phase,
@@ -233,6 +249,7 @@ impl Fixture {
                 },
             },
             mcp: None,
+            hook_attempts: &hook_attempts,
         };
         let receipt = self.receipts.write_new(name, &archive)?;
         Ok(RunObservation {
@@ -248,17 +265,18 @@ impl Fixture {
             mcp_url: None,
             marker,
             effects,
+            hook_attempts,
             receipt,
         })
     }
 }
 
 fn read_bounded(path: &Path, limit: usize) -> std::io::Result<Vec<u8>> {
-    let mut file = File::open(path)?;
-    let metadata = file.metadata()?;
-    if !metadata.is_file() || metadata.len() > limit as u64 {
+    let metadata = fs::symlink_metadata(path)?;
+    if !metadata.file_type().is_file() || metadata.len() > limit as u64 {
         return Err(std::io::Error::other("owned file cap/type refused"));
     }
+    let mut file = File::open(path)?;
     let mut bytes = vec![0; limit + 1];
     let mut filled = 0;
     loop {
@@ -278,4 +296,44 @@ fn read_bounded(path: &Path, limit: usize) -> std::io::Result<Vec<u8>> {
     drop(file);
     bytes.truncate(filled);
     Ok(bytes)
+}
+
+fn is_attempt_name(name: &str) -> bool {
+    let bytes = name.as_bytes();
+    bytes.len() == 45
+        && bytes.starts_with(b"attempt-")
+        && bytes.ends_with(b".json")
+        && bytes[8..40]
+            .iter()
+            .copied()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn read_attempts(directory: &Path) -> Result<BTreeMap<String, Vec<u8>>> {
+    ensure!(
+        fs::symlink_metadata(directory)?.file_type().is_dir(),
+        "owned attempt directory type refused"
+    );
+    let entries = fs::read_dir(directory)?
+        .take(/*n*/ 3)
+        .collect::<std::io::Result<Vec<_>>>()?;
+    ensure!(entries.len() <= 2, "owned attempt entry cap exceeded");
+    let mut attempts = BTreeMap::new();
+    for entry in entries {
+        let name = entry
+            .file_name()
+            .into_string()
+            .map_err(|_| anyhow!("attempt name encoding refused"))?;
+        ensure!(
+            is_attempt_name(&name) && entry.file_type()?.is_file(),
+            "attempt name/type refused"
+        );
+        ensure!(
+            attempts
+                .insert(name, read_bounded(&entry.path(), /*limit*/ 16 * 1024)?)
+                .is_none(),
+            "duplicate attempt name refused"
+        );
+    }
+    Ok(attempts)
 }

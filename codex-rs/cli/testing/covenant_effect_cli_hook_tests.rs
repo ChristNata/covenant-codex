@@ -2,8 +2,10 @@
 use super::HttpRequest;
 use super::cli_fixture::API_KEY;
 use super::cli_fixture::Fixture;
+use super::cli_fixture::HookAttemptObservation;
 use super::cli_fixture::MARKER;
 use super::cli_fixture::PROMPT;
+use super::cli_fixture::RunLabel;
 use anyhow::Result;
 use anyhow::anyhow;
 use pretty_assertions::assert_eq;
@@ -17,6 +19,9 @@ use std::time::Duration;
 use std::time::Instant;
 
 use super::parse_marker;
+
+#[path = "covenant_effect_cli_hook_witness_tests.rs"]
+mod witness;
 
 fn dynamic_id<'a>(value: Option<&'a Value>, label: &str) -> Result<&'a str> {
     let value = value
@@ -92,8 +97,20 @@ async fn ordinary_hook_effect_is_observed() -> Result<()> {
     let case = "ordinary_hook_effect_is_observed";
     let mode = "ordinary";
     let phase = "first";
+    let first_witness_before = witness::capture(&fixture)?;
+    witness::assert_initial_state(&fixture, &first_witness_before)?;
     // run returns only after actual child wait and all owned peer cleanup paths.
-    let observed = fixture.run().await?;
+    let observed = fixture.run(RunLabel::First).await?;
+    let first_witness_after = witness::capture(&fixture)?;
+    assert_eq!(
+        observed.hook_attempts,
+        HookAttemptObservation {
+            script_before: first_witness_before.script.clone(),
+            script_after: first_witness_after.script.clone(),
+            before: first_witness_before.attempts.clone(),
+            after: first_witness_after.attempts.clone(),
+        }
+    );
     assert!(
         observed.exit.success(),
         "native failure: {:?}",
@@ -360,6 +377,14 @@ async fn ordinary_hook_effect_is_observed() -> Result<()> {
             "permission_mode":"bypassPermissions","source":"startup"
         }})
     );
+    assert_eq!(first_witness_before.script, first_witness_after.script);
+    assert!(first_witness_before.attempts.is_empty());
+    assert_eq!(first_witness_after.attempts.len(), 1);
+    let first_attempt = first_witness_after
+        .attempts
+        .first_key_value()
+        .ok_or_else(|| anyhow!("first hook attempt missing"))?;
+    assert_eq!(first_attempt.1.as_slice(), marker_bytes);
     let request_value = |request: &HttpRequest| {
         json!({
             "method":request.method, "target":request.target,
@@ -391,16 +416,25 @@ async fn ordinary_hook_effect_is_observed() -> Result<()> {
     assert_eq!(
         archived,
         json!({
-            "format":"covenant-effects-observation-v1", "case":case,
+            "format":"covenant-effects-hook-observation-v2", "case":case,
             "mode":mode, "phase":phase,
             "binary":observed.binary.to_str().ok_or_else(|| anyhow!("binary encoding refused"))?,
             "exit_code":observed.exit.code(), "stdout":observed.stdout, "stderr":observed.stderr,
             "before":{"config":observed.before.config,"hooks":observed.before.hooks},
             "after":{"config":observed.after.config,"hooks":observed.after.hooks},
             "marker":observed.marker,"effects":observed.effects,
-            "model":model_value,"mcp":mcp_value
+            "model":model_value,"mcp":mcp_value,
+            "hook_attempts":&observed.hook_attempts
         })
     );
+    witness::assert_existing_marker_session(
+        &fixture,
+        &observed,
+        thread_id,
+        marker_bytes,
+        &first_witness_after,
+    )
+    .await?;
     assert!(case_started.elapsed() <= Duration::from_secs(/*secs*/ 70));
     Ok(())
 }
