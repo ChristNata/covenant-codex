@@ -2147,3 +2147,17 @@ Portable validation passed five M cases and all 50 checkpoint-B regression cases
 From base `8b521adfad97e821dc1941a56b6bff21bbede889`, the exact constrained case passed as nextest run `267b51e2-9a8a-4666-9588-3bf0437a1be5`. Receipt SHA-256 `5cc8b29c3e93c185459d741e6db9b398a7bfec878263d926c6825579ed9fca51` binds successful canonical SC5 completion, the exact constrained two-tool catalog, unchanged valid combined declarations, zero MCP accepts/requests with clean settlement, and zero hook attempts, marker or effects. The exercised executable SHA-256 is `b16be2d1b9c4c20504e2f0a100d6b67348f8bfad4c9c0f2e47d204d4a4fb1d91`.
 
 Portable validation passed checkpoint B 50/50, M 5/5 and C 4/4. Review tightened attempt-name parsing to lowercase hexadecimal; the corrected native case passed before scoped `just fix -p codex-cli` and required `just fmt`, with no tests rerun afterward. Formatted scope is 733 changed lines under reviewed size amendment SHA-256 `d36ad66235e0fae629a9bc78d5fb98330e4728a15680ad561b1bb7acec45f07b`. This is local selected-Cargo supporting evidence; F21 acceptance remains pending exact binding and execution of the F02-produced executable and any required Bazel/product gate.
+
+### F21 local evidence reconciliation - acceptance pending
+
+Matrix `.git/covenant-session/f21-local-reconciliation-001/matrix.json`, SHA-256 `2fb5c82948b6c8d0cb9e2ba1921ba980ffe876129b7e67a5bb7c158910bfdf10`, binds the master criteria to the accepted source checkpoints and the H/M/C commit trees. H is `a039d7161d76ec20d0f6080faebd2b2e91ed87ec`, M is `8b521adfad97e821dc1941a56b6bff21bbede889`, and C is `d32d70e40cbd84a3c1c7f14425499e63e646f0d1`.
+
+| Criterion | Local evidence disposition | Phase disposition |
+| --- | --- | --- |
+| SC1 | Parser and startup closure are reviewed locally. | Pending same-file identity and execution of the F02-produced executable. |
+| SC2 | Managed clamps and the actual constrained request expose exactly `exec_command` and custom `apply_patch`. | Complete local supporting evidence. |
+| SC3 | Feature, config, role, metadata, MCP projection, catalog, provider, factory and startup checkpoints cover the reviewed override channels. | Complete local supporting evidence. |
+| SC4 | The settled canonical request receipt deep-compares the complete two-tool specification. | Complete local supporting evidence. |
+| SC5 | Ordinary hook/MCP positive controls and constrained successful-turn absence are instrumented and settled. | Pending same-file identity and execution of the F02-produced executable. |
+
+The reconciliation preserved the parallel F14 changes and user-owned untracked groups, left the index clean before documentation, and found no current Cargo or MODULE lock drift. The selected Cargo executable cannot substitute for the F02-produced file, and the prior external-serde Bazel failure leaves product integration open. Local F21 evidence reconciliation is complete for the reviewed source and selected Windows Cargo observations, including instrumented hook/MCP controls and absence; F21 acceptance remains pending exact binding and execution of the F02-produced executable for master SC1 and SC5.

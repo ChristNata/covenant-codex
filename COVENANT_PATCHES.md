@@ -15,7 +15,7 @@ the baseline; the ledger owns stage evidence and checkpoint identities.
 | F12 | Standalone launch/env/envelope/reply/command-line components | Native image/Job/process ownership, final backend gates and real G4 |
 | F13 | Design and proposed patch seam | Qualified guarded mutation and add/update/delete/move race coverage |
 | F14 | Auth-home routing, refresh ownership and file replacement | Complete route/sink review and harness-home acceptance |
-| F21 | Feature/config/role/metadata/MCP projection stages and catalog data | Remaining lifecycle clamps, provider/catalog/CLI and product integration |
+| F21 | Feature/config/role/metadata/MCP projection, catalog/provider/CLI/startup and local H/M/C effect evidence | Acceptance pending exact F02 executable binding for SC1/SC5 and the product/Bazel gate |
 | F22 | Planned certificate contract | Actual inventory command, effective-state evidence and mismatch refusal |
 
 ## F11 — tool identity admission
@@ -103,11 +103,13 @@ Reviewed owners under [core/config](codex-rs/core/src/config/mod.rs) include
 role/MCP tests. The four [model-catalog.json](covenant/model-catalog.json) records
 are reviewed data; extraction alone does not prove catalog immutability.
 
-Remaining work covers provider/catalog construction and reload closure,
-startup/session/connection effects, effective specs and the constrained CLI/
-release graph. Active CLI/catalog changes are not promoted by this document.
-Final Cargo/lock/Bazel integration must preserve approved external pins; the
-temporary verification worktree is not the shipping graph.
+Local evidence now covers the reviewed provider/catalog construction, startup
+closure, effective two-tool specification and constrained CLI, plus ordinary
+hook/MCP positive controls and constrained effect absence after a successful
+turn. Master criteria SC2-SC4 have complete local supporting evidence. SC1 and
+SC5 remain pending exact identity binding and execution of the F02-produced
+executable. The prior external-serde Bazel failure also leaves the product gate
+open; no unrelated upstream repair is included.
 
 The final reviewed CLI contract defines exec, native login and inventory access.
 The published artifact must exclude public TUI/server/MCP/plugin/Code Mode,
