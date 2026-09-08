@@ -35,6 +35,8 @@ mod auto_persistence_tests;
 mod cancellation_support;
 #[path = "covenant_auth/cancellation_tests.rs"]
 mod cancellation_tests;
+#[path = "covenant_auth/home_selection_tests.rs"]
+mod home_selection_tests;
 #[path = "covenant_auth/persistence_support.rs"]
 mod persistence_support;
 #[path = "covenant_auth/persistence_tests.rs"]
