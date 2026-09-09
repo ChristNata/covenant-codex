@@ -2281,3 +2281,12 @@ formatter changes were restored and tests were not rerun afterward. Evidence is
 `.git/covenant-session/f14-wave1-sink-001/evidence.json`. Mutation/owner-loss,
 deterministic file faults, source anchors, product/Bazel and external Harness
 acceptance remain pending.
+
+### F14 W1.3a-2a cached-failure recovery - reached defects fixed
+
+Cases 04-06 produced reviewed behavioral REDs in runs `5216d137-2350-4dc7-9acd-a545e92f1ad1` and `65911754-b9c1-4e8e-b0ea-562d970af81f`.
+The reached native refresh/cache corrections passed runs `3355bf49-b404-488c-8ea8-654f6e65b200` and `ca3d3235-8936-444a-b876-1df637b0b1a8`.
+Final isolated run `d7f447c1-75fc-4b9b-8452-c57d10ac7127` passed all six mutation cases with 31 skipped.
+Before finalization, the tested checkpoint measured 520 additions plus 83 deletions, 603 changed lines; after required fix/fmt, the final checkpoint measures 518 additions plus 88 deletions, 606 changed lines. Independent review returned PASS, and tests were not rerun after fix/fmt per AGENTS.md.
+Evidence is `.git/covenant-session/f14-wave1-w13a2a-001/evidence.json`.
+Cases 07-08, owner loss, combined Wave 1, Wave 2, native/product/inventory/re-audit/release and external Harness gates remain pending.

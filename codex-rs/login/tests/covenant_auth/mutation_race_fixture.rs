@@ -8,6 +8,8 @@ use codex_login::AuthKeyringBackendKind;
 use codex_login::AuthManager;
 use codex_login::RefreshTokenError;
 use codex_login::load_auth_dot_json;
+use codex_login::login_with_api_key;
+use codex_login::save_auth;
 use codex_login::test_support::transport_default_auth_route_config;
 use serde::Deserialize;
 use serde::Serialize;
@@ -31,6 +33,8 @@ pub(super) const MAX_CHILD_INPUT_BYTES: usize = 16 * 1024;
 pub(super) enum Outcome {
     Success,
     Busy,
+    Transient,
+    Permanent,
     Error,
 }
 
@@ -45,6 +49,20 @@ impl Report {
     pub(super) fn passed(&self, outcome: Outcome) -> bool {
         self.outcome == outcome && self.whole_document && self.token_or_api_key_cache
     }
+
+    pub(super) fn failed() -> Self {
+        Self {
+            outcome: Outcome::Error,
+            whole_document: false,
+            token_or_api_key_cache: false,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Deserialize, Serialize)]
+pub(super) enum FailureKind {
+    Transient,
+    Permanent,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -65,6 +83,15 @@ pub(super) enum Operation {
         expected_base: AuthDotJson,
         prior: Box<AuthDotJson>,
     },
+    FailureRecovery {
+        kind: FailureKind,
+        prior: Box<AuthDotJson>,
+        recovery: Box<AuthDotJson>,
+    },
+    CachedGenerationRecovery {
+        prior: Box<AuthDotJson>,
+        successor: Box<AuthDotJson>,
+    },
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -79,6 +106,7 @@ pub(super) struct Fixture {
 pub(super) enum Event {
     Ready,
     Entered,
+    Phase(Report),
     Done(Report),
     OutputLimitExceeded,
     Closed,
@@ -228,6 +256,77 @@ pub(super) fn emit(event: Event) -> Result<()> {
 pub(super) fn classify_refresh(result: &Result<(), RefreshTokenError>) -> Outcome {
     match result {
         Ok(()) => Outcome::Success,
-        Err(_) => Outcome::Error,
+        Err(RefreshTokenError::Transient(_)) => Outcome::Transient,
+        Err(RefreshTokenError::Permanent(_)) => Outcome::Permanent,
     }
+}
+
+pub(super) fn state_report(
+    outcome: Outcome,
+    root: &Path,
+    manager: &AuthManager,
+    expected: &AuthDotJson,
+) -> Result<Report> {
+    let bytes = match outcome {
+        Outcome::Success => serde_json::to_vec_pretty(expected)?,
+        Outcome::Busy | Outcome::Transient | Outcome::Permanent => serde_json::to_vec(expected)?,
+        Outcome::Error => return Ok(Report::failed()),
+    };
+    Ok(Report {
+        outcome,
+        whole_document: stored_bytes(root).is_ok_and(|stored| stored == bytes),
+        token_or_api_key_cache: cache_token_or_key_matches(manager, expected),
+    })
+}
+
+fn io_report(
+    result: std::io::Result<()>,
+    root: &Path,
+    manager: &AuthManager,
+    runtime: &tokio::runtime::Runtime,
+    prior: &AuthDotJson,
+    expected: &AuthDotJson,
+) -> Result<Report> {
+    let (outcome, expected) = match result {
+        Ok(()) => {
+            runtime.block_on(manager.reload());
+            (Outcome::Success, expected)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => (Outcome::Busy, prior),
+        Err(_) => return Ok(Report::failed()),
+    };
+    state_report(outcome, root, manager, expected)
+}
+
+pub(super) fn save_report(
+    root: &Path,
+    manager: &AuthManager,
+    runtime: &tokio::runtime::Runtime,
+    document: &AuthDotJson,
+    prior: &AuthDotJson,
+) -> Result<Report> {
+    let result = save_auth(
+        &root.join("mutable"),
+        document,
+        AuthCredentialsStoreMode::File,
+        AuthKeyringBackendKind::Direct,
+    );
+    io_report(result, root, manager, runtime, prior, document)
+}
+
+pub(super) fn login_report(
+    root: &Path,
+    manager: &AuthManager,
+    runtime: &tokio::runtime::Runtime,
+    api_key: &str,
+    expected: &AuthDotJson,
+    prior: &AuthDotJson,
+) -> Result<Report> {
+    let result = login_with_api_key(
+        &root.join("mutable"),
+        api_key,
+        AuthCredentialsStoreMode::File,
+        AuthKeyringBackendKind::Direct,
+    );
+    io_report(result, root, manager, runtime, prior, expected)
 }

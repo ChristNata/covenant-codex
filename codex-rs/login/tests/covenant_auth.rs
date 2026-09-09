@@ -59,6 +59,8 @@ mod mutation_race_http;
 mod mutation_race_linearization;
 #[path = "covenant_auth/mutation_race_process.rs"]
 mod mutation_race_process;
+#[path = "covenant_auth/mutation_race_recovery.rs"]
+mod mutation_race_recovery;
 #[path = "covenant_auth/mutation_race_tests.rs"]
 mod mutation_race_tests;
 #[path = "covenant_auth/persistence_support.rs"]

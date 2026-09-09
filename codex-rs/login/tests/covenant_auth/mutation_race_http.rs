@@ -1,5 +1,6 @@
 //! Bounded loopback authority for mutation-race tests.
 
+use super::mutation_race_fixture::FailureKind;
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::ensure;
@@ -16,6 +17,7 @@ use std::sync::MutexGuard;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use std::time::Instant;
 
 #[derive(Clone)]
 pub(super) enum EndpointPlan {
@@ -23,11 +25,23 @@ pub(super) enum EndpointPlan {
         current: String,
         next: Box<AuthDotJson>,
     },
+    RefreshFailure {
+        current: String,
+        kind: FailureKind,
+    },
     AgentIdentity,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) struct EndpointSnapshot {
+    pub(super) requests: u32,
+    pub(super) acknowledged: u32,
+    pub(super) malformed: bool,
 }
 
 #[derive(Default)]
 struct EndpointState {
+    snapshot: EndpointSnapshot,
     released: bool,
     stop: bool,
 }
@@ -47,17 +61,25 @@ impl Endpoint {
         let (sender, accepted) = mpsc::channel();
         let shared = Arc::clone(&state);
         let server = thread::spawn(move || {
-            let count = if matches!(&plan, EndpointPlan::AgentIdentity) {
+            let count = if matches!(
+                &plan,
+                EndpointPlan::RefreshFailure { .. } | EndpointPlan::AgentIdentity
+            ) {
                 2
             } else {
                 1
             };
             for ordinal in 1..=count {
                 let Ok((stream, _)) = listener.accept() else {
+                    mark_malformed(&shared);
                     break;
                 };
                 let stopped = lock_state(&shared).stop;
-                if stopped || serve(stream, &plan, ordinal, hold_first, &shared, &sender).is_err() {
+                if stopped {
+                    break;
+                }
+                if serve(stream, &plan, ordinal, hold_first, &shared, &sender).is_err() {
+                    mark_malformed(&shared);
                     break;
                 }
             }
@@ -91,6 +113,24 @@ impl Endpoint {
     pub(super) fn release(&self) {
         lock_state(&self.state).released = true;
         self.state.1.notify_all();
+    }
+
+    pub(super) fn wait_complete(&self, ordinal: u32) -> Result<EndpointSnapshot> {
+        let deadline = Instant::now() + super::mutation_race_fixture::DEADLINE;
+        let mut state = lock_state(&self.state);
+        loop {
+            if state.snapshot.acknowledged >= ordinal || state.snapshot.malformed {
+                return Ok(state.snapshot);
+            }
+            let now = Instant::now();
+            ensure!(now < deadline, "endpoint completion timed out");
+            let (next, _) = self
+                .state
+                .1
+                .wait_timeout(state, deadline.saturating_duration_since(now))
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            state = next;
+        }
     }
 }
 
@@ -147,7 +187,7 @@ fn serve(
     sender: &mpsc::Sender<u32>,
 ) -> Result<()> {
     let (route, body) = read_request(&stream)?;
-    let response = match plan {
+    let (status, response) = match plan {
         EndpointPlan::RefreshSuccess { current, next } => {
             ensure!(
                 ordinal == 1 && route == "/oauth/token",
@@ -162,24 +202,52 @@ fn serve(
                 "unexpected refresh request"
             );
             let tokens = next.tokens.as_ref().context("missing fixture tokens")?;
-            serde_json::json!({"id_token": tokens.id_token.raw_jwt,
-                "access_token": tokens.access_token, "refresh_token": tokens.refresh_token})
+            (
+                "200 OK",
+                serde_json::json!({"id_token": tokens.id_token.raw_jwt,
+                    "access_token": tokens.access_token, "refresh_token": tokens.refresh_token}),
+            )
+        }
+        EndpointPlan::RefreshFailure { current, kind } => {
+            ensure!(route == "/oauth/token", "unexpected refresh route");
+            ensure!(
+                body.get("refresh_token")
+                    .and_then(serde_json::Value::as_str)
+                    == Some(current.as_str())
+                    && body.get("grant_type").and_then(serde_json::Value::as_str)
+                        == Some("refresh_token"),
+                "unexpected refresh request"
+            );
+            match kind {
+                FailureKind::Transient => (
+                    "503 Service Unavailable",
+                    serde_json::json!({"error": {"code": "temporarily_unavailable"}}),
+                ),
+                FailureKind::Permanent => (
+                    "401 Unauthorized",
+                    serde_json::json!({"error": {"code": "refresh_token_reused"}}),
+                ),
+            }
         }
         EndpointPlan::AgentIdentity => {
             if ordinal == 1 {
                 ensure!(route == "/v1/agent/register", "unexpected agent route");
-                serde_json::json!({"agent_runtime_id": "covenant-agent-runtime"})
+                (
+                    "200 OK",
+                    serde_json::json!({"agent_runtime_id": "covenant-agent-runtime"}),
+                )
             } else {
                 ensure!(
                     route == "/v1/agent/covenant-agent-runtime/task/register",
                     "unexpected agent task route"
                 );
-                serde_json::json!({"task_id": "covenant-task"})
+                ("200 OK", serde_json::json!({"task_id": "covenant-task"}))
             }
         }
     };
     {
         let mut state = lock_state(shared);
+        state.snapshot.requests += 1;
         sender.send(ordinal)?;
         while hold_first && ordinal == 1 && !state.released && !state.stop {
             let (next, timeout) = shared
@@ -195,12 +263,19 @@ fn serve(
     stream.set_write_timeout(Some(Duration::from_secs(/*secs*/ 10)))?;
     write!(
         stream,
-        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
         bytes.len()
     )?;
     stream.write_all(&bytes)?;
     stream.flush()?;
+    lock_state(shared).snapshot.acknowledged += 1;
+    shared.1.notify_all();
     Ok(())
+}
+
+fn mark_malformed(shared: &(Mutex<EndpointState>, Condvar)) {
+    lock_state(shared).snapshot.malformed = true;
+    shared.1.notify_all();
 }
 
 fn lock_state(shared: &(Mutex<EndpointState>, Condvar)) -> MutexGuard<'_, EndpointState> {

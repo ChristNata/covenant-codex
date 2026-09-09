@@ -158,9 +158,24 @@ impl Process {
     pub(super) fn wait_done(&self) -> Result<fixture::Report> {
         match self.wait_for(|event| matches!(event, Event::Done(_)))? {
             Event::Done(report) => Ok(report),
-            Event::Ready | Event::Entered | Event::OutputLimitExceeded | Event::Closed => {
+            Event::Ready
+            | Event::Entered
+            | Event::Phase(_)
+            | Event::OutputLimitExceeded
+            | Event::Closed => {
                 unreachable!()
             }
+        }
+    }
+
+    pub(super) fn wait_phase(&self) -> Result<fixture::Report> {
+        match self.wait_for(|event| matches!(event, Event::Phase(_)))? {
+            Event::Phase(report) => Ok(report),
+            Event::Ready
+            | Event::Entered
+            | Event::Done(_)
+            | Event::OutputLimitExceeded
+            | Event::Closed => unreachable!(),
         }
     }
 
@@ -177,7 +192,7 @@ impl Process {
                     anyhow::bail!("bounded child stdout limit exceeded")
                 }
                 Ok(Event::Closed) => stdout_closed = true,
-                Ok(Event::Ready | Event::Entered | Event::Done(_)) => {
+                Ok(Event::Ready | Event::Entered | Event::Phase(_) | Event::Done(_)) => {
                     anyhow::bail!("unexpected terminal child event")
                 }
                 Err(mpsc::TryRecvError::Disconnected) if !stdout_closed => {

@@ -16,6 +16,7 @@ pub(super) async fn refresh_native_auth(
     transaction: AuthTransaction,
     expected: TokenData,
     client: HttpClient,
+    cached_failure: Option<RefreshTokenFailedError>,
 ) -> Result<(), RefreshTokenError> {
     let unavailable = || {
         RefreshTokenError::Permanent(RefreshTokenFailedError::new(
@@ -41,6 +42,9 @@ pub(super) async fn refresh_native_auth(
         // Another owner already committed this account's newer generation.
         // The manager reloads its cache after this guard is released.
         return Ok(());
+    }
+    if let Some(error) = cached_failure {
+        return Err(RefreshTokenError::Permanent(error));
     }
 
     // Transfer ownership before polling HTTP: once the authority consumes the

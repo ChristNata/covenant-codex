@@ -2826,14 +2826,24 @@ impl AuthManager {
         tracing::info!("Refreshing token");
 
         let attempted_auth = self.auth_cached();
-        if let Some(error) = attempted_auth
+        let cached_failure = attempted_auth
             .as_ref()
-            .and_then(|auth| self.refresh_failure_for_auth(auth))
-        {
-            return Err(RefreshTokenError::Permanent(error));
+            .and_then(|auth| self.refresh_failure_for_auth(auth));
+        let has_external_auth = self.has_external_auth();
+        #[cfg(windows)]
+        let native_auth = !has_external_auth
+            && matches!(
+                attempted_auth.as_ref(),
+                Some(CodexAuth::Chatgpt(auth))
+                    if auth.storage().covenant_transaction().is_some()
+            );
+        #[cfg(not(windows))]
+        let native_auth = false;
+        if !native_auth && let Some(error) = cached_failure.as_ref() {
+            return Err(RefreshTokenError::Permanent(error.clone()));
         }
 
-        let result = if self.has_external_auth() {
+        let result = if has_external_auth {
             self.refresh_external_auth(ExternalAuthRefreshReason::Unauthorized)
                 .await
         } else {
@@ -2844,7 +2854,7 @@ impl AuthManager {
                             "Token data is not available.",
                         ))
                     })?;
-                    self.refresh_and_persist_chatgpt_token(chatgpt_auth, token_data)
+                    self.refresh_and_persist_chatgpt_token(chatgpt_auth, token_data, cached_failure)
                         .await
                 }
                 Some(
@@ -3021,6 +3031,7 @@ impl AuthManager {
         &self,
         auth: &ChatgptAuth,
         token_data: TokenData,
+        cached_failure: Option<RefreshTokenFailedError>,
     ) -> Result<(), RefreshTokenError> {
         #[cfg(windows)]
         if let Some(transaction) = auth.storage().covenant_transaction() {
@@ -3028,11 +3039,13 @@ impl AuthManager {
                 transaction,
                 token_data,
                 auth.client().clone(),
+                cached_failure,
             )
             .await?;
             self.reload().await;
             return Ok(());
         }
+        debug_assert!(cached_failure.is_none());
         let refresh_response =
             request_chatgpt_token_refresh(token_data.refresh_token, auth.client()).await?;
 

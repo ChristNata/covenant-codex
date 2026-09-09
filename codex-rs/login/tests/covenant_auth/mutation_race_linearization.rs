@@ -7,10 +7,6 @@ use super::mutation_race_process::Process;
 use super::mutation_race_process::run_writer;
 use anyhow::Result;
 use anyhow::ensure;
-use codex_login::AuthCredentialsStoreMode;
-use codex_login::AuthKeyringBackendKind;
-use codex_login::login_with_api_key;
-use codex_login::save_auth;
 use codex_protocol::protocol::SessionSource;
 use fixture::Event;
 use fixture::Operation;
@@ -196,7 +192,7 @@ fn run_child() -> Result<()> {
                 expected.last_refresh = Some(last_refresh);
             }
             runtime.block_on(manager.reload());
-            state_report(
+            fixture::state_report(
                 super::mutation_race_fixture::classify_refresh(&result),
                 &fixture.root,
                 &manager,
@@ -204,27 +200,20 @@ fn run_child() -> Result<()> {
             )?
         }
         Operation::Save { document, prior } => {
-            let result = save_auth(
-                &fixture.root.join("mutable"),
-                &document,
-                AuthCredentialsStoreMode::File,
-                AuthKeyringBackendKind::Direct,
-            );
-            io_report(result, &fixture.root, &manager, &runtime, &prior, &document)?
+            fixture::save_report(&fixture.root, &manager, &runtime, &document, &prior)?
         }
         Operation::Login {
             api_key,
             expected,
             prior,
-        } => {
-            let result = login_with_api_key(
-                &fixture.root.join("mutable"),
-                &api_key,
-                AuthCredentialsStoreMode::File,
-                AuthKeyringBackendKind::Direct,
-            );
-            io_report(result, &fixture.root, &manager, &runtime, &prior, &expected)?
-        }
+        } => fixture::login_report(
+            &fixture.root,
+            &manager,
+            &runtime,
+            &api_key,
+            &expected,
+            &prior,
+        )?,
         Operation::AgentMetadata {
             mut expected_base,
             prior,
@@ -238,61 +227,22 @@ fn run_child() -> Result<()> {
                     expected_base.agent_identity = Some(
                         codex_login::auth::AgentIdentityStorage::Record(agent.record().clone()),
                     );
-                    state_report(Outcome::Success, &fixture.root, &manager, &expected_base)?
+                    fixture::state_report(
+                        Outcome::Success,
+                        &fixture.root,
+                        &manager,
+                        &expected_base,
+                    )?
                 }
                 Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
-                    state_report(Outcome::Busy, &fixture.root, &manager, &prior)?
+                    fixture::state_report(Outcome::Busy, &fixture.root, &manager, &prior)?
                 }
-                Ok(None) | Err(_) => failed_report(),
+                Ok(None) | Err(_) => fixture::Report::failed(),
             }
+        }
+        Operation::FailureRecovery { .. } | Operation::CachedGenerationRecovery { .. } => {
+            anyhow::bail!("recovery operation reached linearization child")
         }
     };
     fixture::emit(Event::Done(report))
-}
-
-fn io_report(
-    result: std::io::Result<()>,
-    root: &std::path::Path,
-    manager: &codex_login::AuthManager,
-    runtime: &tokio::runtime::Runtime,
-    prior: &codex_login::AuthDotJson,
-    expected: &codex_login::AuthDotJson,
-) -> Result<fixture::Report> {
-    let (outcome, expected) = match result {
-        Ok(()) => {
-            runtime.block_on(manager.reload());
-            (Outcome::Success, expected)
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => (Outcome::Busy, prior),
-        Err(_) => return Ok(failed_report()),
-    };
-    state_report(outcome, root, manager, expected)
-}
-
-fn state_report(
-    outcome: Outcome,
-    root: &std::path::Path,
-    manager: &codex_login::AuthManager,
-    expected: &codex_login::AuthDotJson,
-) -> Result<fixture::Report> {
-    let bytes = match outcome {
-        Outcome::Success => serde_json::to_vec_pretty(expected)?,
-        Outcome::Busy => serde_json::to_vec(expected)?,
-        Outcome::Error => return Ok(failed_report()),
-    };
-    Ok(fixture::Report {
-        outcome,
-        whole_document: fixture::stored_bytes(root)? == bytes,
-        token_or_api_key_cache: super::mutation_race_fixture::cache_token_or_key_matches(
-            manager, expected,
-        ),
-    })
-}
-
-fn failed_report() -> fixture::Report {
-    fixture::Report {
-        outcome: Outcome::Error,
-        whole_document: false,
-        token_or_api_key_cache: false,
-    }
 }
