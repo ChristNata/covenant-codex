@@ -2306,3 +2306,13 @@ After the reviewed fixture corrections, pre-final runs `f9dcb0ea-02dd-46da-8388-
 Final ordering-fix runs `a238b03c-ae22-43a8-91cb-13738004b2c1`, `7882cec1-4622-446e-b44b-ba1ba1d2930a`, and `3e7653c1-13ae-4200-88f1-95d3aa8953f4` passed 3/3, 11/11, and 21/21; final review returned PASS.
 The cases classified as existing PASS, so no product code changed. The tested pre-finalization scope was 398 additions plus 25 deletions, 423 changed lines; after required fix/fmt the final scope is 393 additions plus 25 deletions, 418 changed lines. Tests were not rerun afterward per AGENTS.md. Evidence is `.git/covenant-session/f14-wave1-w13b-001/evidence.json`.
 Combined Wave 1 close, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.
+
+### F14 Wave 1 R11 cleanup and namespace corrections - existing PASS
+
+R11 checkpoint A replaced the two unbounded child-cleanup fixtures with one bounded owner and passed its cleanup, home-selection, and backend selectors.
+Its exact runs and source bindings are recorded in `.git/covenant-session/f14-wave1-r11-checkpoint-a-final-evidence-20260909.json`.
+
+R11 checkpoint B proved canonical selected-home keyring namespace isolation for Direct and Secrets without a production change.
+Its namespace, 12-case backend, 11-case mutation, and 23-case combined runs all passed; exact bindings are in `.git/covenant-session/f14-wave1-r11-checkpoint-b-final-evidence-20260909.json`.
+Independent logic and scope reviews passed after the reviewed R11B module split.
+These receipts close only Wave 1 review findings 4 and 5; Wave 1 re-review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.

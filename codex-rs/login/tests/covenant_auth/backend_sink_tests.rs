@@ -108,6 +108,13 @@ fn covenant_auth_public_revoke_success_and_failure_both_logout_cleanly() -> Resu
 }
 
 #[test]
+fn covenant_auth_selected_canonical_home_isolates_keyring_namespace() -> Result<()> {
+    super::backend_sink_namespace::run_namespace_test(
+        "backend_sink_tests::covenant_auth_selected_canonical_home_isolates_keyring_namespace",
+    )
+}
+
+#[test]
 fn covenant_auth_backend_timeout_kills_and_reaps_child() -> Result<()> {
     support::run_parked_cleanup_probe(
         "backend_sink_tests::covenant_auth_backend_timeout_kills_and_reaps_child",
