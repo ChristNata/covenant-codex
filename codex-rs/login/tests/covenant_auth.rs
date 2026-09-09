@@ -61,6 +61,10 @@ mod mutation_race_fixture;
 mod mutation_race_http;
 #[path = "covenant_auth/mutation_race_linearization.rs"]
 mod mutation_race_linearization;
+#[path = "covenant_auth/mutation_race_logout.rs"]
+mod mutation_race_logout;
+#[path = "covenant_auth/mutation_race_logout_child.rs"]
+mod mutation_race_logout_child;
 #[path = "covenant_auth/mutation_race_owner_loss.rs"]
 mod mutation_race_owner_loss;
 #[path = "covenant_auth/mutation_race_process.rs"]

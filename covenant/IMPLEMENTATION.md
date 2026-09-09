@@ -2316,3 +2316,11 @@ R11 checkpoint B proved canonical selected-home keyring namespace isolation for 
 Its namespace, 12-case backend, 11-case mutation, and 23-case combined runs all passed; exact bindings are in `.git/covenant-session/f14-wave1-r11-checkpoint-b-final-evidence-20260909.json`.
 Independent logic and scope reviews passed after the reviewed R11B module split.
 These receipts close only Wave 1 review findings 4 and 5; Wave 1 re-review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.
+
+### F14 Wave 1 Cycle B malformed File logout correction - reached defect fixed
+
+Test-first run df31a68a-4de1-4e25-8995-5973eab78839 produced three expected passes and one reviewed InvalidData RED through the two public logout entrypoints.
+The correction removes only selected malformed File auth under the transaction lock; non-InvalidData failures remain preserved, and later concurrent logins remain protected.
+Final-source runs dd01cfbf-eafd-4790-9b3f-b89d01cc90d5, 92a8251c-f9aa-4da5-86e6-104dd1f97050, and 05127631-3c99-4e5b-85e3-72ff3d274f72 passed 4/4 focused, 13/13 mutation, and 25/25 combined fork cases; three independent reviews returned PASS.
+Tests were not rerun after the required fix/format finalization per AGENTS.md. Evidence is .git/covenant-session/f14-wave1-cycle-b-final-evidence-20260909.json.
+Wave 1 re-review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.

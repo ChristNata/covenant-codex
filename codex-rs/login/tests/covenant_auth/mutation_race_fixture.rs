@@ -73,6 +73,23 @@ pub(super) enum PostCompletion {
     Park,
 }
 
+#[derive(Clone, Copy, Deserialize, Serialize)]
+pub(super) enum RevokeEntrypoint {
+    Public,
+    Manager,
+}
+
+#[derive(Clone, Deserialize, Serialize)]
+pub(super) enum LogoutOperation {
+    Malformed {
+        entrypoint: RevokeEntrypoint,
+        decoy: Box<AuthDotJson>,
+    },
+    External {
+        effective: Box<AuthDotJson>,
+    },
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 pub(super) enum Operation {
     Refresh {
@@ -112,6 +129,8 @@ pub(super) struct Fixture {
     pub refresh_endpoint: String,
     pub revoke_endpoint: String,
     pub agent_endpoint: String,
+    #[serde(default)]
+    pub logout_operation: Option<LogoutOperation>,
     #[serde(default)]
     pub post_completion: PostCompletion,
 }
@@ -156,6 +175,7 @@ pub(super) fn fixture(root: &Path, operation: Operation) -> Fixture {
         refresh_endpoint: "http://127.0.0.1:9".to_string(),
         revoke_endpoint: "http://127.0.0.1:9".to_string(),
         agent_endpoint: "http://127.0.0.1:9".to_string(),
+        logout_operation: None,
         post_completion: PostCompletion::Exit,
     }
 }

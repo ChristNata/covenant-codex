@@ -2,6 +2,7 @@
 
 use super::mutation_race_fixture::FailureKind;
 use super::mutation_race_linearization as linearization;
+use super::mutation_race_logout as logout;
 use super::mutation_race_owner_loss as owner_loss;
 use super::mutation_race_recovery as recovery;
 use anyhow::Result;
@@ -63,6 +64,21 @@ fn covenant_auth_revoke_failure_preserves_newer_login() -> Result<()> {
     recovery::revoke_with_newer_login(
         "mutation_race_tests::covenant_auth_revoke_failure_preserves_newer_login",
         /*succeeds*/ false,
+    )
+}
+
+#[test]
+fn covenant_auth_public_and_manager_revoke_remove_malformed_selected_file() -> Result<()> {
+    logout::remove_malformed_selected_file(
+        "mutation_race_tests::covenant_auth_public_and_manager_revoke_remove_malformed_selected_file",
+    )
+}
+
+#[test]
+fn covenant_auth_manager_revoke_uses_effective_external_and_removes_managed_fallback() -> Result<()>
+{
+    logout::revoke_effective_external(
+        "mutation_race_tests::covenant_auth_manager_revoke_uses_effective_external_and_removes_managed_fallback",
     )
 }
 

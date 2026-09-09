@@ -540,8 +540,20 @@ pub(super) fn create_auth_storage(
         } else {
             storage
         };
+        let malformed_auth_policy = match mode {
+            AuthCredentialsStoreMode::File => {
+                super::covenant_auth_storage::MalformedAuthPolicy::RemoveInvalidDataFile
+            }
+            AuthCredentialsStoreMode::Keyring
+            | AuthCredentialsStoreMode::Auto
+            | AuthCredentialsStoreMode::Ephemeral => {
+                super::covenant_auth_storage::MalformedAuthPolicy::Preserve
+            }
+        };
         return Arc::new(super::covenant_auth_storage::CovenantAuthStorage::new(
-            home, storage,
+            home,
+            storage,
+            malformed_auth_policy,
         ));
     }
     create_auth_storage_with_store(codex_home, mode, keyring_store, keyring_backend_kind)

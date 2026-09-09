@@ -232,7 +232,7 @@ fn run_child() -> Result<()> {
             let result = runtime.block_on(manager.logout_with_revoke());
             let report = match result {
                 Ok(false) => {
-                    runtime.block_on(manager.reload());
+                    // The manager must expose the preserved winner before returning.
                     super::mutation_race_fixture::state_report(
                         Outcome::Success,
                         &fixture.root,

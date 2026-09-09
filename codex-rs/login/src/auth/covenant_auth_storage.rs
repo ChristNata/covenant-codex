@@ -20,11 +20,16 @@ pub(super) struct CovenantAuthStorage {
 }
 
 impl CovenantAuthStorage {
-    pub(super) fn new(home: PathBuf, backend: Arc<dyn AuthStorageBackend>) -> Self {
+    pub(super) fn new(
+        home: PathBuf,
+        backend: Arc<dyn AuthStorageBackend>,
+        malformed_auth_policy: MalformedAuthPolicy,
+    ) -> Self {
         Self {
             transaction: AuthTransaction {
                 lock_path: home.join(".auth.lock"),
                 backend,
+                malformed_auth_policy,
             },
         }
     }
@@ -53,6 +58,46 @@ impl AuthStorageBackend for CovenantAuthStorage {
 pub(super) struct AuthTransaction {
     lock_path: PathBuf,
     backend: Arc<dyn AuthStorageBackend>,
+    malformed_auth_policy: MalformedAuthPolicy,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(super) enum MalformedAuthPolicy {
+    RemoveInvalidDataFile,
+    Preserve,
+}
+
+#[derive(Debug)]
+pub(super) enum PreparedAuthTransaction {
+    Snapshot {
+        transaction: AuthTransaction,
+        auth: Box<Option<AuthDotJson>>,
+    },
+    MalformedFileRemoved {
+        removed: bool,
+    },
+    Unreadable(io::Error),
+}
+
+impl PreparedAuthTransaction {
+    pub(super) fn auth(&self) -> Option<&AuthDotJson> {
+        match self {
+            Self::Snapshot { auth, .. } => auth.as_ref().as_ref(),
+            Self::MalformedFileRemoved { .. } | Self::Unreadable(_) => None,
+        }
+    }
+
+    pub(super) async fn settle(self) -> io::Result<bool> {
+        match self {
+            Self::Snapshot { transaction, auth } => {
+                transaction
+                    .delete_if_unchanged(auth.as_ref().as_ref())
+                    .await
+            }
+            Self::MalformedFileRemoved { removed } => Ok(removed),
+            Self::Unreadable(error) => Err(error),
+        }
+    }
 }
 
 impl AuthTransaction {
@@ -94,6 +139,32 @@ impl AuthTransaction {
                 }
                 Err(error) => return Err(error),
             }
+        }
+    }
+
+    pub(super) async fn prepare(&self) -> PreparedAuthTransaction {
+        let storage = match self.lock().await {
+            Ok(storage) => storage,
+            Err(error) => return PreparedAuthTransaction::Unreadable(error),
+        };
+        match storage.load() {
+            Ok(auth) => PreparedAuthTransaction::Snapshot {
+                transaction: self.clone(),
+                auth: Box::new(auth),
+            },
+            Err(error) => match self.malformed_auth_policy {
+                MalformedAuthPolicy::RemoveInvalidDataFile
+                    if error.kind() == io::ErrorKind::InvalidData =>
+                {
+                    match storage.delete() {
+                        Ok(removed) => PreparedAuthTransaction::MalformedFileRemoved { removed },
+                        Err(error) => PreparedAuthTransaction::Unreadable(error),
+                    }
+                }
+                MalformedAuthPolicy::RemoveInvalidDataFile | MalformedAuthPolicy::Preserve => {
+                    PreparedAuthTransaction::Unreadable(error)
+                }
+            },
         }
     }
 

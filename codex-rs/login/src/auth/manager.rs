@@ -36,6 +36,8 @@ use super::agent_identity::record_needs_task_registration;
 use super::agent_identity::register_managed_chatgpt_agent_identity;
 use super::agent_identity::require_agent_identity_authapi_base_url;
 use super::agent_identity::verified_record_from_jwt;
+#[cfg(windows)]
+use super::covenant_auth_storage::PreparedAuthTransaction;
 use super::external_bearer::BearerTokenRefresher;
 use super::revoke::revoke_auth_tokens;
 use super::workload_identity::WorkloadIdentityExternalAuth;
@@ -954,38 +956,69 @@ pub async fn logout_with_revoke(
     keyring_backend_kind: AuthKeyringBackendKind,
     auth_route_config: &AuthRouteConfig,
 ) -> std::io::Result<bool> {
-    let auth_dot_json = load_auth_for_revoke(
+    let prepared = prepare_managed_logout(
         codex_home,
         auth_credentials_store_mode,
         keyring_backend_kind,
-    );
-    if let Err(err) = revoke_auth_tokens(auth_dot_json.as_ref(), auth_route_config).await {
+    )
+    .await;
+    if let Err(err) = revoke_auth_tokens(prepared.auth(), auth_route_config).await {
         tracing::warn!("failed to revoke auth tokens during logout: {err}");
     }
-    logout_all_stores_after_revoke(
-        codex_home,
-        auth_credentials_store_mode,
-        keyring_backend_kind,
-        auth_dot_json.as_ref(),
-    )
-    .await
+    logout_all_stores_after_revoke(codex_home, auth_credentials_store_mode, prepared).await
 }
 
-fn load_auth_for_revoke(
+enum PreparedManagedLogout {
+    #[cfg(windows)]
+    Transaction(PreparedAuthTransaction),
+    Fallback {
+        storage: Arc<dyn AuthStorageBackend>,
+        auth: Box<Option<AuthDotJson>>,
+    },
+}
+
+impl PreparedManagedLogout {
+    fn auth(&self) -> Option<&AuthDotJson> {
+        match self {
+            #[cfg(windows)]
+            Self::Transaction(prepared) => prepared.auth(),
+            Self::Fallback { auth, .. } => auth.as_ref().as_ref(),
+        }
+    }
+
+    async fn settle(self) -> std::io::Result<bool> {
+        match self {
+            #[cfg(windows)]
+            Self::Transaction(prepared) => prepared.settle().await,
+            Self::Fallback { storage, .. } => storage.delete(),
+        }
+    }
+}
+
+async fn prepare_managed_logout(
     codex_home: &Path,
     auth_credentials_store_mode: AuthCredentialsStoreMode,
     keyring_backend_kind: AuthKeyringBackendKind,
-) -> Option<AuthDotJson> {
-    match load_auth_dot_json(
-        codex_home,
+) -> PreparedManagedLogout {
+    let storage = create_auth_storage(
+        codex_home.to_path_buf(),
         auth_credentials_store_mode,
         keyring_backend_kind,
-    ) {
-        Ok(auth_dot_json) => auth_dot_json,
+    );
+    #[cfg(windows)]
+    if let Some(transaction) = storage.covenant_transaction() {
+        return PreparedManagedLogout::Transaction(transaction.prepare().await);
+    }
+    let auth = match storage.load() {
+        Ok(auth) => auth,
         Err(err) => {
             tracing::warn!("failed to load stored auth during logout: {err}");
             None
         }
+    };
+    PreparedManagedLogout::Fallback {
+        storage,
+        auth: Box::new(auth),
     }
 }
 
@@ -1458,34 +1491,18 @@ fn logout_all_stores(
 async fn logout_all_stores_after_revoke(
     codex_home: &Path,
     auth_credentials_store_mode: AuthCredentialsStoreMode,
-    keyring_backend_kind: AuthKeyringBackendKind,
-    revoked_auth: Option<&AuthDotJson>,
+    prepared: PreparedManagedLogout,
 ) -> std::io::Result<bool> {
-    if auth_credentials_store_mode == AuthCredentialsStoreMode::Ephemeral {
-        return logout(
+    let removed_ephemeral = if auth_credentials_store_mode == AuthCredentialsStoreMode::Ephemeral {
+        false
+    } else {
+        logout(
             codex_home,
             AuthCredentialsStoreMode::Ephemeral,
             AuthKeyringBackendKind::default(),
-        );
-    }
-    let removed_ephemeral = logout(
-        codex_home,
-        AuthCredentialsStoreMode::Ephemeral,
-        AuthKeyringBackendKind::default(),
-    )?;
-    let storage = create_auth_storage(
-        codex_home.to_path_buf(),
-        auth_credentials_store_mode,
-        keyring_backend_kind,
-    );
-    #[cfg(not(windows))]
-    let _ = revoked_auth;
-    #[cfg(windows)]
-    if let Some(transaction) = storage.covenant_transaction() {
-        let removed_managed = transaction.delete_if_unchanged(revoked_auth).await?;
-        return Ok(removed_ephemeral || removed_managed);
-    }
-    let removed_managed = storage.delete()?;
+        )?
+    };
+    let removed_managed = prepared.settle().await?;
     Ok(removed_ephemeral || removed_managed)
 }
 
@@ -2947,11 +2964,12 @@ impl AuthManager {
         let auth_to_revoke = self
             .auth_cached()
             .and_then(|auth| auth.get_current_auth_json());
-        let managed_auth = load_auth_for_revoke(
+        let prepared = prepare_managed_logout(
             &self.codex_home,
             self.auth_credentials_store_mode,
             self.keyring_backend_kind,
-        );
+        )
+        .await;
         if let Err(err) = revoke_auth_tokens(auth_to_revoke.as_ref(), &self.auth_route_config).await
         {
             tracing::warn!("failed to revoke auth tokens during logout: {err}");
@@ -2959,8 +2977,7 @@ impl AuthManager {
         let result = logout_all_stores_after_revoke(
             &self.codex_home,
             self.auth_credentials_store_mode,
-            self.keyring_backend_kind,
-            managed_auth.as_ref(),
+            prepared,
         )
         .await?;
         // Always reload to clear any cached auth (even if file absent).
