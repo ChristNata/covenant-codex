@@ -20,14 +20,20 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
-use std::process::Command;
-use std::process::Stdio;
 use std::thread;
 use std::time::Duration;
-use std::time::Instant;
+
+use super::bounded_child::BoundedChild;
+use super::bounded_child::Settlement;
+use super::bounded_child::isolated_test_command;
 
 const CHILD: &str = "COVENANT_AUTH_HOME_SELECTION_CHILD";
 const COMPLETE: &[u8] = b"COVENANT_AUTH_HOME_SELECTION_COMPLETE";
+const PARKED_READY: &str = "COVENANT_AUTH_HOME_SELECTION_PARKED_READY";
+const OUTPUT_LIMIT: usize = 131_072;
+const SCENARIO_DEADLINE: Duration = Duration::from_secs(/*secs*/ 30);
+const READINESS_DEADLINE: Duration = Duration::from_secs(/*secs*/ 5);
+const CLEANUP_DEADLINE: Duration = Duration::from_secs(/*secs*/ 5);
 
 #[derive(Clone, Copy, Deserialize, Serialize)]
 enum Operation {
@@ -162,6 +168,54 @@ fn covenant_auth_nondirectory_override_fails_closed() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn covenant_auth_home_selection_timeout_kills_and_reaps_child() -> Result<()> {
+    let test_name =
+        "home_selection_tests::covenant_auth_home_selection_timeout_kills_and_reaps_child";
+    if is_child(test_name) {
+        println!("{PARKED_READY}");
+        std::io::stdout().flush()?;
+        loop {
+            thread::park();
+        }
+    }
+    let temporary = tempfile::tempdir()?;
+    let root = temporary.path().canonicalize()?;
+    fs::create_dir(root.join("mutable"))?;
+    fs::create_dir(root.join("auth"))?;
+    let sentinel = format!("covenant-synthetic-{:032x}", rand::random::<u128>());
+    let mut command = isolated_test_command(test_name, CHILD, &root, &root.join("auth"))?;
+    command.env("COVENANT_AUTH_PARKED_SENTINEL", &sentinel);
+    let mut child = BoundedChild::capture(command.spawn()?, OUTPUT_LIMIT, Some(PARKED_READY))?;
+    ensure!(
+        child.wait_for_readiness(READINESS_DEADLINE)?,
+        "parked home-selection child was not live"
+    );
+    let output = child.kill_and_reap(CLEANUP_DEADLINE)?;
+    ensure!(
+        !contains(&output.stdout, sentinel.as_bytes())
+            && !contains(&output.stderr, sentinel.as_bytes()),
+        "parked home-selection child exposed its sentinel"
+    );
+    ensure!(
+        output.readiness_count == 1,
+        "parked home-selection readiness was not unique"
+    );
+    ensure!(
+        !contains(&output.stdout, COMPLETE),
+        "parked home-selection child reached normal completion"
+    );
+    match output.settlement {
+        Settlement::Killed(status) => {
+            ensure!(!status.success(), "killed home-selection child succeeded")
+        }
+        Settlement::Exited(status) => {
+            anyhow::bail!("parked home-selection child exited naturally: {status}")
+        }
+    }
+    Ok(())
+}
+
 fn reject_case(test_name: &str, override_path: PathBuf, expected_error: &str) -> Result<()> {
     if is_child(test_name) {
         return run_child();
@@ -213,56 +267,25 @@ fn is_child(test_name: &str) -> bool {
 }
 
 fn spawn(test_name: &str, fixture: &Fixture) -> Result<()> {
-    let mut command = Command::new(std::env::current_exe()?);
-    command
-        .args(["--exact", test_name, "--nocapture"])
-        .current_dir(&fixture.root)
-        .env_clear()
-        .env(CHILD, test_name)
-        .env("CODEX_HOME", fixture.root.join("mutable"))
-        .env("CODEX_AUTH_HOME", &fixture.override_path)
-        .env("TEMP", &fixture.root)
-        .env("TMP", &fixture.root)
-        .env("USERPROFILE", &fixture.root)
-        .env("HOME", &fixture.root)
-        .env("LOCALAPPDATA", &fixture.root)
-        .env("APPDATA", &fixture.root)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    for name in ["SystemRoot", "WINDIR"] {
-        if let Some(value) = std::env::var_os(name) {
-            command.env(name, value);
-        }
-    }
-    let mut child = command.spawn()?;
+    let mut child = BoundedChild::capture(
+        isolated_test_command(test_name, CHILD, &fixture.root, &fixture.override_path)?.spawn()?,
+        OUTPUT_LIMIT,
+        None,
+    )?;
     child
-        .stdin
-        .take()
+        .take_stdin()
         .context("home-selection child stdin is unavailable")?
         .write_all(&serde_json::to_vec(fixture)?)?;
-    let deadline = Instant::now() + Duration::from_secs(/*secs*/ 30);
-    loop {
-        if child.try_wait()?.is_some() {
-            break;
-        }
-        if Instant::now() >= deadline {
-            child.kill()?;
-            let _ = child.wait();
-            anyhow::bail!("home-selection child exceeded its 30-second deadline");
-        }
-        thread::sleep(Duration::from_millis(/*millis*/ 10));
-    }
-    let output = child.wait_with_output()?;
+    let output = child.wait_for_exit(SCENARIO_DEADLINE)?;
     ensure!(
         !contains(&output.stdout, fixture.api_key.as_bytes())
             && !contains(&output.stderr, fixture.api_key.as_bytes()),
         "synthetic auth sentinel escaped the selected store"
     );
     ensure!(
-        output.status.success(),
-        "home-selection child failed with status {}",
-        output.status
+        matches!(&output.settlement, Settlement::Exited(status) if status.success()),
+        "home-selection child did not exit successfully: {:?}",
+        output.settlement
     );
     ensure!(
         contains(&output.stdout, COMPLETE),

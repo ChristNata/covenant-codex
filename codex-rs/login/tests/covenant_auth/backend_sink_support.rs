@@ -17,18 +17,22 @@ use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
-use std::process::Child;
-use std::process::Command;
-use std::process::Stdio;
 use std::thread;
 use std::time::Duration;
-use std::time::Instant;
+
+use super::bounded_child::BoundedChild;
+use super::bounded_child::Settlement;
+use super::bounded_child::contains;
+use super::bounded_child::isolated_test_command;
 
 const CHILD: &str = "COVENANT_AUTH_BACKEND_SINK_CHILD";
 const COMPLETE: &str = "COVENANT_AUTH_BACKEND_SINK_COMPLETE";
+const PARKED_READY: &str = "COVENANT_AUTH_BACKEND_SINK_PARKED_READY";
 const INPUT_LIMIT: u64 = 131_072;
 const OUTPUT_LIMIT: u64 = 131_072;
 const DEADLINE: Duration = Duration::from_secs(/*secs*/ 30);
+const READINESS_DEADLINE: Duration = Duration::from_secs(/*secs*/ 5);
+const CLEANUP_DEADLINE: Duration = Duration::from_secs(/*secs*/ 5);
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub(super) enum BackendCase {
@@ -146,6 +150,50 @@ pub(super) fn run_all(test_name: &str, scenarios: &[Scenario]) -> Result<()> {
     Ok(())
 }
 
+pub(super) fn run_parked_cleanup_probe(test_name: &str) -> Result<()> {
+    if std::env::var(CHILD).ok().as_deref() == Some(test_name) {
+        println!("{PARKED_READY}");
+        std::io::stdout().flush()?;
+        loop {
+            thread::park();
+        }
+    }
+    let temporary = tempfile::tempdir()?;
+    let root = temporary.path().canonicalize()?;
+    fs::create_dir(root.join("auth"))?;
+    fs::create_dir(root.join("mutable"))?;
+    let sentinel = random_sentinel("parked");
+    let mut command = isolated_test_command(test_name, CHILD, &root, &root.join("auth"))?;
+    command.env("COVENANT_AUTH_PARKED_SENTINEL", &sentinel);
+    let mut child =
+        BoundedChild::capture(command.spawn()?, OUTPUT_LIMIT as usize, Some(PARKED_READY))?;
+    ensure!(
+        child.wait_for_readiness(READINESS_DEADLINE)?,
+        "parked backend child was not live"
+    );
+    let output = child.kill_and_reap(CLEANUP_DEADLINE)?;
+    ensure!(
+        !contains(&output.stdout, sentinel.as_bytes())
+            && !contains(&output.stderr, sentinel.as_bytes()),
+        "parked backend child exposed its sentinel"
+    );
+    ensure!(
+        output.readiness_count == 1,
+        "parked backend readiness was not unique"
+    );
+    ensure!(
+        !contains(&output.stdout, COMPLETE.as_bytes()),
+        "parked backend child reached normal completion"
+    );
+    match output.settlement {
+        Settlement::Killed(status) => ensure!(!status.success(), "killed backend child succeeded"),
+        Settlement::Exited(status) => {
+            anyhow::bail!("parked backend child exited naturally: {status}")
+        }
+    }
+    Ok(())
+}
+
 fn run_parent(test_name: &str, scenario: Scenario) -> Result<()> {
     let temporary = tempfile::tempdir()?;
     let root = temporary.path().canonicalize()?;
@@ -172,48 +220,29 @@ fn run_parent(test_name: &str, scenario: Scenario) -> Result<()> {
 }
 
 fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
-    let mut command = Command::new(std::env::current_exe()?);
-    command
-        .args(["--exact", test_name, "--nocapture"])
-        .current_dir(&fixture.root)
-        .env_clear()
-        .env(CHILD, test_name)
-        .env("CODEX_HOME", fixture.root.join("mutable"))
-        .env("CODEX_AUTH_HOME", fixture.root.join("auth"))
-        .env("TEMP", &fixture.root)
-        .env("TMP", &fixture.root)
-        .env("USERPROFILE", &fixture.root)
-        .env("HOME", &fixture.root)
-        .env("LOCALAPPDATA", &fixture.root)
-        .env("APPDATA", &fixture.root)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    for name in ["SystemRoot", "WINDIR"] {
-        if let Some(value) = std::env::var_os(name) {
-            command.env(name, value);
-        }
-    }
-    let mut child = OwnedChild(command.spawn()?);
     let bytes = serde_json::to_vec(fixture)?;
     ensure!(
         bytes.len() < INPUT_LIMIT as usize,
         "fixture input too large"
     );
+    let mut child = BoundedChild::capture(
+        isolated_test_command(test_name, CHILD, &fixture.root, &fixture.root.join("auth"))?
+            .spawn()?,
+        OUTPUT_LIMIT as usize,
+        None,
+    )?;
     child
-        .0
-        .stdin
-        .take()
+        .take_stdin()
         .context("fixture child stdin unavailable")?
         .write_all(&bytes)?;
-    let output = wait_output(&mut child, fixture.scenario)?;
+    let output = child.wait_for_exit(DEADLINE)?;
     let sentinels = super::backend_sink_audit::Sentinels::new(fixture)?;
     super::backend_sink_audit::assert_clean_bytes(&output.stdout, &sentinels)?;
     super::backend_sink_audit::assert_clean_bytes(&output.stderr, &sentinels)?;
     let stdout = redact(&output.stdout, fixture);
     let stderr = redact(&output.stderr, fixture);
     ensure!(
-        output.status.success(),
+        matches!(&output.settlement, Settlement::Exited(status) if status.success()),
         "backend child failed for {:?}\nstdout:\n{stdout}\nstderr:\n{stderr}",
         fixture.scenario
     );
@@ -225,54 +254,6 @@ fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
         "backend child did not complete"
     );
     Ok(())
-}
-
-struct OwnedChild(Child);
-
-impl Drop for OwnedChild {
-    fn drop(&mut self) {
-        if self.0.try_wait().ok().flatten().is_none() {
-            let _ = self.0.kill();
-        }
-        let _ = self.0.wait();
-    }
-}
-
-fn wait_output(child: &mut OwnedChild, scenario: Scenario) -> Result<std::process::Output> {
-    let stdout = child.0.stdout.take().context("child stdout unavailable")?;
-    let stderr = child.0.stderr.take().context("child stderr unavailable")?;
-    let out = thread::spawn(move || read_bounded(stdout));
-    let err = thread::spawn(move || read_bounded(stderr));
-    let deadline = Instant::now() + DEADLINE;
-    let status = loop {
-        if let Some(status) = child.0.try_wait()? {
-            break status;
-        }
-        ensure!(
-            Instant::now() < deadline,
-            "backend child timed out for {scenario:?}"
-        );
-        thread::sleep(Duration::from_millis(/*millis*/ 5));
-    };
-    Ok(std::process::Output {
-        status,
-        stdout: out
-            .join()
-            .map_err(|_| anyhow::anyhow!("stdout reader failed"))??,
-        stderr: err
-            .join()
-            .map_err(|_| anyhow::anyhow!("stderr reader failed"))??,
-    })
-}
-
-fn read_bounded(input: impl Read) -> Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    input.take(OUTPUT_LIMIT + 1).read_to_end(&mut bytes)?;
-    ensure!(
-        bytes.len() <= OUTPUT_LIMIT as usize,
-        "child stream exceeded limit"
-    );
-    Ok(bytes)
 }
 
 fn run_child() -> Result<()> {

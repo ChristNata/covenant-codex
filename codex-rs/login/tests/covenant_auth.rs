@@ -45,6 +45,8 @@ mod backend_sink_keyring;
 mod backend_sink_support;
 #[path = "covenant_auth/backend_sink_tests.rs"]
 mod backend_sink_tests;
+#[path = "covenant_auth/bounded_child.rs"]
+mod bounded_child;
 #[path = "covenant_auth/cancellation_support.rs"]
 mod cancellation_support;
 #[path = "covenant_auth/cancellation_tests.rs"]
