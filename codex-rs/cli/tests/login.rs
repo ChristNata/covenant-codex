@@ -12,9 +12,19 @@ use codex_login::AuthKeyringBackendKind;
 use codex_login::CLIENT_ID;
 use codex_login::CODEX_ACCESS_TOKEN_ENV_VAR;
 use codex_login::REVOKE_TOKEN_URL_OVERRIDE_ENV_VAR;
+#[cfg(windows)]
+use codex_login::login_with_api_key;
 use codex_login::login_with_bedrock_access_keys;
 use codex_protocol::shell_environment::OPENAI_FEDERATION_RULE_ID_ENV_VAR;
 use codex_protocol::shell_environment::OPENAI_IDENTITY_TOKEN_FILE_ENV_VAR;
+#[cfg(windows)]
+use covenant_logout_support::HeldRevoke;
+#[cfg(windows)]
+use covenant_logout_support::LogoutObservation;
+#[cfg(windows)]
+use covenant_logout_support::prepare_isolated_root;
+#[cfg(windows)]
+use covenant_logout_support::spawn_logout;
 use predicates::str::contains;
 use pretty_assertions::assert_eq;
 use serde_json::Value;
@@ -26,6 +36,10 @@ use wiremock::ResponseTemplate;
 use wiremock::matchers::header;
 use wiremock::matchers::method;
 use wiremock::matchers::path;
+
+#[cfg(windows)]
+#[path = "login/covenant_logout_support.rs"]
+mod covenant_logout_support;
 
 fn codex_command(codex_home: &Path) -> Result<assert_cmd::Command> {
     let mut cmd = assert_cmd::Command::new(codex_utils_cargo_bin::cargo_bin("codex")?);
@@ -179,6 +193,123 @@ fn logout_clears_only_the_selected_bedrock_provider() -> Result<()> {
         let actual_config: toml::Value = toml::from_str(&std::fs::read_to_string(&config_path)?)?;
         assert_eq!(actual_config, expected_config);
     }
+
+    Ok(())
+}
+
+#[cfg(windows)]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn covenant_auth_logout_reports_absent_removed_and_preserved_login() -> Result<()> {
+    anyhow::ensure!(
+        std::env::var_os("CODEX_AUTH_HOME").is_none(),
+        "parent CODEX_AUTH_HOME must be unset"
+    );
+    let absent_root = TempDir::new()?;
+    prepare_isolated_root(absent_root.path())?;
+    write_file_auth_config(&absent_root.path().join("state"))?;
+    let absent = spawn_logout(absent_root.path(), /*url*/ None)?
+        .wait()
+        .await?;
+    assert_eq!(
+        LogoutObservation::from_output(
+            absent,
+            absent_root.path(),
+            /*expected_auth*/ None,
+            &[],
+        )?,
+        LogoutObservation {
+            status_code: Some(0),
+            stdout_empty: true,
+            stderr_lines: vec!["Not logged in".to_string()],
+            auth_file_matches: true,
+            state_auth_absent: true,
+            credential_leak: false,
+        }
+    );
+
+    let removal_root = TempDir::new()?;
+    prepare_isolated_root(removal_root.path())?;
+    write_file_auth_config(&removal_root.path().join("state"))?;
+    login_with_api_key(
+        &removal_root.path().join("auth"),
+        "cycle-c-api-key",
+        AuthCredentialsStoreMode::File,
+        AuthKeyringBackendKind::default(),
+    )?;
+    let removed = spawn_logout(removal_root.path(), /*url*/ None)?
+        .wait()
+        .await?;
+    assert_eq!(
+        LogoutObservation::from_output(
+            removed,
+            removal_root.path(),
+            /*expected_auth*/ None,
+            &["cycle-c-api-key"],
+        )?,
+        LogoutObservation {
+            status_code: Some(0),
+            stdout_empty: true,
+            stderr_lines: vec!["Successfully logged out".to_string()],
+            auth_file_matches: true,
+            state_auth_absent: true,
+            credential_leak: false,
+        }
+    );
+
+    let winner_root = TempDir::new()?;
+    prepare_isolated_root(winner_root.path())?;
+    let winner_auth = winner_root.path().join("auth");
+    write_file_auth_config(&winner_root.path().join("state"))?;
+    let initial = ChatGptAuthFixture::new("cycle-c-access-n");
+    let initial = initial.refresh_token("cycle-c-refresh-n");
+    let initial = initial.account_id("cycle-c-account-n");
+    write_chatgpt_auth(&winner_auth, initial, AuthCredentialsStoreMode::File)?;
+    let mut authority = HeldRevoke::start(json!({
+        "token": "cycle-c-refresh-n",
+        "token_type_hint": "refresh_token",
+        "client_id": CLIENT_ID,
+    }))
+    .await;
+    let child = spawn_logout(winner_root.path(), Some(&authority.url()))?;
+    let winner_bytes = authority.wait_accepted().await.and_then(|()| {
+        let winner = ChatGptAuthFixture::new("cycle-c-access-n-plus-1");
+        let winner = winner.refresh_token("cycle-c-refresh-n-plus-1");
+        let winner = winner.account_id("cycle-c-account-n-plus-1");
+        write_chatgpt_auth(&winner_auth, winner, AuthCredentialsStoreMode::File)?;
+        Ok(std::fs::read(winner_auth.join("auth.json"))?)
+    });
+    let release = authority.release();
+    let preserved = child.wait().await;
+    let verification = authority.verify();
+    let winner_bytes = winner_bytes?;
+    release?;
+    let preserved = preserved?;
+    verification?;
+    assert_eq!(
+        LogoutObservation::from_output(
+            preserved,
+            winner_root.path(),
+            Some(&winner_bytes),
+            &[
+                "cycle-c-access-n",
+                "cycle-c-refresh-n",
+                "cycle-c-account-n",
+                "cycle-c-access-n-plus-1",
+                "cycle-c-refresh-n-plus-1",
+                "cycle-c-account-n-plus-1",
+            ],
+        )?,
+        LogoutObservation {
+            status_code: Some(0),
+            stdout_empty: true,
+            stderr_lines: vec![
+                "Login changed during logout; current login was preserved.".to_string(),
+            ],
+            auth_file_matches: true,
+            state_auth_absent: true,
+            credential_leak: false,
+        }
+    );
 
     Ok(())
 }

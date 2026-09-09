@@ -17,6 +17,7 @@ use codex_login::AuthRouteConfig;
 use codex_login::CLIENT_ID;
 use codex_login::ServerOptions;
 use codex_login::is_workload_identity_selected;
+use codex_login::load_auth_dot_json;
 use codex_login::login_with_access_token;
 use codex_login::login_with_api_key;
 use codex_login::logout_with_revoke;
@@ -526,6 +527,23 @@ pub async fn run_logout(cli_config_overrides: CliConfigOverrides) -> ! {
         }
     };
 
+    let current_login_preserved = if logged_out {
+        false
+    } else {
+        match load_auth_dot_json(
+            &config.codex_home,
+            config.cli_auth_credentials_store_mode,
+            config.auth_keyring_backend_kind(),
+        ) {
+            Ok(Some(_)) => true,
+            Ok(None) => false,
+            Err(err) => {
+                eprintln!("Error logging out: {err}");
+                std::process::exit(1);
+            }
+        }
+    };
+
     let cleared_bedrock_config =
         if let Some(paths) = ConfigEditsBuilder::bedrock_provider_config_paths_to_clear(&config) {
             let edits = paths
@@ -544,7 +562,9 @@ pub async fn run_logout(cli_config_overrides: CliConfigOverrides) -> ! {
             false
         };
 
-    if logged_out || cleared_bedrock_config {
+    if current_login_preserved {
+        eprintln!("Login changed during logout; current login was preserved.");
+    } else if logged_out || cleared_bedrock_config {
         eprintln!("Successfully logged out");
     } else {
         eprintln!("Not logged in");
