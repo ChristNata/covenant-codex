@@ -51,6 +51,16 @@ mod cancellation_support;
 mod cancellation_tests;
 #[path = "covenant_auth/home_selection_tests.rs"]
 mod home_selection_tests;
+#[path = "covenant_auth/mutation_race_fixture.rs"]
+mod mutation_race_fixture;
+#[path = "covenant_auth/mutation_race_http.rs"]
+mod mutation_race_http;
+#[path = "covenant_auth/mutation_race_linearization.rs"]
+mod mutation_race_linearization;
+#[path = "covenant_auth/mutation_race_process.rs"]
+mod mutation_race_process;
+#[path = "covenant_auth/mutation_race_tests.rs"]
+mod mutation_race_tests;
 #[path = "covenant_auth/persistence_support.rs"]
 mod persistence_support;
 #[path = "covenant_auth/persistence_tests.rs"]

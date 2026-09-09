@@ -622,6 +622,18 @@ or F31 semantic domination. Dynamic provider/MCP names and other recorded policy
 decisions remain explicit F12/F21 design prerequisites. Release and external
 acceptance remain pending.
 
+### F14 W1.3a-1a refresh/save linearization - existing behavior verified
+
+The case-01 child-process entrypoint passed as Nextest run
+`e6831749-ba44-4e3b-afac-4ad6ed69ac0b`, with 31 cases excluded by the exact
+`mutation_race_tests::covenant_auth_` selector. A held refresh owns the store
+before a concurrent public save must return Busy with exact prior bytes and
+cached tokens; after release, refresh and the retried save commit whole winners.
+
+Existing production satisfied the oracle, so no production code changed.
+Scoped fix and required formatting passed with only 20 inherited warnings.
+Evidence is `.git/covenant-session/f14-wave1-mutation-a1a-001/evidence.json`.
+
 F00 local checkpoint: `820438291b79b6d5dcf5481a4c8e4940b0ebfd91`,
 `feat(covenant): record and validate upstream authority inventory`. Exactly
 the two manifests, structural validator, focused test file and this ledger were
