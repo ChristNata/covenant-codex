@@ -60,6 +60,7 @@ pub(super) struct Endpoint {
 impl Endpoint {
     pub(super) fn start(plan: EndpointPlan, hold_first: bool) -> Result<Self> {
         let listener = TcpListener::bind(("127.0.0.1", 0))?;
+        listener.set_nonblocking(true)?;
         let address = listener.local_addr()?;
         let state = Arc::new((Mutex::new(EndpointState::default()), Condvar::new()));
         let (sender, accepted) = mpsc::channel();
@@ -69,18 +70,35 @@ impl Endpoint {
                 EndpointPlan::RefreshFailure { .. } | EndpointPlan::AgentIdentity => 2,
                 EndpointPlan::RefreshSuccess { .. } | EndpointPlan::Revoke { .. } => 1,
             };
-            for ordinal in 1..=count {
-                let Ok((stream, _)) = listener.accept() else {
-                    mark_malformed(&shared);
-                    break;
-                };
-                let stopped = lock_state(&shared).stop;
-                if stopped {
-                    break;
-                }
-                if serve(stream, &plan, ordinal, hold_first, &shared, &sender).is_err() {
-                    mark_malformed(&shared);
-                    break;
+            let mut ordinal = 0;
+            loop {
+                let stopped_at_start = lock_state(&shared).stop;
+                match listener.accept() {
+                    Ok((stream, _)) => {
+                        ordinal += 1;
+                        {
+                            let mut state = lock_state(&shared);
+                            state.snapshot.requests += 1;
+                            shared.1.notify_all();
+                        }
+                        if stream.set_nonblocking(false).is_err() || ordinal > count {
+                            mark_malformed(&shared);
+                            continue;
+                        }
+                        if serve(stream, &plan, ordinal, hold_first, &shared, &sender).is_err() {
+                            mark_malformed(&shared);
+                        }
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                        if stopped_at_start {
+                            break;
+                        }
+                        thread::sleep(Duration::from_millis(/*millis*/ 5));
+                    }
+                    Err(_) => {
+                        mark_malformed(&shared);
+                        break;
+                    }
                 }
             }
         });
@@ -136,16 +154,41 @@ impl Endpoint {
             state = next;
         }
     }
+
+    pub(super) fn finish(mut self) -> Result<EndpointSnapshot> {
+        self.stop_and_join()
+    }
+
+    fn stop_and_join(&mut self) -> Result<EndpointSnapshot> {
+        {
+            let mut state = lock_state(&self.state);
+            state.stop = true;
+            self.state.1.notify_all();
+        }
+        let deadline = Instant::now() + super::mutation_race_fixture::DEADLINE;
+        while self
+            .server
+            .as_ref()
+            .is_some_and(|server| !server.is_finished())
+        {
+            ensure!(
+                Instant::now() < deadline,
+                "fixture endpoint shutdown timed out"
+            );
+            thread::sleep(Duration::from_millis(/*millis*/ 5));
+        }
+        if let Some(server) = self.server.take() {
+            server
+                .join()
+                .map_err(|_| anyhow::anyhow!("fixture endpoint thread panicked"))?;
+        }
+        Ok(lock_state(&self.state).snapshot)
+    }
 }
 
 impl Drop for Endpoint {
     fn drop(&mut self) {
-        lock_state(&self.state).stop = true;
-        self.state.1.notify_all();
-        let _ = TcpStream::connect(self.address);
-        if let Some(server) = self.server.take() {
-            let _ = server.join();
-        }
+        let _ = self.stop_and_join();
     }
 }
 
@@ -273,7 +316,6 @@ fn serve(
     };
     {
         let mut state = lock_state(shared);
-        state.snapshot.requests += 1;
         sender.send(ordinal)?;
         while hold_first && ordinal == 1 && !state.released && !state.stop {
             let (next, timeout) = shared

@@ -2,6 +2,7 @@
 
 use super::mutation_race_fixture::FailureKind;
 use super::mutation_race_linearization as linearization;
+use super::mutation_race_owner_loss as owner_loss;
 use super::mutation_race_recovery as recovery;
 use anyhow::Result;
 
@@ -62,5 +63,26 @@ fn covenant_auth_revoke_failure_preserves_newer_login() -> Result<()> {
     recovery::revoke_with_newer_login(
         "mutation_race_tests::covenant_auth_revoke_failure_preserves_newer_login",
         /*succeeds*/ false,
+    )
+}
+
+#[test]
+fn covenant_auth_owner_loss_before_authority_preserves_prior_and_recovers() -> Result<()> {
+    owner_loss::before_authority(
+        "mutation_race_tests::covenant_auth_owner_loss_before_authority_preserves_prior_and_recovers",
+    )
+}
+
+#[test]
+fn covenant_auth_owner_loss_after_acceptance_preserves_prior_and_recovers() -> Result<()> {
+    owner_loss::after_acceptance(
+        "mutation_race_tests::covenant_auth_owner_loss_after_acceptance_preserves_prior_and_recovers",
+    )
+}
+
+#[test]
+fn covenant_auth_owner_loss_after_replacement_preserves_winner_and_recovers() -> Result<()> {
+    owner_loss::after_replacement(
+        "mutation_race_tests::covenant_auth_owner_loss_after_replacement_preserves_winner_and_recovers",
     )
 }

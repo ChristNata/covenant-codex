@@ -27,18 +27,36 @@ pub(super) struct Process {
 
 struct OwnedChild(Child);
 
-impl Drop for OwnedChild {
-    fn drop(&mut self) {
-        if self.0.try_wait().ok().flatten().is_some() || self.0.kill().is_err() {
-            return;
+enum Termination {
+    Killed,
+    AlreadyExited,
+}
+
+impl OwnedChild {
+    fn terminate_and_reap(&mut self) -> Result<Termination> {
+        if self.0.try_wait()?.is_some() {
+            return Ok(Termination::AlreadyExited);
+        }
+        if let Err(error) = self.0.kill() {
+            if self.0.try_wait()?.is_some() {
+                return Ok(Termination::AlreadyExited);
+            }
+            return Err(error.into());
         }
         let deadline = Instant::now() + fixture::DEADLINE;
         while Instant::now() < deadline {
-            if self.0.try_wait().ok().flatten().is_some() {
-                return;
+            if self.0.try_wait()?.is_some() {
+                return Ok(Termination::Killed);
             }
             thread::sleep(std::time::Duration::from_millis(/*millis*/ 5));
         }
+        anyhow::bail!("bounded child termination timed out")
+    }
+}
+
+impl Drop for OwnedChild {
+    fn drop(&mut self) {
+        let _ = self.terminate_and_reap();
     }
 }
 
@@ -213,6 +231,14 @@ impl Process {
             }
             thread::sleep(std::time::Duration::from_millis(/*millis*/ 5));
         }
+    }
+
+    pub(super) fn kill(mut self) -> Result<()> {
+        ensure!(
+            matches!(self.child.terminate_and_reap()?, Termination::Killed),
+            "child exited before explicit owner loss"
+        );
+        Ok(())
     }
 }
 

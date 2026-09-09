@@ -14,6 +14,7 @@ use codex_login::test_support::transport_default_auth_route_config;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fs;
+use std::fs::OpenOptions;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
@@ -65,6 +66,13 @@ pub(super) enum FailureKind {
     Permanent,
 }
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+pub(super) enum PostCompletion {
+    #[default]
+    Exit,
+    Park,
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 pub(super) enum Operation {
     Refresh {
@@ -104,6 +112,8 @@ pub(super) struct Fixture {
     pub refresh_endpoint: String,
     pub revoke_endpoint: String,
     pub agent_endpoint: String,
+    #[serde(default)]
+    pub post_completion: PostCompletion,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -146,6 +156,7 @@ pub(super) fn fixture(root: &Path, operation: Operation) -> Fixture {
         refresh_endpoint: "http://127.0.0.1:9".to_string(),
         revoke_endpoint: "http://127.0.0.1:9".to_string(),
         agent_endpoint: "http://127.0.0.1:9".to_string(),
+        post_completion: PostCompletion::Exit,
     }
 }
 
@@ -176,6 +187,17 @@ fn prepare_root(root: &Path, initial: &AuthDotJson) -> Result<()> {
     fs::create_dir(root.join("mutable"))?;
     fs::write(root.join("auth/auth.json"), serde_json::to_vec(initial)?)?;
     Ok(())
+}
+
+pub(super) fn hold_auth_lock(root: &Path) -> Result<std::fs::File> {
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(root.join("auth/.auth.lock"))?;
+    file.lock()?;
+    Ok(file)
 }
 
 pub(super) fn stored_bytes(root: &Path) -> Result<Vec<u8>> {

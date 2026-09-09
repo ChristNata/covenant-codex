@@ -2298,3 +2298,11 @@ Review found and corrected P1 manager snapshot selection; post-correction runs `
 Final isolated runs `d14934ba-7143-4e2e-8294-74909f463aab`, `a787f202-6e32-4752-9491-e40d009307eb`, and `aa5058bf-c106-4936-90a5-0bef9b0cde6e` passed 2/2, 8/8, and 18/18 respectively; review returned PASS.
 The tested pre-finalization scope was 201 additions plus 21 deletions, 222 changed lines; after required fix/fmt, the final scope is 209 additions plus 21 deletions, 230 changed lines. Tests were not rerun afterward per AGENTS.md, and no upstream tests ran. Evidence is `.git/covenant-session/f14-wave1-w13a2b-001/evidence.json`.
 Owner loss, combined Wave 1 final review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.
+
+### F14 W1.3b owner-loss boundaries - existing PASS
+
+Initial green runs `9b6c1e64-6c50-40a5-882b-0755d54b2655` (3/3), `a28bd956-0ea4-4de2-af9f-62d204230b2b` (11/11), and `d13249bd-e92a-49e5-8496-f49dc0e048c3` (21/21) were rejected by false-PASS review.
+After the reviewed fixture corrections, pre-final runs `f9dcb0ea-02dd-46da-8388-44870a3f2b85`, `d0ebe536-b301-4ef1-8287-c04e785ee065`, and `7cfb9c14-bb00-405f-893b-77a16434e69b` passed 3/3, 11/11, and 21/21.
+Final ordering-fix runs `a238b03c-ae22-43a8-91cb-13738004b2c1`, `7882cec1-4622-446e-b44b-ba1ba1d2930a`, and `3e7653c1-13ae-4200-88f1-95d3aa8953f4` passed 3/3, 11/11, and 21/21; final review returned PASS.
+The cases classified as existing PASS, so no product code changed. The tested pre-finalization scope was 398 additions plus 25 deletions, 423 changed lines; after required fix/fmt the final scope is 393 additions plus 25 deletions, 418 changed lines. Tests were not rerun afterward per AGENTS.md. Evidence is `.git/covenant-session/f14-wave1-w13b-001/evidence.json`.
+Combined Wave 1 close, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.
