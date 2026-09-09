@@ -2290,3 +2290,11 @@ Final isolated run `d7f447c1-75fc-4b9b-8452-c57d10ac7127` passed all six mutatio
 Before finalization, the tested checkpoint measured 520 additions plus 83 deletions, 603 changed lines; after required fix/fmt, the final checkpoint measures 518 additions plus 88 deletions, 606 changed lines. Independent review returned PASS, and tests were not rerun after fix/fmt per AGENTS.md.
 Evidence is `.git/covenant-session/f14-wave1-w13a2a-001/evidence.json`.
 Cases 07-08, owner loss, combined Wave 1, Wave 2, native/product/inventory/re-audit/release and external Harness gates remain pending.
+
+### F14 W1.3a-2b revoke linearization - reached defect fixed
+
+Cases 07-08 separated fixture failure `d8cd898c-f897-4215-86dc-7cf907c17e3d` from behavioral RED `09b8c839-e135-498e-a84d-13e76541b595`; initial revoke/all-eight/combined passes were `fd18e6ca-71f7-48e6-9822-ec3e7cab46fd`, `580cbcaa-d7ec-470f-a5b8-2aec1705d372`, and `87022d5d-60ef-44c3-bd7f-71acb03f08fa`.
+Review found and corrected P1 manager snapshot selection; post-correction runs `c62f0fa2-f05b-4684-acdc-936e2d6c2adf`, `13a0a917-5c73-4715-b4a6-ab01915eb110`, and `3ca4c1d7-057e-41d7-8ed6-64156d3922a5` passed.
+Final isolated runs `d14934ba-7143-4e2e-8294-74909f463aab`, `a787f202-6e32-4752-9491-e40d009307eb`, and `aa5058bf-c106-4936-90a5-0bef9b0cde6e` passed 2/2, 8/8, and 18/18 respectively; review returned PASS.
+The tested pre-finalization scope was 201 additions plus 21 deletions, 222 changed lines; after required fix/fmt, the final scope is 209 additions plus 21 deletions, 230 changed lines. Tests were not rerun afterward per AGENTS.md, and no upstream tests ran. Evidence is `.git/covenant-session/f14-wave1-w13a2b-001/evidence.json`.
+Owner loss, combined Wave 1 final review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.

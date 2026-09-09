@@ -117,6 +117,53 @@ pub(super) fn failure_then_login(test_name: &str, kind: FailureKind) -> Result<(
     fixture::assert_exact(&prepared.root, &recovery)
 }
 
+pub(super) fn revoke_with_newer_login(test_name: &str, succeeds: bool) -> Result<()> {
+    if fixture::is_child(test_name) {
+        return run_child();
+    }
+    let prepared = fixture::PreparedRoot::new()?;
+    let api_key = format!("{}-newer-login", prepared.nonce);
+    let winner = fixture::api_key_document(&api_key)?;
+    let endpoint = Endpoint::start(
+        EndpointPlan::Revoke {
+            token: refresh_token(&prepared.initial)?,
+            succeeds,
+        },
+        /*hold_first*/ true,
+    )?;
+    let mut revoke_fixture = fixture::fixture(
+        &prepared.root,
+        Operation::Revoke {
+            expected: Box::new(winner.clone()),
+        },
+    );
+    revoke_fixture.revoke_endpoint = endpoint.revoke_url();
+    let mut revoke = Process::spawn(test_name, &revoke_fixture)?;
+    revoke.release()?;
+    revoke.wait_entered()?;
+    endpoint.wait_accepted(/*ordinal*/ 1)?;
+    run_writer(
+        test_name,
+        fixture::fixture(
+            &prepared.root,
+            Operation::Login {
+                api_key,
+                expected: winner.clone(),
+                prior: Box::new(prepared.initial.clone()),
+            },
+        ),
+        Outcome::Success,
+    )?;
+    endpoint.release();
+    ensure!(
+        revoke.wait_done()?.passed(Outcome::Success),
+        "revoke operation did not preserve the newer login"
+    );
+    revoke.finish()?;
+    assert_one_request(&endpoint)?;
+    fixture::assert_exact(&prepared.root, &winner)
+}
+
 fn run_child() -> Result<()> {
     let (fixture, mut input) = fixture::read_fixture()?;
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -180,6 +227,22 @@ fn run_child() -> Result<()> {
                     &successor,
                 )?,
             ))
+        }
+        Operation::Revoke { expected } => {
+            let result = runtime.block_on(manager.logout_with_revoke());
+            let report = match result {
+                Ok(false) => {
+                    runtime.block_on(manager.reload());
+                    super::mutation_race_fixture::state_report(
+                        Outcome::Success,
+                        &fixture.root,
+                        &manager,
+                        &expected,
+                    )?
+                }
+                Ok(true) | Err(_) => super::mutation_race_fixture::Report::failed(),
+            };
+            super::mutation_race_fixture::emit(Event::Done(report))
         }
         Operation::Save { document, prior } => super::mutation_race_fixture::emit(Event::Done(
             super::mutation_race_fixture::save_report(

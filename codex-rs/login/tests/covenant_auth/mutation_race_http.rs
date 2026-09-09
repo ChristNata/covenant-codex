@@ -29,6 +29,10 @@ pub(super) enum EndpointPlan {
         current: String,
         kind: FailureKind,
     },
+    Revoke {
+        token: String,
+        succeeds: bool,
+    },
     AgentIdentity,
 }
 
@@ -61,13 +65,9 @@ impl Endpoint {
         let (sender, accepted) = mpsc::channel();
         let shared = Arc::clone(&state);
         let server = thread::spawn(move || {
-            let count = if matches!(
-                &plan,
-                EndpointPlan::RefreshFailure { .. } | EndpointPlan::AgentIdentity
-            ) {
-                2
-            } else {
-                1
+            let count = match &plan {
+                EndpointPlan::RefreshFailure { .. } | EndpointPlan::AgentIdentity => 2,
+                EndpointPlan::RefreshSuccess { .. } | EndpointPlan::Revoke { .. } => 1,
             };
             for ordinal in 1..=count {
                 let Ok((stream, _)) = listener.accept() else {
@@ -94,6 +94,10 @@ impl Endpoint {
 
     pub(super) fn refresh_url(&self) -> String {
         format!("http://{}/oauth/token", self.address)
+    }
+
+    pub(super) fn revoke_url(&self) -> String {
+        format!("http://{}/oauth/revoke", self.address)
     }
 
     pub(super) fn base_url(&self) -> String {
@@ -227,6 +231,28 @@ fn serve(
                     "401 Unauthorized",
                     serde_json::json!({"error": {"code": "refresh_token_reused"}}),
                 ),
+            }
+        }
+        EndpointPlan::Revoke { token, succeeds } => {
+            ensure!(
+                ordinal == 1 && route == "/oauth/revoke",
+                "unexpected revoke route"
+            );
+            ensure!(
+                body.get("token").and_then(serde_json::Value::as_str) == Some(token.as_str())
+                    && body
+                        .get("token_type_hint")
+                        .and_then(serde_json::Value::as_str)
+                        == Some("refresh_token"),
+                "unexpected revoke snapshot"
+            );
+            if *succeeds {
+                ("200 OK", serde_json::json!({}))
+            } else {
+                (
+                    "503 Service Unavailable",
+                    serde_json::json!({"error": "temporarily_unavailable"}),
+                )
             }
         }
         EndpointPlan::AgentIdentity => {

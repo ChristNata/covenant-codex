@@ -240,7 +240,9 @@ fn run_child() -> Result<()> {
                 Ok(None) | Err(_) => fixture::Report::failed(),
             }
         }
-        Operation::FailureRecovery { .. } | Operation::CachedGenerationRecovery { .. } => {
+        Operation::FailureRecovery { .. }
+        | Operation::CachedGenerationRecovery { .. }
+        | Operation::Revoke { .. } => {
             anyhow::bail!("recovery operation reached linearization child")
         }
     };

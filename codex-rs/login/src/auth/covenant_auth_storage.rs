@@ -96,6 +96,17 @@ impl AuthTransaction {
             }
         }
     }
+
+    pub(super) async fn delete_if_unchanged(
+        &self,
+        expected: Option<&AuthDotJson>,
+    ) -> io::Result<bool> {
+        let storage = self.lock().await?;
+        if storage.load()?.as_ref() != expected {
+            return Ok(false);
+        }
+        storage.delete()
+    }
 }
 
 /// Keeps the exclusive OS lock until all operations using this backend finish.

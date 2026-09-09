@@ -954,7 +954,29 @@ pub async fn logout_with_revoke(
     keyring_backend_kind: AuthKeyringBackendKind,
     auth_route_config: &AuthRouteConfig,
 ) -> std::io::Result<bool> {
-    let auth_dot_json = match load_auth_dot_json(
+    let auth_dot_json = load_auth_for_revoke(
+        codex_home,
+        auth_credentials_store_mode,
+        keyring_backend_kind,
+    );
+    if let Err(err) = revoke_auth_tokens(auth_dot_json.as_ref(), auth_route_config).await {
+        tracing::warn!("failed to revoke auth tokens during logout: {err}");
+    }
+    logout_all_stores_after_revoke(
+        codex_home,
+        auth_credentials_store_mode,
+        keyring_backend_kind,
+        auth_dot_json.as_ref(),
+    )
+    .await
+}
+
+fn load_auth_for_revoke(
+    codex_home: &Path,
+    auth_credentials_store_mode: AuthCredentialsStoreMode,
+    keyring_backend_kind: AuthKeyringBackendKind,
+) -> Option<AuthDotJson> {
+    match load_auth_dot_json(
         codex_home,
         auth_credentials_store_mode,
         keyring_backend_kind,
@@ -964,15 +986,7 @@ pub async fn logout_with_revoke(
             tracing::warn!("failed to load stored auth during logout: {err}");
             None
         }
-    };
-    if let Err(err) = revoke_auth_tokens(auth_dot_json.as_ref(), auth_route_config).await {
-        tracing::warn!("failed to revoke auth tokens during logout: {err}");
     }
-    logout_all_stores(
-        codex_home,
-        auth_credentials_store_mode,
-        keyring_backend_kind,
-    )
 }
 
 /// Writes an `auth.json` that contains only the API key.
@@ -1438,6 +1452,40 @@ fn logout_all_stores(
         auth_credentials_store_mode,
         keyring_backend_kind,
     )?;
+    Ok(removed_ephemeral || removed_managed)
+}
+
+async fn logout_all_stores_after_revoke(
+    codex_home: &Path,
+    auth_credentials_store_mode: AuthCredentialsStoreMode,
+    keyring_backend_kind: AuthKeyringBackendKind,
+    revoked_auth: Option<&AuthDotJson>,
+) -> std::io::Result<bool> {
+    if auth_credentials_store_mode == AuthCredentialsStoreMode::Ephemeral {
+        return logout(
+            codex_home,
+            AuthCredentialsStoreMode::Ephemeral,
+            AuthKeyringBackendKind::default(),
+        );
+    }
+    let removed_ephemeral = logout(
+        codex_home,
+        AuthCredentialsStoreMode::Ephemeral,
+        AuthKeyringBackendKind::default(),
+    )?;
+    let storage = create_auth_storage(
+        codex_home.to_path_buf(),
+        auth_credentials_store_mode,
+        keyring_backend_kind,
+    );
+    #[cfg(not(windows))]
+    let _ = revoked_auth;
+    #[cfg(windows)]
+    if let Some(transaction) = storage.covenant_transaction() {
+        let removed_managed = transaction.delete_if_unchanged(revoked_auth).await?;
+        return Ok(removed_ephemeral || removed_managed);
+    }
+    let removed_managed = storage.delete()?;
     Ok(removed_ephemeral || removed_managed)
 }
 
@@ -2896,18 +2944,25 @@ impl AuthManager {
 
     pub async fn logout_with_revoke(&self) -> std::io::Result<bool> {
         self.ensure_logout_allowed()?;
-        let auth_dot_json = self
+        let auth_to_revoke = self
             .auth_cached()
             .and_then(|auth| auth.get_current_auth_json());
-        if let Err(err) = revoke_auth_tokens(auth_dot_json.as_ref(), &self.auth_route_config).await
-        {
-            tracing::warn!("failed to revoke auth tokens during logout: {err}");
-        }
-        let result = logout_all_stores(
+        let managed_auth = load_auth_for_revoke(
             &self.codex_home,
             self.auth_credentials_store_mode,
             self.keyring_backend_kind,
-        )?;
+        );
+        if let Err(err) = revoke_auth_tokens(auth_to_revoke.as_ref(), &self.auth_route_config).await
+        {
+            tracing::warn!("failed to revoke auth tokens during logout: {err}");
+        }
+        let result = logout_all_stores_after_revoke(
+            &self.codex_home,
+            self.auth_credentials_store_mode,
+            self.keyring_backend_kind,
+            managed_auth.as_ref(),
+        )
+        .await?;
         // Always reload to clear any cached auth (even if file absent).
         self.clear_external_auth();
         self.reload().await;

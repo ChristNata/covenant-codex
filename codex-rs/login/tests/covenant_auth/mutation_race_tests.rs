@@ -48,3 +48,19 @@ fn covenant_auth_permanent_failure_preserves_prior_and_explicit_login_recovers()
         FailureKind::Permanent,
     )
 }
+
+#[test]
+fn covenant_auth_revoke_success_preserves_newer_login() -> Result<()> {
+    recovery::revoke_with_newer_login(
+        "mutation_race_tests::covenant_auth_revoke_success_preserves_newer_login",
+        /*succeeds*/ true,
+    )
+}
+
+#[test]
+fn covenant_auth_revoke_failure_preserves_newer_login() -> Result<()> {
+    recovery::revoke_with_newer_login(
+        "mutation_race_tests::covenant_auth_revoke_failure_preserves_newer_login",
+        /*succeeds*/ false,
+    )
+}

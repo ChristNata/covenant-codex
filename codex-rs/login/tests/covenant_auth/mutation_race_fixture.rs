@@ -92,6 +92,9 @@ pub(super) enum Operation {
         prior: Box<AuthDotJson>,
         successor: Box<AuthDotJson>,
     },
+    Revoke {
+        expected: Box<AuthDotJson>,
+    },
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -99,6 +102,7 @@ pub(super) struct Fixture {
     pub root: PathBuf,
     pub operation: Operation,
     pub refresh_endpoint: String,
+    pub revoke_endpoint: String,
     pub agent_endpoint: String,
 }
 
@@ -140,6 +144,7 @@ pub(super) fn fixture(root: &Path, operation: Operation) -> Fixture {
         root: root.to_path_buf(),
         operation,
         refresh_endpoint: "http://127.0.0.1:9".to_string(),
+        revoke_endpoint: "http://127.0.0.1:9".to_string(),
         agent_endpoint: "http://127.0.0.1:9".to_string(),
     }
 }

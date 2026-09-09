@@ -5,6 +5,7 @@ use anyhow::Context;
 use anyhow::Result;
 use anyhow::ensure;
 use codex_login::REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR;
+use codex_login::REVOKE_TOKEN_URL_OVERRIDE_ENV_VAR;
 use fixture::Event;
 use fixture::Fixture;
 use fixture::Outcome;
@@ -55,6 +56,7 @@ impl Process {
                 REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR,
                 &fixture.refresh_endpoint,
             )
+            .env(REVOKE_TOKEN_URL_OVERRIDE_ENV_VAR, &fixture.revoke_endpoint)
             .env(fixture::AGENT_ENDPOINT, &fixture.agent_endpoint)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
