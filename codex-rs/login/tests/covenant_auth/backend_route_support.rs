@@ -3,8 +3,12 @@
 #![cfg(windows)]
 
 use super::auth_document;
+use super::backend_sink_http::ExpectedBody;
 use super::backend_sink_http::HttpFixture;
+use super::backend_sink_http::PkceExpectation;
 use super::backend_sink_http::Step;
+use super::backend_sink_http::assert_rejection_probes;
+use super::backend_sink_http::parse_form;
 use super::backend_sink_http::raw_get;
 use super::backend_sink_support::Fixture;
 use super::backend_sink_support::Scenario;
@@ -30,6 +34,7 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::path::Path;
 use std::sync::Arc;
+use std::sync::mpsc;
 
 pub(super) async fn exercise(fixture: &Fixture) -> Result<()> {
     match fixture.scenario {
@@ -87,8 +92,9 @@ async fn access_token_route(fixture: &Fixture) -> Result<()> {
                 "chatgpt_plan_type": "business",
                 "chatgpt_account_is_fedramp": false,
             }),
-            Some(token.clone()),
+            ExpectedBody::Empty,
         )
+        .map(|step| step.bearer(format!("Bearer {token}")))
     };
     let authority = HttpFixture::start(vec![response()?, response()?], |url| {
         // SAFETY: the isolated child uses a current-thread runtime, and the
@@ -122,20 +128,79 @@ async fn access_token_route(fixture: &Fixture) -> Result<()> {
 }
 
 async fn browser_route(fixture: &Fixture) -> Result<()> {
+    assert_rejection_probes()?;
     let expected = document(fixture, /*generation*/ 0)?;
+    let id_token = &expected
+        .tokens
+        .as_ref()
+        .context("browser token document missing")?
+        .id_token
+        .raw_jwt;
+    let (pkce_sender, pkce_binding) = mpsc::sync_channel(/*bound*/ 1);
     let authority = HttpFixture::start(
-        vec![Step::json(
-            "POST",
-            "/oauth/token",
-            /*status*/ 200,
-            token_body(&expected)?,
-            /*required*/ None,
-        )?],
+        vec![
+            Step::json(
+                "POST",
+                "/oauth/token",
+                /*status*/ 200,
+                token_body(&expected)?,
+                ExpectedBody::PkceForm {
+                    expected: form_fields(&[
+                        ("grant_type", "authorization_code"),
+                        ("code", "fixture-code"),
+                        ("client_id", codex_login::CLIENT_ID),
+                    ]),
+                    binding: pkce_binding,
+                },
+            )?,
+            Step::json(
+                "POST",
+                "/oauth/token",
+                /*status*/ 500,
+                json!({"message": "fixed fixture response"}),
+                form(&[
+                    (
+                        "grant_type",
+                        "urn:ietf:params:oauth:grant-type:token-exchange",
+                    ),
+                    ("client_id", codex_login::CLIENT_ID),
+                    ("requested_token", "openai-api-key"),
+                    ("subject_token", id_token),
+                    (
+                        "subject_token_type",
+                        "urn:ietf:params:oauth:token-type:id_token",
+                    ),
+                ]),
+            )?,
+        ],
         |_| Ok(()),
     )?;
     let login = run_login_server(server_options(fixture, authority.url().to_string()))?;
-    let port = login.actual_port;
-    let callback = tokio::task::spawn_blocking(move || follow_local_success(port));
+    let callback_port = login.actual_port;
+    let redirect_uri = format!("http://localhost:{callback_port}/auth/callback");
+    let query = login
+        .auth_url
+        .split_once('?')
+        .context("authorization query missing")?
+        .1;
+    let mut fields = parse_form(query.as_bytes())?;
+    assert_eq!(fields.remove("redirect_uri"), Some(redirect_uri.clone()));
+    assert_eq!(fields.remove("state").as_deref(), Some("fixed-state"));
+    assert_eq!(
+        fields.remove("code_challenge_method").as_deref(),
+        Some("S256")
+    );
+    let code_challenge = fields
+        .remove("code_challenge")
+        .context("challenge missing")?;
+    pkce_sender
+        .try_send(PkceExpectation {
+            redirect_uri,
+            code_challenge,
+        })
+        .context("PKCE binding duplicate or late")?;
+    drop(pkce_sender);
+    let callback = tokio::task::spawn_blocking(move || follow_local_success(callback_port));
     login.block_until_done().await?;
     callback.await??;
     authority.finish()?;
@@ -170,41 +235,53 @@ fn follow_local_success(port: u16) -> Result<()> {
 
 async fn device_route(fixture: &Fixture) -> Result<()> {
     let expected = document(fixture, /*generation*/ 0)?;
-    let authority = HttpFixture::start(
-        vec![
-            Step::json(
-                "POST",
-                "/api/accounts/deviceauth/usercode",
-                /*status*/ 200,
-                json!({
-                    "device_auth_id": "fixture-device",
-                    "user_code": "FIXTURE",
-                    "interval": "0",
-                }),
-                /*required*/ None,
-            )?,
-            Step::json(
-                "POST",
-                "/api/accounts/deviceauth/token",
-                /*status*/ 200,
-                json!({
-                    "authorization_code": "fixture-code",
-                    "code_challenge": "fixture-challenge",
-                    "code_verifier": "fixture-verifier",
-                }),
-                /*required*/ None,
-            )?,
-            Step::json(
-                "POST",
-                "/oauth/token",
-                /*status*/ 200,
-                token_body(&expected)?,
-                /*required*/ None,
-            )?,
-        ],
+    let authority = HttpFixture::start_dynamic(
+        |issuer| {
+            Ok(vec![
+                Step::json(
+                    "POST",
+                    "/api/accounts/deviceauth/usercode",
+                    /*status*/ 200,
+                    json!({
+                        "device_auth_id": "fixture-device",
+                        "user_code": "FIXTURE",
+                        "interval": "0",
+                    }),
+                    ExpectedBody::Json(json!({"client_id": codex_login::CLIENT_ID})),
+                )?,
+                Step::json(
+                    "POST",
+                    "/api/accounts/deviceauth/token",
+                    /*status*/ 200,
+                    json!({
+                        "authorization_code": "fixture-code",
+                        "code_challenge": "fixture-challenge",
+                        "code_verifier": "fixture-verifier",
+                    }),
+                    ExpectedBody::Json(json!({
+                        "device_auth_id": "fixture-device",
+                        "user_code": "FIXTURE",
+                    })),
+                )?,
+                Step::json(
+                    "POST",
+                    "/oauth/token",
+                    /*status*/ 200,
+                    token_body(&expected)?,
+                    form(&[
+                        ("grant_type", "authorization_code"),
+                        ("code", "fixture-code"),
+                        ("redirect_uri", &format!("{issuer}/deviceauth/callback")),
+                        ("client_id", codex_login::CLIENT_ID),
+                        ("code_verifier", "fixture-verifier"),
+                    ]),
+                )?,
+            ])
+        },
         |_| Ok(()),
     )?;
-    run_device_code_login(server_options(fixture, authority.url().to_string())).await?;
+    let issuer = authority.url().to_string();
+    run_device_code_login(server_options(fixture, issuer)).await?;
     authority.finish()?;
     probe_persisted_tokens(&fixture.root.join("mutable"), &expected).await
 }
@@ -240,7 +317,11 @@ async fn revoke_route(fixture: &Fixture, outcome: RevokeOutcome) -> Result<()> {
             "/oauth/revoke",
             status,
             json!({"message": "fixed fixture response"}),
-            Some(refresh),
+            ExpectedBody::Json(json!({
+                "token": refresh,
+                "token_type_hint": "refresh_token",
+                "client_id": codex_login::CLIENT_ID,
+            })),
         )?],
         |url| {
             // SAFETY: the isolated child uses a current-thread runtime, and the
@@ -349,6 +430,17 @@ fn server_options(fixture: &Fixture, issuer: String) -> ServerOptions {
         auth_keyring_backend_kind: AuthKeyringBackendKind::Direct,
         auth_route_config: route(),
     }
+}
+
+fn form(fields: &[(&str, &str)]) -> ExpectedBody {
+    ExpectedBody::Form(form_fields(fields))
+}
+
+fn form_fields(fields: &[(&str, &str)]) -> std::collections::BTreeMap<String, String> {
+    fields
+        .iter()
+        .map(|(name, value)| (name.to_string(), value.to_string()))
+        .collect()
 }
 
 fn token_body(document: &AuthDotJson) -> Result<serde_json::Value> {

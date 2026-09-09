@@ -5,6 +5,7 @@
 
 use anyhow::Context;
 use anyhow::Result;
+use anyhow::ensure;
 use codex_login::AuthCredentialsStoreMode;
 use codex_login::AuthDotJson;
 use codex_login::AuthKeyringBackendKind;
@@ -24,8 +25,12 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
+use std::time::Duration;
 
 const CHILD_TEST: &str = "COVENANT_AUTH_ROUTING_CHILD_TEST";
+const COMPLETE: &str = "COVENANT_AUTH_FIXTURE_COMPLETE";
+const OUTPUT_LIMIT: usize = 131_072;
+const EXIT_DEADLINE: Duration = Duration::from_secs(/*secs*/ 30);
 
 #[path = "covenant_auth/auto_persistence_support.rs"]
 mod auto_persistence_support;
@@ -166,7 +171,7 @@ fn run_scenario(test_name: &str, scenario: Scenario) -> Result<()> {
             .enable_all()
             .build()?
             .block_on(exercise_public_auth(&fixture))?;
-        println!("COVENANT_AUTH_FIXTURE_COMPLETE");
+        println!("{COMPLETE}");
         return Ok(());
     }
 
@@ -255,24 +260,34 @@ fn spawn_fixture(test_name: &str, fixture: &Fixture) -> Result<()> {
     if !matches!(fixture.operation, Operation::CallerHomeFallback) {
         command.env("CODEX_AUTH_HOME", fixture.root.join("auth"));
     }
-    let mut child = command.spawn()?;
+    let mut child =
+        bounded_child::BoundedChild::capture(command.spawn()?, OUTPUT_LIMIT, Some(COMPLETE))?;
     child
-        .stdin
-        .take()
+        .take_stdin()
         .context("fixture child stdin is unavailable")?
         .write_all(&serde_json::to_vec(fixture)?)?;
-    let output = child.wait_with_output()?;
+    let output = child.wait_for_exit(EXIT_DEADLINE)?;
+    ensure!(
+        !bounded_child::contains(&output.stdout, fixture.api_key.as_bytes())
+            && !bounded_child::contains(&output.stderr, fixture.api_key.as_bytes()),
+        "public auth fixture exposed its synthetic API key"
+    );
     let stdout =
         String::from_utf8_lossy(&output.stdout).replace(&fixture.api_key, "[synthetic key]");
     let stderr =
         String::from_utf8_lossy(&output.stderr).replace(&fixture.api_key, "[synthetic key]");
-    assert!(
-        output.status.success(),
-        "public auth fixture {test_name} failed\nstdout:\n{stdout}\nstderr:\n{stderr}"
+    ensure!(
+        matches!(
+            &output.settlement,
+            bounded_child::Settlement::Exited(status) if status.success()
+        ),
+        "public auth fixture {test_name} failed: {:?}\nstdout:\n{stdout}\nstderr:\n{stderr}",
+        output.settlement
     );
-    assert!(
-        stdout.contains("COVENANT_AUTH_FIXTURE_COMPLETE"),
-        "public auth fixture did not execute its assertions"
+    ensure!(
+        output.readiness_count == 1
+            && !bounded_child::contains(&output.stderr, COMPLETE.as_bytes()),
+        "public auth fixture completion marker count was not exactly one"
     );
     Ok(())
 }

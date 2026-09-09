@@ -180,6 +180,7 @@ fn remove_secrets_fixture(home: &Path) -> Result<()> {
     let fixture = home.join("secrets/codex_auth.age");
     if fixture.try_exists()? {
         fs::remove_file(fixture)?;
+        fs::remove_dir(home.join("secrets"))?;
     }
     Ok(())
 }
@@ -189,18 +190,69 @@ pub(super) fn assert_namespace_audit(
     identity: &KeyIdentity,
     audit: NamespaceAudit,
 ) -> Result<()> {
-    let operations: &[&str] = match fixture.backend {
-        NamespaceBackend::Direct => &["set", "get"],
-        NamespaceBackend::Secrets => &["get", "set", "get"],
+    let cleanup_identity = audit
+        .journal
+        .iter()
+        .find(|entry| entry.operation == "delete")
+        .context("delete journal entry missing")?
+        .identity
+        .clone();
+    assert_identity(NamespaceBackend::Direct, &cleanup_identity)?;
+    let (operations, operation_identities): (&[&str], Vec<&KeyIdentity>) = match fixture.backend {
+        NamespaceBackend::Direct => (&["set", "get", "delete", "get"], vec![identity; 4]),
+        NamespaceBackend::Secrets => {
+            ensure!(
+                identity.user.strip_prefix("secrets|")
+                    == cleanup_identity.user.strip_prefix("cli|"),
+                "selected Secrets and Direct identities diverged"
+            );
+            (
+                &["get", "set", "get", "get", "get", "delete", "get"],
+                vec![
+                    identity,
+                    identity,
+                    identity,
+                    identity,
+                    identity,
+                    &cleanup_identity,
+                    identity,
+                ],
+            )
+        }
     };
-    assert_eq!(audit.built, vec![identity.clone(); operations.len()]);
+    assert_eq!(
+        audit.built,
+        operation_identities
+            .iter()
+            .map(|identity| (*identity).clone())
+            .collect::<Vec<_>>()
+    );
     let mut identities: Vec<_> = audit.values.iter().map(|(key, _)| key.clone()).collect();
-    let mut expected_identities = vec![identity.clone()];
+    let mut expected_identities = match fixture.backend {
+        NamespaceBackend::Direct => Vec::new(),
+        NamespaceBackend::Secrets => vec![identity.clone()],
+    };
     if let Some(other) = &fixture.other_identity {
         expected_identities.push(other.clone());
         let decoy = audit.values.iter().find(|(key, _)| key == other);
         assert_eq!(decoy.map(|(_, value)| value), Some(&fixture.decoy));
     }
+    let auth = &fixture.auth;
+    let api_key = auth
+        .openai_api_key
+        .as_deref()
+        .context("selected API key missing")?;
+    let serialized = serde_json::to_vec(auth)?;
+    ensure!(
+        audit
+            .values
+            .iter()
+            .all(
+                |(identity, value)| fixture.other_identity.as_ref() == Some(identity)
+                    || (!contains(value, api_key.as_bytes()) && !contains(value, &serialized))
+            ),
+        "selected credential bytes retained"
+    );
     identities.sort();
     expected_identities.sort();
     assert_eq!(identities, expected_identities);
@@ -208,7 +260,8 @@ pub(super) fn assert_namespace_audit(
         audit.journal,
         operations
             .iter()
-            .map(|operation| NamespaceJournalEntry {
+            .zip(operation_identities)
+            .map(|(operation, identity)| NamespaceJournalEntry {
                 operation,
                 identity: identity.clone(),
             })
@@ -221,19 +274,24 @@ pub(super) fn assert_files(fixture: &NamespaceFixture) -> Result<()> {
     for (path, expected) in &fixture.canaries {
         assert_eq!(fs::read(fixture.root.join(path))?, *expected);
     }
-    let mut expected = fixture.canaries.keys().cloned().collect::<Vec<_>>();
+    let mut expected = CANARY_PATHS.map(|path| (1, PathBuf::from(path))).to_vec();
+    for path in ["alias-hop", "auth", "mutable", "other-auth"] {
+        expected.push((2, path.into()));
+    }
     let selected = fixture.selected_home.strip_prefix(&fixture.root)?;
-    expected.push(selected.join(".auth.lock"));
+    expected.push((1, selected.join(".auth.lock")));
     if matches!(fixture.backend, NamespaceBackend::Secrets) {
-        expected.push(selected.join("secrets/codex_auth.age"));
+        expected.push((2, selected.join("secrets")));
+        expected.push((1, selected.join("secrets/codex_auth.age")));
     }
     expected.sort();
     assert_eq!(file_inventory(&fixture.root)?, expected);
     Ok(())
 }
 
-fn file_inventory(root: &Path) -> Result<Vec<PathBuf>> {
+fn file_inventory(root: &Path) -> Result<Vec<(usize, PathBuf)>> {
     const ENTRY_LIMIT: usize = 64;
+    // Kind: 0 special, 1 file, 2 directory, 3 reparse.
     let mut pending = vec![root.to_path_buf()];
     let mut files = Vec::new();
     let mut entries_seen = 0;
@@ -243,11 +301,17 @@ fn file_inventory(root: &Path) -> Result<Vec<PathBuf>> {
             entries_seen += 1;
             ensure!(entries_seen <= ENTRY_LIMIT, "inventory overflow");
             let path = entry.path();
-            if entry.file_type()?.is_dir() {
-                pending.push(path);
+            let metadata = fs::symlink_metadata(&path)?;
+            let kind = if std::os::windows::fs::MetadataExt::file_attributes(&metadata) & 0x400 == 0
+            {
+                usize::from(metadata.is_file()) + 2 * usize::from(metadata.is_dir())
             } else {
-                files.push(path.strip_prefix(root)?.to_path_buf());
+                3
+            };
+            if kind == 2 {
+                pending.push(path.clone());
             }
+            files.push((kind, path.strip_prefix(root)?.to_path_buf()));
         }
     }
     files.sort();

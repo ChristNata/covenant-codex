@@ -3,6 +3,7 @@
 #![cfg(windows)]
 
 use super::auth_document;
+use super::backend_sink_http::ExpectedBody;
 use super::backend_sink_http::HttpFixture;
 use super::backend_sink_http::Step;
 use super::backend_sink_keyring::MemoryStore;
@@ -70,7 +71,11 @@ async fn refresh(
             "/oauth/token",
             /*status*/ 200,
             token_body(&next)?,
-            Some(refresh_token),
+            ExpectedBody::Json(json!({
+                "client_id": codex_login::CLIENT_ID,
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+            })),
         )?],
         |url| {
             // SAFETY: the isolated child uses a current-thread runtime, and

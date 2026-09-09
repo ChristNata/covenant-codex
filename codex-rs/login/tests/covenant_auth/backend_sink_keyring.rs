@@ -7,6 +7,7 @@ use anyhow::Result;
 use anyhow::ensure;
 use codex_login::AuthCredentialsStoreMode;
 use codex_login::load_auth_dot_json;
+use codex_login::logout;
 use codex_login::save_auth;
 use keyring::credential::Credential;
 use keyring::credential::CredentialApi;
@@ -282,6 +283,22 @@ pub(super) fn run_namespace_child() -> Result<()> {
             fixture.backend.kind(),
         )?,
         Some(fixture.auth.clone())
+    );
+    ensure!(
+        logout(
+            &fixture.root.join("mutable"),
+            AuthCredentialsStoreMode::Keyring,
+            fixture.backend.kind(),
+        )?,
+        "public keyring logout removed nothing"
+    );
+    assert_eq!(
+        load_auth_dot_json(
+            &fixture.root.join("mutable"),
+            AuthCredentialsStoreMode::Keyring,
+            fixture.backend.kind(),
+        )?,
+        None
     );
     let store = store.lock().unwrap_or_else(PoisonError::into_inner);
     let identity = store
