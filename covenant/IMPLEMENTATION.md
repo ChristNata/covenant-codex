@@ -634,6 +634,21 @@ Existing production satisfied the oracle, so no production code changed.
 Scoped fix and required formatting passed with only 20 inherited warnings.
 Evidence is `.git/covenant-session/f14-wave1-mutation-a1a-001/evidence.json`.
 
+### F14 W1.3a-1b login and metadata linearization - existing behavior verified
+
+The API-key login case passed alone as run
+`e872a239-ddae-4bfd-88d4-f392754ba6de`. The metadata case initially exposed
+two fixture-only path errors; after direct authoritative-file parsing it passed
+as `3c5236d9-a874-4b91-87e8-51cd0df930aa`. The combined final run
+`a4d684fd-29be-4c5a-8e5c-75a4b01af4fc` passed all three linearization cases.
+
+The tests require Busy contenders to preserve exact prior bytes and cache, then
+verify complete login replacement or metadata merge into the refreshed winner.
+Independent logic and size reviews passed. Scoped fix and required formatting
+passed with only 20 inherited warnings and no test repeat afterward. Existing
+production needed no edit. Evidence is
+`.git/covenant-session/f14-wave1-mutation-a1b-001/evidence.json`.
+
 F00 local checkpoint: `820438291b79b6d5dcf5481a4c8e4940b0ebfd91`,
 `feat(covenant): record and validate upstream authority inventory`. Exactly
 the two manifests, structural validator, focused test file and this ledger were

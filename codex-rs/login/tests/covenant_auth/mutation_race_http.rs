@@ -19,7 +19,11 @@ use std::time::Duration;
 
 #[derive(Clone)]
 pub(super) enum EndpointPlan {
-    RefreshSuccess { current: String, next: AuthDotJson },
+    RefreshSuccess {
+        current: String,
+        next: Box<AuthDotJson>,
+    },
+    AgentIdentity,
 }
 
 #[derive(Default)]
@@ -43,13 +47,19 @@ impl Endpoint {
         let (sender, accepted) = mpsc::channel();
         let shared = Arc::clone(&state);
         let server = thread::spawn(move || {
-            let Ok((stream, _)) = listener.accept() else {
-                return;
+            let count = if matches!(&plan, EndpointPlan::AgentIdentity) {
+                2
+            } else {
+                1
             };
-            if !lock_state(&shared).stop {
-                let _ = serve(
-                    stream, &plan, /*ordinal*/ 1, hold_first, &shared, &sender,
-                );
+            for ordinal in 1..=count {
+                let Ok((stream, _)) = listener.accept() else {
+                    break;
+                };
+                let stopped = lock_state(&shared).stop;
+                if stopped || serve(stream, &plan, ordinal, hold_first, &shared, &sender).is_err() {
+                    break;
+                }
             }
         });
         Ok(Self {
@@ -62,6 +72,10 @@ impl Endpoint {
 
     pub(super) fn refresh_url(&self) -> String {
         format!("http://{}/oauth/token", self.address)
+    }
+
+    pub(super) fn base_url(&self) -> String {
+        format!("http://{}", self.address)
     }
 
     pub(super) fn wait_accepted(&self, ordinal: u32) -> Result<()> {
@@ -150,6 +164,18 @@ fn serve(
             let tokens = next.tokens.as_ref().context("missing fixture tokens")?;
             serde_json::json!({"id_token": tokens.id_token.raw_jwt,
                 "access_token": tokens.access_token, "refresh_token": tokens.refresh_token})
+        }
+        EndpointPlan::AgentIdentity => {
+            if ordinal == 1 {
+                ensure!(route == "/v1/agent/register", "unexpected agent route");
+                serde_json::json!({"agent_runtime_id": "covenant-agent-runtime"})
+            } else {
+                ensure!(
+                    route == "/v1/agent/covenant-agent-runtime/task/register",
+                    "unexpected agent task route"
+                );
+                serde_json::json!({"task_id": "covenant-task"})
+            }
         }
     };
     {

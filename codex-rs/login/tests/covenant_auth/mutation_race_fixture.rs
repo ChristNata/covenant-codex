@@ -22,6 +22,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 pub(super) const CHILD: &str = "COVENANT_AUTH_MUTATION_RACE_CHILD";
+pub(super) const AGENT_ENDPOINT: &str = "CODEX_AGENT_IDENTITY_AUTHAPI_BASE_URL";
 pub(super) const PREFIX: &str = "COVENANT_MUTATION_RACE ";
 pub(super) const DEADLINE: Duration = Duration::from_secs(/*secs*/ 30);
 pub(super) const MAX_CHILD_INPUT_BYTES: usize = 16 * 1024;
@@ -55,6 +56,15 @@ pub(super) enum Operation {
         document: AuthDotJson,
         prior: Box<AuthDotJson>,
     },
+    Login {
+        api_key: String,
+        expected: AuthDotJson,
+        prior: Box<AuthDotJson>,
+    },
+    AgentMetadata {
+        expected_base: AuthDotJson,
+        prior: Box<AuthDotJson>,
+    },
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -62,6 +72,7 @@ pub(super) struct Fixture {
     pub root: PathBuf,
     pub operation: Operation,
     pub refresh_endpoint: String,
+    pub agent_endpoint: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -101,6 +112,7 @@ pub(super) fn fixture(root: &Path, operation: Operation) -> Fixture {
         root: root.to_path_buf(),
         operation,
         refresh_endpoint: "http://127.0.0.1:9".to_string(),
+        agent_endpoint: "http://127.0.0.1:9".to_string(),
     }
 }
 
@@ -120,6 +132,12 @@ pub(super) fn document(nonce: &str, generation: u32) -> Result<AuthDotJson> {
     }))?)
 }
 
+pub(super) fn api_key_document(api_key: &str) -> Result<AuthDotJson> {
+    Ok(serde_json::from_value(serde_json::json!({
+        "auth_mode": "apikey", "OPENAI_API_KEY": api_key
+    }))?)
+}
+
 fn prepare_root(root: &Path, initial: &AuthDotJson) -> Result<()> {
     fs::create_dir(root.join("auth"))?;
     fs::create_dir(root.join("mutable"))?;
@@ -129,6 +147,11 @@ fn prepare_root(root: &Path, initial: &AuthDotJson) -> Result<()> {
 
 pub(super) fn stored_bytes(root: &Path) -> Result<Vec<u8>> {
     Ok(fs::read(root.join("auth/auth.json"))?)
+}
+
+pub(super) fn stored(root: &Path) -> Result<AuthDotJson> {
+    serde_json::from_slice(&stored_bytes(root)?)
+        .map_err(|_| anyhow::anyhow!("stored fixture document is invalid"))
 }
 
 pub(super) fn assert_exact(root: &Path, expected: &AuthDotJson) -> Result<()> {
@@ -149,10 +172,15 @@ pub(super) fn load(root: &Path) -> Option<AuthDotJson> {
     .flatten()
 }
 
-pub(super) fn cache_tokens_match(manager: &AuthManager, expected: &AuthDotJson) -> bool {
-    manager
-        .auth_cached()
-        .is_some_and(|auth| auth.get_token_data().ok().as_ref() == expected.tokens.as_ref())
+pub(super) fn cache_token_or_key_matches(manager: &AuthManager, expected: &AuthDotJson) -> bool {
+    let Some(auth) = manager.auth_cached() else {
+        return false;
+    };
+    match (&expected.tokens, expected.openai_api_key.as_deref()) {
+        (Some(tokens), _) => auth.get_token_data().ok().as_ref() == Some(tokens),
+        (None, Some(api_key)) => auth.api_key() == Some(api_key),
+        (None, None) => false,
+    }
 }
 
 pub(super) async fn manager(root: &Path) -> Arc<AuthManager> {

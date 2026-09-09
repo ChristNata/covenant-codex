@@ -55,6 +55,7 @@ impl Process {
                 REFRESH_TOKEN_URL_OVERRIDE_ENV_VAR,
                 &fixture.refresh_endpoint,
             )
+            .env(fixture::AGENT_ENDPOINT, &fixture.agent_endpoint)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null());
