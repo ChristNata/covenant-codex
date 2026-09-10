@@ -2324,3 +2324,47 @@ The correction removes only selected malformed File auth under the transaction l
 Final-source runs dd01cfbf-eafd-4790-9b3f-b89d01cc90d5, 92a8251c-f9aa-4da5-86e6-104dd1f97050, and 05127631-3c99-4e5b-85e3-72ff3d274f72 passed 4/4 focused, 13/13 mutation, and 25/25 combined fork cases; three independent reviews returned PASS.
 Tests were not rerun after the required fix/format finalization per AGENTS.md. Evidence is .git/covenant-session/f14-wave1-cycle-b-final-evidence-20260909.json.
 Wave 1 re-review, Wave 2, native/product/inventory/re-audit/release, and external Harness gates remain pending.
+
+### F14 Wave 1 Cycle C CLI logout - reached defect fixed and committed
+
+Commit `c5d26099d664cb1e08c03aebf32829bd070644ea` changes exactly `codex-rs/cli/src/login.rs`,
+`codex-rs/cli/tests/login.rs`, and `codex-rs/cli/tests/login/covenant_logout_support.rs` (`393` additions, `1`
+deletion). The one-case RED proved that a concurrent replacement login was preserved but reported as absent; the
+one-case green proved the corrected preservation message. Evidence
+`.git/covenant-session/cycle3-f14-wave1-cycle-c-cli-logout-final-evidence-20260910.json`, SHA-256
+`ccbacb32c5ef0bb3f1460c35209ebd69f32546c747fee197b49e19e6135672c7`, binds both runs, the `394/394` R14 budget,
+four embedded independent no-findings reviews, terminal fix/format, and no test afterward.
+
+### F14 Wave 1 local closure - accepted; later F14 gates remain pending
+
+R15, amended by R16, closes the Wave 1 fixture review at commit `0e31a1560b8dc04282269f4b714aa0fa2618de15`:
+exactly six test-fixture paths, `566` additions plus `100` deletions, `666/735`, and every Rust module below 500
+physical lines. Historical test packet
+`.git/covenant-session/cycle3-f14-wave1-r15-r16-final-acceptance-20260910.json`, SHA-256
+`e17506bb2e3fef8124fbe30c2efaea11736a77599d34b195f3f3d5879a4eeb8c`, and hygiene bridge
+`.git/covenant-session/cycle3-f14-wave1-r15-r16-post-hygiene-bridge-20260910.json`, SHA-256
+`7f6bcd6f2e6e0fa460f78744b879b265f046481ebed1066c4fa0e852980244d8`, remain supporting evidence rather than
+substitutes for recovery.
+
+R21 final receipt `.git/covenant-session/cycle3-f14-wave1-r21-final-receipt-r3o-20260910.json`, SHA-256 `0f623f597d0e7da4001067fc99f487df9e5a0cdfeb8f9b0959537b0eb781576a`, binds focused namespace `1`, focused
+browser/device `1`, strengthened backend `12`, then root `6`, namespace `1`, backend `12`, focused mutation `4`,
+mutation `13`, and combined `25`, followed by terminal fix/format, permitted restoration, no later test, and the
+byte-identical clean `0e31a1560b8dc04282269f4b714aa0fa2618de15` tree. Independent receipt review
+`.git/covenant-session/cycle3-f14-wave1-r21-final-receipt-independent-review-r3o-20260910.json`, SHA-256 `5f3c528855c880ccd5bd38567996093cf9d5daf70e1d6ec2115445ccf48d690f`, and superseding closure audit `.git/covenant-session/cycle3-f14-wave1-superseding-closure-audit-r3o-20260910.json`,
+SHA-256 `c0f97bdf48c771fc3d663ad845346d69caef48a0d30057ac2e6a2d032e23be99`, return no-findings/PASS. Final Wave 2 rebind `.git/covenant-session/f14-wave2-execution-rebind-r4-final-pass-20260910.json`, SHA-256
+`f590332564f36fffeb912e2a1bb72ca1b90666bf6d5eb5dd18b4c2b5b5819758`, returns PASS and binds this closure as the W2.0 preimage.
+
+Recovery validation GREEN ledger
+`.git/covenant-session/local-validation-recovery-green-r3o-e49f1a81-450e-438a-9cc7-bb551b296f50-iteration-ledger.json`,
+SHA-256 `07923a69cfc5a353e0e004b9794b54802e3e22fd601c3ebd38648c91eede488c`, and independent review
+`.git/covenant-session/local-validation-recovery-green-r3o-e49f1a81-450e-438a-9cc7-bb551b296f50-focused-review-pass-wave1-closure-backend-lane.json`,
+SHA-256 `c988b12b5b20db50514179dc6c55ce5603e72bc6a77735915056cd9540f2a777`, bind the `125/125` pure correction.
+Restoration receipt
+`.git/covenant-session/cycle3-f14-wave1-r3o-green-restoration-receipt-5b38e7e6-6eeb-442d-a88d-55c7f7fc641a.json`,
+SHA-256 `f89d4263f4fbe5118fc33cb36354adb1fbeacd8e810f19f22d7dda4382eeb061`, binds the exact 193-path restoration
+and clean committed tree without another test, fix, or format.
+
+This closes only fork-owned local F14 Wave 1. W2.0-W2.3, Windows/Linux/macOS closure, real Harness-home
+separation, the real-path secret canary, native/product and Bazel acceptance, inventory, semantic re-audit,
+release, provenance, adoption, and external Harness pin/C7 verification remain pending. No complete F14,
+platform, external, product, release, or adoption acceptance is claimed, and no push occurred.
