@@ -2368,3 +2368,22 @@ This closes only fork-owned local F14 Wave 1. W2.0-W2.3, Windows/Linux/macOS clo
 separation, the real-path secret canary, native/product and Bazel acceptance, inventory, semantic re-audit,
 release, provenance, adoption, and external Harness pin/C7 verification remain pending. No complete F14,
 platform, external, product, release, or adoption acceptance is claimed, and no push occurred.
+
+### E01: real-decider acceptance attempted - remains external-pending
+
+The Covenant-Harness `main` checkout at `94e666a77128d989ca21cfad0d70ce057ffd1063` built
+`covenant-cli.exe` successfully with `RUSTFLAGS=-C debuginfo=0 cargo build -p covenant-cli`.
+The binary's `hook decide --client codex` accepted the fork-shaped F10 Exec envelope and returned
+`{"decision":"ALLOW"}` for a benign `git.exe status --short` request. It returned a remediated
+`DENY` for a marked-child `covenant-cli.exe dispatch-run` request. Both fork-shaped Patch envelopes
+were parsed by the same binary and returned `DENY` with reason
+`Patch requires a launcher-bound trusted authority packet.` The fork's actual patch entrypoint
+returned exit `2` and left the target bytes unchanged with that decider selected.
+
+The full four-case E01 acceptance is **not green**: `trusted_patch_produces()` in that real decider
+unconditionally errors, and its positive G4 Patch test is explicitly ignored pending the
+launcher/worker-bound authority packet owned by G5/C5/P5. The current Codex constrained response
+fixture also emits only its completion marker, so it cannot claim a real `exec_command`/`apply_patch`
+tool-call run. Raw commands and decision JSON are recorded in
+`covenant/e01-real-decider-evidence.json`. Do not mark E01 or F33 green, and do not publish until a
+Harness decider with the live Patch authority packet is supplied.

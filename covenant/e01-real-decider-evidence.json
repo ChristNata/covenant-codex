@@ -1,0 +1,68 @@
+{
+  "format": "covenant-e01-real-decider-v1",
+  "status": "blocked",
+  "branch": "covenant-ver",
+  "codex_commit": "962208212b2c34df7b1d5c83bc865158af7cbd75",
+  "decider": {
+    "source_repository": "ChristNata/Covenant-Harness",
+    "source_branch": "main",
+    "source_commit": "94e666a77128d989ca21cfad0d70ce057ffd1063",
+    "build_command": "RUSTFLAGS=-C debuginfo=0 cargo build -p covenant-cli (from backend/)",
+    "path": "C:\\Users\\Chrisyian\\RustroverProjects\\Covenant-Harness\\backend\\target\\debug\\covenant-cli.exe",
+    "sha256": "303623F5E9F6FC42CAE9563A1122FBB5FB380DAFD625A04BA540049C8FB9D1C4"
+  },
+  "cases": [
+    {
+      "name": "exec_allow",
+      "command": "covenant-cli.exe hook decide --client codex < exec_allow.json",
+      "decision": { "decision": "ALLOW" },
+      "schema_parse_error": false
+    },
+    {
+      "name": "exec_deny",
+      "command": "covenant-cli.exe hook decide --client codex < exec_deny.json",
+      "decision": {
+        "decision": "DENY",
+        "reason": "nested dispatch is blocked for an OC child.",
+        "remediation": "Ask the orchestrator to dispatch child work; do not invoke covenant-cli dispatch-run."
+      },
+      "schema_parse_error": false
+    },
+    {
+      "name": "patch_allow_candidate",
+      "command": "covenant-cli.exe hook decide --client codex < patch_in_scope.json",
+      "decision": {
+        "decision": "DENY",
+        "reason": "Patch requires a launcher-bound trusted authority packet.",
+        "remediation": "Ask the orchestrator to resolve this Covenant policy denial before retrying."
+      },
+      "schema_parse_error": false
+    },
+    {
+      "name": "patch_deny_candidate",
+      "command": "covenant-cli.exe hook decide --client codex < patch_outside.json",
+      "decision": {
+        "decision": "DENY",
+        "reason": "Patch requires a launcher-bound trusted authority packet.",
+        "remediation": "Ask the orchestrator to resolve this Covenant policy denial before retrying."
+      },
+      "schema_parse_error": false
+    }
+  ],
+  "codex_gate_observation": {
+    "command": "codex.exe --codex-run-as-apply-patch < update_existing.txt.patch",
+    "decider_path": "C:\\Users\\Chrisyian\\RustroverProjects\\Covenant-Harness\\backend\\target\\debug\\covenant-cli.exe",
+    "exit_code": 2,
+    "stdout": "",
+    "stderr": "Covenant patch entrypoint refused\n",
+    "bytes_unchanged": true
+  },
+  "acceptance": {
+    "exec_allow": true,
+    "exec_deny": true,
+    "patch_allow": false,
+    "patch_deny": true,
+    "all_four_end_to_end": false
+  },
+  "blocker": "Harness main still implements trusted_patch_produces() as an unconditional error; its positive G4 Patch test is ignored pending a launcher/worker-bound authority packet from G5/C5/P5. The existing Codex constrained response fixture emits only a completion marker and does not emit exec_command/apply_patch calls."
+}
