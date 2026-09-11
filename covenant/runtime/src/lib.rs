@@ -11,6 +11,7 @@ mod exec_envelope;
 #[cfg(windows)]
 mod launch_contract;
 mod numbers;
+mod sidecar;
 mod values;
 #[cfg(windows)]
 mod windows_environment;
@@ -48,6 +49,7 @@ pub use launch_contract::LaunchContract;
 pub use launch_contract::LaunchContractError;
 #[cfg(windows)]
 pub use launch_contract::StartupControls;
+pub use sidecar::{SidecarClient, SidecarDecision, SidecarError};
 #[cfg(windows)]
 pub use windows_environment::FrozenWindowsEnvironment;
 #[cfg(windows)]

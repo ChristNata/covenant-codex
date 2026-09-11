@@ -2816,6 +2816,7 @@ dependencies = [
  "codex-connectors",
  "codex-context-fragments",
  "codex-core-plugins",
+ "codex-covenant",
  "codex-diagnostics",
  "codex-exec-server",
  "codex-exec-server-test-support",
@@ -3002,6 +3003,15 @@ dependencies = [
  "which 8.0.0",
  "wiremock",
  "zip",
+]
+
+[[package]]
+name = "codex-covenant"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

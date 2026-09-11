@@ -9,12 +9,13 @@ name = "codex_core"
 path = "src/lib.rs"
 
 [features]
-covenant = []
+covenant = ["dep:codex-covenant"]
 
 [lints]
 workspace = true
 
 [dependencies]
+codex-covenant = { workspace = true, optional = true }
 anyhow = { workspace = true }
 arc-swap = { workspace = true }
 async-channel = { workspace = true }

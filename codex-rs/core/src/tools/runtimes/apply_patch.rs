@@ -171,6 +171,10 @@ impl ToolRuntime<ApplyPatchRequest, ApplyPatchRuntimeOutput> for ApplyPatchRunti
         attempt: &SandboxAttempt<'_>,
         _ctx: &ToolCtx,
     ) -> Result<ApplyPatchRuntimeOutput, ToolError> {
+        #[cfg(feature = "covenant")]
+        super::covenant_patch_gate::prepare_patch(&req.action.patch, &req.action.cwd)
+            .map_err(|error| ToolError::Rejected(error.to_string()))?;
+
         let started_at = Instant::now();
         let fs = req.turn_environment.environment.get_filesystem();
         let sandbox = Self::file_system_sandbox_context_for_attempt(req, attempt);

@@ -55,7 +55,7 @@ class ReleasePromotionTests(unittest.TestCase):
         self.sidecar.write_text(
             "\n".join(
                 [
-                    'schema_version = 1',
+                    "schema_version = 1",
                     'status = "ready"',
                     'url = "https://example.invalid/covenant-cli.exe"',
                     f'sha256 = "{"d" * 64}"',
@@ -151,7 +151,7 @@ class ReleasePromotionTests(unittest.TestCase):
 
     def test_missing_real_sidecar_evidence_refuses_promotion(self):
         self.sidecar.write_text(
-            "schema_version = 1\nstatus = \"pending\"\n", encoding="utf-8"
+            'schema_version = 1\nstatus = "pending"\n', encoding="utf-8"
         )
         with self.assertRaises(self.promote.PromotionError):
             self.invoke()

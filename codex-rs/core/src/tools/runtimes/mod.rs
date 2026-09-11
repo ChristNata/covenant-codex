@@ -30,6 +30,8 @@ use std::collections::HashMap;
 use std::path::Path;
 
 pub(crate) mod apply_patch;
+#[cfg(feature = "covenant")]
+mod covenant_patch_gate;
 pub(crate) mod unified_exec;
 pub(crate) mod zsh_fork;
 
