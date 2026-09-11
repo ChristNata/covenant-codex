@@ -437,6 +437,23 @@ impl<'a> ToolRuntime<UnifiedExecRequest, UnifiedExecAttempt> for UnifiedExecRunt
             sidecar_permissions.as_ref(),
         );
 
+        #[cfg(all(feature = "covenant", windows))]
+        {
+            if environment_is_remote {
+                return Err(ToolError::Rejected(
+                    "Covenant exec authorization requires a local Windows environment".to_string(),
+                ));
+            }
+            super::covenant_exec_gate::authorize_exec(
+                &command,
+                &req.cwd,
+                &env,
+                "workspace-write",
+                managed_network_context.is_some() || network_proxy_launch.is_some(),
+            )
+            .map_err(ToolError::Rejected)?;
+        }
+
         if let UnifiedExecShellMode::ZshFork(zsh_fork_config) = &self.shell_mode {
             let command = build_unified_exec_sandbox_command(
                 &command,

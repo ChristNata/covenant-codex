@@ -16,6 +16,7 @@ workspace = true
 
 [dependencies]
 codex-covenant = { workspace = true, optional = true }
+sha2 = { workspace = true }
 anyhow = { workspace = true }
 arc-swap = { workspace = true }
 async-channel = { workspace = true }
@@ -127,6 +128,12 @@ url = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v4", "v5", "v7"] }
 which = { workspace = true }
 whoami = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+] }
 
 # Build OpenSSL from source for musl builds.
 [target.x86_64-unknown-linux-musl.dependencies]

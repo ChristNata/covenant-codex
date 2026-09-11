@@ -172,8 +172,15 @@ impl ToolRuntime<ApplyPatchRequest, ApplyPatchRuntimeOutput> for ApplyPatchRunti
         _ctx: &ToolCtx,
     ) -> Result<ApplyPatchRuntimeOutput, ToolError> {
         #[cfg(feature = "covenant")]
-        super::covenant_patch_gate::prepare_patch(&req.action.patch, &req.action.cwd)
-            .map_err(|error| ToolError::Rejected(error.to_string()))?;
+        super::covenant_patch_gate::authorize_patch(
+            &req.action.patch,
+            &req.action.cwd,
+            attempt.workspace_roots,
+            "workspace-write",
+            attempt.enforce_managed_network,
+            false,
+        )
+        .map_err(|error| ToolError::Rejected(error.to_string()))?;
 
         let started_at = Instant::now();
         let fs = req.turn_environment.environment.get_filesystem();

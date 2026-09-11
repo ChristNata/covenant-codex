@@ -11,6 +11,7 @@ mod exec_envelope;
 #[cfg(windows)]
 mod launch_contract;
 mod numbers;
+mod patch;
 mod sidecar;
 mod values;
 #[cfg(windows)]
@@ -49,6 +50,11 @@ pub use launch_contract::LaunchContract;
 pub use launch_contract::LaunchContractError;
 #[cfg(windows)]
 pub use launch_contract::StartupControls;
+pub use patch::{
+    AncestorIdentity, IdentityKind, PatchHunk, PatchHunkLine, PatchHunkLineKind, PatchOperation,
+    PatchOperationKind, PatchPermissions, PatchRequest, PatchRequestError, ResolvedIdentity,
+    encode_patch_request,
+};
 pub use sidecar::{SidecarClient, SidecarDecision, SidecarError};
 #[cfg(windows)]
 pub use windows_environment::FrozenWindowsEnvironment;
