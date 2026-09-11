@@ -143,6 +143,16 @@ struct MultitoolCli {
     #[cfg(feature = "covenant")]
     #[arg(long = "covenant-inventory")]
     covenant_inventory: bool,
+
+    /// Internal parser guard: Covenant invocations must select a subcommand.
+    #[cfg(feature = "covenant")]
+    #[arg(
+        long = "__covenant-subcommand",
+        hide = true,
+        required = true,
+        default_value_if("covenant_inventory", "true", "inventory")
+    )]
+    _covenant_subcommand: Option<String>,
 }
 
 #[derive(Debug, clap::Subcommand)]
@@ -1106,6 +1116,8 @@ async fn cli_main(
         subcommand,
         #[cfg(feature = "covenant")]
         covenant_inventory,
+        #[cfg(feature = "covenant")]
+            _covenant_subcommand: _,
     } = MultitoolCli::parse();
     // Fold --enable/--disable into config overrides so they flow to all subcommands.
     let toggle_overrides = feature_toggles.to_overrides()?;
