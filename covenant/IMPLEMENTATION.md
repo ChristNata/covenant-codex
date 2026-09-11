@@ -2405,3 +2405,15 @@ workflow records the pinned toolchain, exact executable digest, runtime
 inventory certificate, commit-bound re-audit receipt, and GitHub build
 provenance attestation before publication. The promoted artifact documents the
 Option-B sidecar residual and is suitable for the later Harness pin handoff.
+
+The first attested release is `covenant-v0.1.4`, built from source commit
+`b930d7795a58ca45cad0fdef9cd3269b2b202562` by workflow run
+[`34639076046`](https://github.com/ChristNata/covenant-codex/actions/runs/34639076046).
+The Windows executable is published at
+[`codex-x86_64-pc-windows-msvc.exe`](https://github.com/ChristNata/covenant-codex/releases/download/covenant-v0.1.4/codex-x86_64-pc-windows-msvc.exe)
+with SHA-256
+`0e24376add35ffb3b72766632b98433e5cd4aca4d891d9b91ad725fb99e459f8`.
+The release inventory certificate records inventory ID
+`1dc48a4cf34e9e9df46a94d6d5e01fee5e72458464704537ae11f82ee527bdf0`.
+`gh attestation verify` passed for the downloaded executable with the
+release workflow and `refs/tags/covenant-v0.1.4` identity constraints.

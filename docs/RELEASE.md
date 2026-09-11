@@ -83,7 +83,7 @@ runner image, executable digest, inventory digest, and re-audit
 run identity. No signer field. Those fields live in
 `provenance.json` and inventory evidence, not in the harness pin.
 
-The future promote job must emit a GitHub build-provenance attestation
+The promote job emits a GitHub build-provenance attestation
 (`actions/attest-build-provenance`) binding the exe digest to the
 immutable workflow run, source commit, and tag. This is an
 attestation, not a code signature — it needs no certificate and
@@ -92,6 +92,14 @@ harness verifies it (`gh attestation verify`) before pinning; a
 missing or failed attestation, or a digest not bound to the
 F31-green build, refuses the pin. This closes the mutable-Release-
 metadata gap that SHA-256-from-the-same-Release alone leaves open.
+
+The first attested release is [`covenant-v0.1.4`](https://github.com/ChristNata/covenant-codex/releases/tag/covenant-v0.1.4).
+Its executable URL is
+[`codex-x86_64-pc-windows-msvc.exe`](https://github.com/ChristNata/covenant-codex/releases/download/covenant-v0.1.4/codex-x86_64-pc-windows-msvc.exe),
+with SHA-256
+`0e24376add35ffb3b72766632b98433e5cd4aca4d891d9b91ad725fb99e459f8`.
+The attestation was verified with `gh attestation verify` against the
+release workflow and `refs/tags/covenant-v0.1.4`.
 
 ## GitHub Release layout
 
