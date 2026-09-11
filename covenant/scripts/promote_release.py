@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import shutil
+import tomllib
 
 
 EXE_NAME = "codex-x86_64-pc-windows-msvc.exe"
@@ -23,6 +24,26 @@ COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 
 class PromotionError(Exception):
     """Raised when promotion evidence is absent, malformed, or inconsistent."""
+
+
+def _require_sidecar_fixture(path: Path) -> dict:
+    try:
+        with path.open("rb") as stream:
+            fixture = tomllib.load(stream)
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        raise PromotionError("missing or invalid real-sidecar fixture") from error
+    if fixture.get("schema_version") != 1 or fixture.get("status") != "ready":
+        raise PromotionError("real-sidecar evidence is not ready")
+    url = fixture.get("url")
+    if not isinstance(url, str) or not url.startswith("https://"):
+        raise PromotionError("invalid real-sidecar URL")
+    digest = fixture.get("sha256")
+    if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
+        raise PromotionError("invalid real-sidecar digest")
+    for name in ("g4_schema_id", "g4_semantics_id"):
+        if not isinstance(fixture.get(name), str) or not fixture[name].strip():
+            raise PromotionError(f"missing real-sidecar {name}")
+    return fixture
 
 
 def _json(path: Path):
@@ -63,10 +84,12 @@ def assemble_provenance(
     toolchain: str,
     runner: str,
     patches_path: Path,
+    sidecar_fixture_path: Path,
     output_dir: Path,
 ):
     """Validate F33 evidence, then create an isolated five-asset directory."""
     source_commit = _require_text(source_commit, COMMIT, "source commit")
+    sidecar = _require_sidecar_fixture(sidecar_fixture_path)
     if not isinstance(tag, str) or not tag or any(char in tag for char in "\r\n"):
         raise PromotionError("invalid tag")
     if not isinstance(toolchain, str) or not toolchain:
@@ -121,6 +144,12 @@ def assemble_provenance(
             "exe_digest": actual_digest,
             "inventory_digest": _digest(inventory_path),
             "re_audit_run_id": audit_run_id,
+            "sidecar": {
+                "url": sidecar["url"],
+                "sha256": sidecar["sha256"],
+                "g4_schema_id": sidecar["g4_schema_id"],
+                "g4_semantics_id": sidecar["g4_semantics_id"],
+            },
         }
         (output_dir / "provenance.json").write_text(
             json.dumps(provenance, sort_keys=True, indent=2) + "\n", encoding="utf-8"
@@ -142,6 +171,7 @@ def main(argv=None) -> int:
     parser.add_argument("--toolchain", required=True)
     parser.add_argument("--runner", default="windows-2022")
     parser.add_argument("--patches", type=Path, required=True)
+    parser.add_argument("--sidecar-fixture", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
@@ -155,6 +185,7 @@ def main(argv=None) -> int:
             toolchain=args.toolchain,
             runner=args.runner,
             patches_path=args.patches,
+            sidecar_fixture_path=args.sidecar_fixture,
             output_dir=args.output_dir,
         )
         print(

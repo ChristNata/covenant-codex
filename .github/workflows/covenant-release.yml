@@ -173,6 +173,7 @@ jobs:
             --tag $env:GITHUB_REF_NAME `
             --toolchain '1.95.0' `
             --patches (Join-Path $env:GITHUB_WORKSPACE 'COVENANT_PATCHES.md') `
+            --sidecar-fixture (Join-Path $env:GITHUB_WORKSPACE 'covenant/sidecar-fixture.toml') `
             --output-dir $output
           if ($LASTEXITCODE -ne 0) { throw 'release evidence validation refused promotion' }
 

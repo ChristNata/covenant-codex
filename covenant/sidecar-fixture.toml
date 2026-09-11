@@ -1,0 +1,12 @@
+# External E01 evidence manifest.  This file is deliberately fail-closed until
+# a real Windows covenant-cli Release asset has been independently verified.
+schema_version = 1
+status = "pending"
+url = ""
+sha256 = ""
+g4_schema_id = ""
+g4_semantics_id = ""
+
+# The first live certification must record the exact sidecar release and the
+# attested G4 contract that evaluates complete env plus all F13 identities.
+# A local stub or a synthetic test fixture must never be copied here.

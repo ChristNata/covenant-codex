@@ -51,6 +51,21 @@ class ReleasePromotionTests(unittest.TestCase):
             + "\n",
             encoding="utf-8",
         )
+        self.sidecar = self.repo / "sidecar-fixture.toml"
+        self.sidecar.write_text(
+            "\n".join(
+                [
+                    'schema_version = 1',
+                    'status = "ready"',
+                    'url = "https://example.invalid/covenant-cli.exe"',
+                    f'sha256 = "{"d" * 64}"',
+                    'g4_schema_id = "decide-v1-sha256:test"',
+                    'g4_semantics_id = "g4-codex-v1:test"',
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
 
     def invoke(self):
         return self.promote.assemble_provenance(
@@ -63,6 +78,7 @@ class ReleasePromotionTests(unittest.TestCase):
             toolchain="1.95.0",
             runner="windows-2022",
             patches_path=self.patches,
+            sidecar_fixture_path=self.sidecar,
             output_dir=self.output,
         )
 
@@ -71,6 +87,7 @@ class ReleasePromotionTests(unittest.TestCase):
         self.assertEqual(provenance["source_commit"], "a" * 40)
         self.assertEqual(provenance["tag"], "v0.1.0-covenant")
         self.assertEqual(provenance["re_audit_run_id"], "run-1")
+        self.assertEqual(provenance["sidecar"]["g4_semantics_id"], "g4-codex-v1:test")
         self.assertEqual(
             provenance["exe_digest"], provenance["inventory"]["binary_digest"]
         )
@@ -119,6 +136,7 @@ class ReleasePromotionTests(unittest.TestCase):
             "actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661",
             workflow,
         )
+        self.assertIn("--sidecar-fixture", workflow)
 
         self.reaudit.write_text(
             json.dumps({"status": "passed", "commit": "a" * 40, "run_id": "run-1"}),
@@ -126,6 +144,14 @@ class ReleasePromotionTests(unittest.TestCase):
         )
         self.patches.write_text(
             "Final hunk hashes do not exist yet.\n", encoding="utf-8"
+        )
+        with self.assertRaises(self.promote.PromotionError):
+            self.invoke()
+        self.assertFalse(self.output.exists())
+
+    def test_missing_real_sidecar_evidence_refuses_promotion(self):
+        self.sidecar.write_text(
+            "schema_version = 1\nstatus = \"pending\"\n", encoding="utf-8"
         )
         with self.assertRaises(self.promote.PromotionError):
             self.invoke()
