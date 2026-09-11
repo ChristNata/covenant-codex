@@ -1,0 +1,48 @@
+name: Covenant semantic re-audit
+
+on:
+  pull_request:
+    branches: [covenant-ver]
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reaudit:
+    if: github.repository == 'ChristNata/covenant-codex'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout the candidate tree
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python 3.12.1
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12.1'
+          check-latest: false
+
+      - name: Validate commit-bound integration and inventory
+        shell: bash
+        run: >-
+          python covenant/scripts/validate_integration.py
+          --repo .
+          --upstream covenant/UPSTREAM.toml
+          --integration covenant/INTEGRATION-FILES.toml
+          --inventory covenant/AUTHORITY-INVENTORY.toml
+
+      - name: Compile and run semantic sink instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustc --edition=2021 --test covenant/tests/sink_instrumentation.rs -o /tmp/covenant-sink-tests
+          /tmp/covenant-sink-tests --quiet
+          rustc --edition=2021 covenant/tests/sink_instrumentation.rs -o /tmp/covenant-sink
+          /tmp/covenant-sink .

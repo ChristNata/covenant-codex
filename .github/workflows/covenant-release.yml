@@ -2,6 +2,9 @@ name: Covenant Windows artifact
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'covenant-v*'
 
 permissions:
   contents: read
@@ -112,3 +115,82 @@ jobs:
           if-no-files-found: error
           overwrite: false
           include-hidden-files: false
+
+  promote:
+    if: github.repository == 'ChristNata/covenant-codex' && startsWith(github.ref, 'refs/tags/covenant-v')
+    needs: windows-artifact
+    runs-on: windows-2022
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout the immutable tagged commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download the build artifact pair
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: covenant-windows-${{ github.run_id }}-${{ github.run_attempt }}
+          path: covenant/windows-build/artifacts/promote-input
+
+      - name: Require the immutable F31 re-audit receipt
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receipt = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/reaudit.json'
+          if (!(Test-Path -LiteralPath $receipt -PathType Leaf)) {
+            throw 'F33 promotion requires covenant/windows-build/reaudit.json from the F31-green immutable commit'
+          }
+
+      - name: Generate the runtime inventory certificate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input/codex-x86_64-pc-windows-msvc.exe'
+          $inventory = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input/inventory.json'
+          & $exe --covenant-inventory | Out-File -LiteralPath $inventory -Encoding utf8NoBOM
+          if ($LASTEXITCODE -ne 0) { throw 'runtime inventory refused the built executable' }
+
+      - name: Assemble and validate the five release assets
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = (git rev-parse HEAD).Trim()
+          $input = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input'
+          $output = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promoted'
+          python covenant/scripts/promote_release.py `
+            --repo $env:GITHUB_WORKSPACE `
+            --artifact-dir $input `
+            --inventory (Join-Path $input 'inventory.json') `
+            --reaudit (Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/reaudit.json') `
+            --source-commit $source `
+            --tag $env:GITHUB_REF_NAME `
+            --toolchain '1.95.0' `
+            --patches (Join-Path $env:GITHUB_WORKSPACE 'COVENANT_PATCHES.md') `
+            --output-dir $output
+          if ($LASTEXITCODE -ne 0) { throw 'release evidence validation refused promotion' }
+
+      - name: Generate build provenance attestation
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661
+        with:
+          subject-path: covenant/windows-build/artifacts/promoted/codex-x86_64-pc-windows-msvc.exe
+
+      - name: Publish the audited GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $assets = Get-ChildItem -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promoted') -File
+          if ($assets.Count -ne 5) { throw 'promotion did not produce exactly five release assets' }
+          gh release create $env:GITHUB_REF_NAME `
+            --repo $env:GITHUB_REPOSITORY `
+            --title "Covenant Codex $env:GITHUB_REF_NAME" `
+            --generate-notes `
+            $assets.FullName

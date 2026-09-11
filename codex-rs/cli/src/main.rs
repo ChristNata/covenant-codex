@@ -46,6 +46,8 @@ use supports_color::Stream;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod app_cmd;
 mod cloud_config;
+#[cfg(feature = "covenant")]
+mod covenant_inventory;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod desktop_app;
 mod doctor;
@@ -117,7 +119,6 @@ use codex_terminal_detection::TerminalName;
 #[cfg_attr(
     feature = "covenant",
     clap(
-        subcommand_required = true,
         long_about = "Codex CLI\n\nA subcommand is required. Use exec, login, or logout.",
         override_usage = "codex [OPTIONS] <COMMAND> [ARGS]"
     )
@@ -137,6 +138,11 @@ struct MultitoolCli {
 
     #[clap(subcommand)]
     subcommand: Option<Subcommand>,
+
+    /// Emit the runtime Covenant inventory certificate as JSON.
+    #[cfg(feature = "covenant")]
+    #[arg(long = "covenant-inventory")]
+    covenant_inventory: bool,
 }
 
 #[derive(Debug, clap::Subcommand)]
@@ -1098,6 +1104,8 @@ async fn cli_main(
         remote,
         mut interactive,
         subcommand,
+        #[cfg(feature = "covenant")]
+        covenant_inventory,
     } = MultitoolCli::parse();
     // Fold --enable/--disable into config overrides so they flow to all subcommands.
     let toggle_overrides = feature_toggles.to_overrides()?;
@@ -1127,6 +1135,15 @@ async fn cli_main(
     interactive
         .shared
         .take_auto_review_config_overrides(&mut root_config_overrides);
+    #[cfg(feature = "covenant")]
+    if covenant_inventory {
+        covenant_inventory::run(&root_config_overrides).await?;
+        return Ok(());
+    }
+    #[cfg(feature = "covenant")]
+    if subcommand.is_none() {
+        anyhow::bail!("`codex` requires a subcommand");
+    }
     reject_root_strict_config_for_subcommand(root_strict_config, &subcommand)?;
     if let Some(subcommand) = subcommand.as_ref() {
         profile_v2_for_subcommand(&interactive, subcommand)?;
@@ -3064,6 +3081,7 @@ mod tests {
             subcommand,
             feature_toggles: _,
             remote: _,
+            ..
         } = cli;
         interactive
             .shared
@@ -3101,6 +3119,7 @@ mod tests {
             subcommand,
             feature_toggles: _,
             remote: _,
+            ..
         } = cli;
         interactive
             .shared
@@ -3145,6 +3164,7 @@ mod tests {
             subcommand,
             feature_toggles: _,
             remote: _,
+            ..
         } = cli;
 
         let Subcommand::Archive(SessionArchiveCommand {
