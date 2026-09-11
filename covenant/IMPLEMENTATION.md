@@ -2400,6 +2400,7 @@ fork's native gate entrypoint and the real decider's wire behavior directly.
 
 ### F33: attested Option-B release
 
+F33 is green for the Option-B release profile.
 F02, F22, and F31 are executed by the tagged Windows release workflow. The
 workflow records the pinned toolchain, exact executable digest, runtime
 inventory certificate, commit-bound re-audit receipt, and GitHub build
