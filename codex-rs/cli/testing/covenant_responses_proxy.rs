@@ -68,6 +68,10 @@ pub(super) struct Proxy {
     capture: Arc<Mutex<Capture>>,
 }
 
+#[cfg(test)]
+#[path = "covenant_responses_proxy_tests.rs"]
+mod tests;
+
 impl Proxy {
     pub async fn start(ca_path: &Path) -> Result<Self> {
         // Same pinned rcgen APIs as http-client/tests/ca_env.rs:224-261.
@@ -175,10 +179,16 @@ fn collect_connection(
 ) {
     match result {
         Ok(Ok(observation)) => completed.push(observation),
-        Ok(Err(_)) | Err(_) => {
+        Ok(Err(_)) => {
             captured(capture)
                 .failure
-                .get_or_insert("owned connection refused or cancelled");
+                .get_or_insert("owned connection refused");
+        }
+        Err(error) if error.is_cancelled() => {}
+        Err(_) => {
+            captured(capture)
+                .failure
+                .get_or_insert("owned connection task failed");
         }
     }
 }
