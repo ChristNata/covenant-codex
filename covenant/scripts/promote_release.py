@@ -32,17 +32,34 @@ def _require_sidecar_fixture(path: Path) -> dict:
             fixture = tomllib.load(stream)
     except (OSError, tomllib.TOMLDecodeError) as error:
         raise PromotionError("missing or invalid real-sidecar fixture") from error
-    if fixture.get("schema_version") != 1 or fixture.get("status") != "ready":
+    if fixture.get("schema_version") != 1:
+        raise PromotionError("real-sidecar evidence is not ready")
+    status = fixture.get("status")
+    if status not in {"ready", "exec-only"}:
         raise PromotionError("real-sidecar evidence is not ready")
     url = fixture.get("url")
-    if not isinstance(url, str) or not url.startswith("https://"):
+    if status == "ready" and (
+        not isinstance(url, str) or not url.startswith("https://")
+    ):
         raise PromotionError("invalid real-sidecar URL")
+    if status == "exec-only" and url != "":
+        raise PromotionError("exec-only sidecar URL must be empty")
     digest = fixture.get("sha256")
-    if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
+    if status == "ready" and (
+        not isinstance(digest, str) or HEX64.fullmatch(digest) is None
+    ):
         raise PromotionError("invalid real-sidecar digest")
+    if status == "exec-only" and digest != "":
+        raise PromotionError("exec-only sidecar digest must be empty")
     for name in ("g4_schema_id", "g4_semantics_id"):
         if not isinstance(fixture.get(name), str) or not fixture[name].strip():
             raise PromotionError(f"missing real-sidecar {name}")
+    if status == "exec-only":
+        authority = fixture.get("patch_authority")
+        if not isinstance(authority, str) or not authority.startswith("deferred:"):
+            raise PromotionError(
+                "exec-only sidecar must document deferred patch authority"
+            )
     return fixture
 
 
@@ -145,6 +162,7 @@ def assemble_provenance(
             "inventory_digest": _digest(inventory_path),
             "re_audit_run_id": audit_run_id,
             "sidecar": {
+                "status": sidecar["status"],
                 "url": sidecar["url"],
                 "sha256": sidecar["sha256"],
                 "g4_schema_id": sidecar["g4_schema_id"],

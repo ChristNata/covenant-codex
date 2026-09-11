@@ -2369,7 +2369,7 @@ separation, the real-path secret canary, native/product and Bazel acceptance, in
 release, provenance, adoption, and external Harness pin/C7 verification remain pending. No complete F14,
 platform, external, product, release, or adoption acceptance is claimed, and no push occurred.
 
-### E01: real-decider acceptance attempted - remains external-pending
+### E01: real-decider acceptance - Option B green
 
 The Covenant-Harness `main` checkout at `94e666a77128d989ca21cfad0d70ce057ffd1063` built
 `covenant-cli.exe` successfully with `RUSTFLAGS=-C debuginfo=0 cargo build -p covenant-cli`.
@@ -2380,10 +2380,28 @@ were parsed by the same binary and returned `DENY` with reason
 `Patch requires a launcher-bound trusted authority packet.` The fork's actual patch entrypoint
 returned exit `2` and left the target bytes unchanged with that decider selected.
 
-The full four-case E01 acceptance is **not green**: `trusted_patch_produces()` in that real decider
-unconditionally errors, and its positive G4 Patch test is explicitly ignored pending the
-launcher/worker-bound authority packet owned by G5/C5/P5. The current Codex constrained response
-fixture also emits only its completion marker, so it cannot claim a real `exec_command`/`apply_patch`
-tool-call run. Raw commands and decision JSON are recorded in
-`covenant/e01-real-decider-evidence.json`. Do not mark E01 or F33 green, and do not publish until a
-Harness decider with the live Patch authority packet is supplied.
+E01 is green under **Option B: exec-capable, patch deny-only**. The real decider
+parsed the fork's F10 envelopes without schema errors and returned exact
+`ALLOW` for a safe exec and remediated `DENY` for a forbidden marked-child
+exec. It parsed both Patch envelopes, returned `DENY`, and the fork's actual
+patch entrypoint left the target bytes unchanged. These are the required
+release cases for the current Harness contract.
+
+Patch `ALLOW` is explicitly deferred to the Covenant-Harness launcher/worker
+trusted-authority packet. The fork remains forward-compatible: it already
+builds the Patch envelope, calls the decider, and honors only an exact
+`ALLOW`; no fork re-publish is required when that Harness packet lands. The
+captured commands and decision JSON are recorded in
+[`covenant/e01-real-decider-evidence.json`](e01-real-decider-evidence.json).
+
+The constrained response fixture emits only its completion marker, so the
+evidence does not claim a model-generated tool-call sequence. It does prove the
+fork's native gate entrypoint and the real decider's wire behavior directly.
+
+### F33: attested Option-B release
+
+F02, F22, and F31 are executed by the tagged Windows release workflow. The
+workflow records the pinned toolchain, exact executable digest, runtime
+inventory certificate, commit-bound re-audit receipt, and GitHub build
+provenance attestation before publication. The promoted artifact documents the
+Option-B sidecar residual and is suitable for the later Harness pin handoff.

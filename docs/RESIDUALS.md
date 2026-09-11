@@ -13,6 +13,14 @@ The fork narrows authority; it does not turn a coding agent into
 a sandbox. Each accepted residual has a compensating control
 owned by Covenant Harness.
 
+## Option-B release residual
+
+`apply_patch` is deny-only until Covenant-Harness implements the Patch
+trusted-authority packet; `exec` is fully gated. No fork re-publish is required
+when that packet lands. The published fork already emits the Patch decide
+envelope, calls the real decider, accepts only an exact `ALLOW`, and leaves zero
+bytes written on the current real-decider `DENY` path.
+
 | Residual | Control |
 | --- | --- |
 | Shell-mediated auth-store reads | F1.4 |

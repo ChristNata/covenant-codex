@@ -22,18 +22,31 @@ def read_fixture(path: Path) -> dict:
         raise SidecarFixtureError("unable to read sidecar fixture") from error
     if not isinstance(fixture, dict) or fixture.get("schema_version") != 1:
         raise SidecarFixtureError("unsupported sidecar fixture schema")
-    if fixture.get("status") != "ready":
+    status = fixture.get("status")
+    if status not in {"ready", "exec-only"}:
         raise SidecarFixtureError("real-sidecar evidence is not ready")
     url = fixture.get("url")
-    if not isinstance(url, str) or not url.startswith("https://"):
-        raise SidecarFixtureError("sidecar URL must be HTTPS")
+    if status == "ready":
+        if not isinstance(url, str) or not url.startswith("https://"):
+            raise SidecarFixtureError("sidecar URL must be HTTPS")
+    elif url != "":
+        raise SidecarFixtureError("exec-only sidecar URL must be empty")
     digest = fixture.get("sha256")
-    if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
-        raise SidecarFixtureError("sidecar SHA-256 is invalid")
+    if status == "ready":
+        if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
+            raise SidecarFixtureError("sidecar SHA-256 is invalid")
+    elif digest != "":
+        raise SidecarFixtureError("exec-only sidecar digest must be empty")
     for name in ("g4_schema_id", "g4_semantics_id"):
         value = fixture.get(name)
         if not isinstance(value, str) or not value.strip():
             raise SidecarFixtureError(f"missing {name}")
+    if status == "exec-only":
+        authority = fixture.get("patch_authority")
+        if not isinstance(authority, str) or not authority.startswith("deferred:"):
+            raise SidecarFixtureError(
+                "exec-only sidecar must document deferred patch authority"
+            )
     return fixture
 
 

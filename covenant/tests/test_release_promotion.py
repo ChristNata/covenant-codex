@@ -87,6 +87,7 @@ class ReleasePromotionTests(unittest.TestCase):
         self.assertEqual(provenance["source_commit"], "a" * 40)
         self.assertEqual(provenance["tag"], "v0.1.0-covenant")
         self.assertEqual(provenance["re_audit_run_id"], "run-1")
+        self.assertEqual(provenance["sidecar"]["status"], "ready")
         self.assertEqual(provenance["sidecar"]["g4_semantics_id"], "g4-codex-v1:test")
         self.assertEqual(
             provenance["exe_digest"], provenance["inventory"]["binary_digest"]
@@ -156,6 +157,28 @@ class ReleasePromotionTests(unittest.TestCase):
         with self.assertRaises(self.promote.PromotionError):
             self.invoke()
         self.assertFalse(self.output.exists())
+
+    def test_option_b_exec_only_sidecar_is_promotable_with_deferred_patch_authority(
+        self,
+    ):
+        self.sidecar.write_text(
+            "\n".join(
+                [
+                    "schema_version = 1",
+                    'status = "exec-only"',
+                    'url = ""',
+                    'sha256 = ""',
+                    'g4_schema_id = "decide-v1-sha256:exec-only"',
+                    'g4_semantics_id = "g4-codex-v1:exec-allow-deny-patch-deny"',
+                    'patch_authority = "deferred:Covenant-Harness trusted-authority packet"',
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        provenance = self.invoke()
+        self.assertEqual(provenance["sidecar"]["status"], "exec-only")
+        self.assertEqual(provenance["sidecar"]["url"], "")
 
 
 if __name__ == "__main__":

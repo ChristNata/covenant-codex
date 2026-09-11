@@ -104,6 +104,55 @@ jobs:
           $nativeExit = $LASTEXITCODE
           if ($nativeExit -ne 0) { exit $nativeExit }
 
+      - name: Run F31 re-audit and Covenant test suite
+        env:
+          COVENANT_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = $env:GITHUB_WORKSPACE
+          $receiptDir = Join-Path $env:COVENANT_ARTIFACT_DIR 'receipts'
+          New-Item -ItemType Directory -Force -Path $receiptDir | Out-Null
+          $env:COVENANT_EFFECT_RECEIPT_DIR = $receiptDir
+          $env:RUSTFLAGS = '-Cdebuginfo=0'
+          Push-Location $root
+          try {
+            & $env:COVENANT_PYTHON -m unittest discover -s covenant/tests -p 'test_*.py'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            & $env:COVENANT_PYTHON covenant/scripts/validate_integration.py --repo . --upstream covenant/UPSTREAM.toml --integration covenant/INTEGRATION-FILES.toml --inventory covenant/AUTHORITY-INVENTORY.toml
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            rustc --edition=2021 --test covenant/tests/sink_instrumentation.rs -o (Join-Path $env:RUNNER_TEMP 'covenant-sink-tests.exe')
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            & (Join-Path $env:RUNNER_TEMP 'covenant-sink-tests.exe') --quiet
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-cli -E 'test(/covenant/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-core --features covenant -E 'test(/covenant/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-login -E 'test(/covenant/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test --manifest-path ../covenant/runtime/Cargo.toml --locked
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $exe = Join-Path $env:COVENANT_ARTIFACT_DIR 'codex-x86_64-pc-windows-msvc.exe'
+            $inventory = Join-Path $env:COVENANT_ARTIFACT_DIR 'inventory.json'
+            & $exe --covenant-inventory -c model=gpt-5.5 | Out-File -LiteralPath $inventory -Encoding utf8NoBOM
+            if ($LASTEXITCODE -ne 0) { throw 'release binary inventory refused' }
+            $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLowerInvariant()
+            $commit = (git rev-parse HEAD).Trim()
+            $receipt = @{
+              status = 'passed'
+              commit = $commit
+              run_id = "github-actions:$env:GITHUB_RUN_ID/$env:GITHUB_RUN_ATTEMPT"
+              binary = 'codex-x86_64-pc-windows-msvc.exe'
+              binary_sha256 = $sha
+              inventory = 'codex --covenant-inventory -c model=gpt-5.5'
+              suite = 'covenant-python, covenant-sink, codex-cli/core/login selectors, codex-covenant runtime'
+            }
+            $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $env:COVENANT_ARTIFACT_DIR 'reaudit.json') -Encoding utf8NoBOM
+          }
+          finally {
+            Pop-Location
+          }
+
       - name: Upload the development artifact pair
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
@@ -111,6 +160,8 @@ jobs:
           path: |
             ${{ env.COVENANT_ARTIFACT_DIR }}/codex-x86_64-pc-windows-msvc.exe
             ${{ env.COVENANT_ARTIFACT_DIR }}/codex.exe.sha256
+            ${{ env.COVENANT_ARTIFACT_DIR }}/inventory.json
+            ${{ env.COVENANT_ARTIFACT_DIR }}/reaudit.json
           archive: true
           if-no-files-found: error
           overwrite: false
@@ -139,6 +190,14 @@ jobs:
           name: covenant-windows-${{ github.run_id }}-${{ github.run_attempt }}
           path: covenant/windows-build/artifacts/promote-input
 
+      - name: Bind the F31 receipt to promotion
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $receipt = Get-ChildItem -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input') -Filter reaudit.json -Recurse -File | Select-Object -First 1
+          if ($null -eq $receipt) { throw 'F33 promotion requires the F31 receipt emitted by the release build job' }
+          Copy-Item -LiteralPath $receipt.FullName -Destination (Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/reaudit.json') -Force
+
       - name: Require the immutable F31 re-audit receipt
         shell: pwsh
         run: |
@@ -154,7 +213,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input/codex-x86_64-pc-windows-msvc.exe'
           $inventory = Join-Path $env:GITHUB_WORKSPACE 'covenant/windows-build/artifacts/promote-input/inventory.json'
-          & $exe --covenant-inventory | Out-File -LiteralPath $inventory -Encoding utf8NoBOM
+          & $exe --covenant-inventory -c model=gpt-5.5 | Out-File -LiteralPath $inventory -Encoding utf8NoBOM
           if ($LASTEXITCODE -ne 0) { throw 'runtime inventory refused the built executable' }
 
       - name: Assemble and validate the five release assets

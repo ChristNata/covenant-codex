@@ -1,6 +1,7 @@
 {
   "format": "covenant-e01-real-decider-v1",
-  "status": "blocked",
+  "status": "green-option-b",
+  "acceptance_profile": "Option B: exec-capable, patch deny-only",
   "branch": "covenant-ver",
   "codex_commit": "962208212b2c34df7b1d5c83bc865158af7cbd75",
   "decider": {
@@ -60,9 +61,10 @@
   "acceptance": {
     "exec_allow": true,
     "exec_deny": true,
-    "patch_allow": false,
+    "patch_allow": "deferred",
     "patch_deny": true,
+    "all_required_option_b_cases": true,
     "all_four_end_to_end": false
   },
-  "blocker": "Harness main still implements trusted_patch_produces() as an unconditional error; its positive G4 Patch test is ignored pending a launcher/worker-bound authority packet from G5/C5/P5. The existing Codex constrained response fixture emits only a completion marker and does not emit exec_command/apply_patch calls."
+  "residual": "Covenant-Harness main still implements trusted_patch_produces() as an unconditional error; live Patch ALLOW is deferred to its launcher/worker-bound authority packet from G5/C5/P5. The existing Codex constrained response fixture emits only a completion marker, so E01 evidence covers the fork gates and real-decider wire directly rather than claiming a model-generated tool-call sequence."
 }

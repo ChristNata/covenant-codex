@@ -4,10 +4,11 @@ Adapted from the [canonical harness context](https://github.com/ChristNata/Coven
 commit `b6e933a4590a2ef848755c4a593a7e9e8f2072d4`. This copy incorporates the
 [approved fork decisions](../covenant/IMPLEMENTATION.md); it is not byte-identical to the source.
 
-**Status:** local F02 build-output helpers, MSVC preparation and F03 workflow
-wiring are reviewed. Final product/lock/Bazel integration, native prerequisites,
-a real constrained build, hosted artifact verification, F22/F31/F33 evidence
-and harness adoption remain pending. No release is certified here.
+**Status:** Option-B E01 is green: exec is real-decider gated and Patch is
+explicitly deny-only until the Harness trusted-authority packet lands. The
+tagged workflow performs the pinned F02 Windows build, F22 inventory, F31
+re-audit/test receipt, and F33 provenance/attestation before publication.
+Harness adoption remains a separate F32 handoff.
 
 A Covenant Codex release is a Windows x64 artifact with a recorded
 binary digest, inventory evidence, and green re-audit. A release
@@ -62,8 +63,9 @@ captures after a green re-audit.
 1. Complete the product graph, locked dependencies, native gates and separately
    verified build prerequisites. Then build the Windows executable from recorded
    source and toolchain inputs on the audited `covenant-ver` branch/tag.
-2. Run the constrained fork test suite, including exact-ALLOW
-   and zero-effect matrices for exec and patch authority.
+2. Run the constrained fork test suite, including exact-ALLOW exec and
+   real-decider Patch DENY with zero bytes written. Patch ALLOW is deferred to
+   the Harness trusted-authority packet under Option B.
 3. Run the re-audit against the recorded upstream commit. It
    must verify all four patch insertions, constrained packaging,
    inventory equivalence, admitted tool effects, and

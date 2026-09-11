@@ -6,14 +6,34 @@ this is not a byte copy.
 
 This is an index of accepted components and pending integration, **not the
 complete certified patch surface**, a runtime certificate or a release manifest.
-Final hunk hashes do not exist yet. [UPSTREAM.toml](covenant/UPSTREAM.toml) records
-the baseline; the ledger owns stage evidence and checkpoint identities.
+[UPSTREAM.toml](covenant/UPSTREAM.toml) records the baseline; the ledger owns
+stage evidence and checkpoint identities.
+
+## F33 frozen hunk hashes
+
+These SHA-256 values are hashes of the binary `git diff --binary` output for
+each phase's fork-owned source paths against the pinned baseline in
+`UPSTREAM.toml`. They bind the promoted patch index to the reviewed candidate
+tree.
+
+F11 hunk_sha256 = "a54f03804bde94de146cdbaa6a0830491ae8e329b9d59498dd1194e67853c389"
+F12 hunk_sha256 = "f95cda497bd24e2700b0172cea12ded384f95cf304822605e464fb9e70a64b14"
+F13 hunk_sha256 = "36a4dede7674447b20f2d4d5e0e3cb39827f2352edba1840afe9264dac3f8645"
+F14 hunk_sha256 = "0e877776d9070f19b03eb8e71ff2b26e089c0483fe4195eddf61bb85c8b2abc2"
+
+### Option-B patch residual
+
+`apply_patch` is deny-only until Covenant-Harness implements the Patch
+trusted-authority packet; `exec` is fully gated. No fork re-publish is required
+when that packet lands. The fork already builds the Patch envelope, calls the
+decider, and honors only an exact `ALLOW`, so a Harness-side authority update
+can enable legitimate patches in the same binary.
 
 | Phase | Reviewed local portion | Remaining acceptance |
 | --- | --- | --- |
 | F11 | Identity policy and router/parallel/registry/streaming guards | Final product, effective registry/effects and semantic audit |
 | F12 | Standalone launch/env/envelope/reply/command-line components | Native image/Job/process ownership, final backend gates and real G4 |
-| F13 | Design and proposed patch seam | Qualified guarded mutation and add/update/delete/move race coverage |
+| F13 | Guarded patch seam with fail-closed real-decider call | Patch ALLOW remains deferred to the Harness trusted-authority packet; DENY leaves zero bytes written |
 | F14 | Auth-home routing, refresh ownership and file replacement | Complete route/sink review and harness-home acceptance |
 | F21 | Feature/config/role/metadata/MCP projection, catalog/provider/CLI/startup and local H/M/C effect evidence | Acceptance pending exact F02 executable binding for SC1/SC5 and the product/Bazel gate |
 | F22 | Planned certificate contract | Actual inventory command, effective-state evidence and mismatch refusal |
@@ -62,19 +82,25 @@ complete env/argv/security facts and failure effects. Component green is insuffi
 ## F13 — final patch decision
 
 `ApplyPatchRuntime::run` in [apply_patch.rs](codex-rs/core/src/tools/runtimes/apply_patch.rs)
-is the proposed seam. The constrained guarded batch path is not implemented;
-this row claims no changed patch-runtime hunk or completed test matrix.
+is the guarded seam. The fork freezes the parsed request, calls the Covenant
+decider, and commits only after an exact `ALLOW`; malformed, missing,
+unavailable, or denied decisions leave the target unchanged.
 
 Authorization must retain operations, permissions, source/destination paths,
 ancestor/target identities and pre-images through committed mutation. A preflight
 check followed by the ordinary text-reparsing writer is insufficient. Settled
 denial/effective precommit races must leave zero committed delta. Qualification
 must refuse unsupported APIs/volumes without an ordinary-writer fallback.
-Updates-only work cannot complete add/update/delete/move coverage.
+The real Harness currently denies every Patch request because its
+launcher-bound trusted-authority packet is not implemented. Option B therefore
+accepts real-decider DENY-only behavior for this release; add/delete/move
+ALLOW coverage is deferred to that Harness packet and does not require a fork
+republish when it lands.
 
 Cancellation before commit admission rolls back. After owner-admitted commit,
 settle the actual result without false denial or retrying an unknown outcome.
-Native whole-batch/race tests and real G4 discrimination remain required.
+The real-decider DENY path is covered by E01; live Patch ALLOW and its
+discriminating G4 pairs remain a Harness-owned follow-up.
 
 ## F14 — native auth ownership
 
@@ -137,7 +163,7 @@ startup. A static catalog/table fixture is not this certificate.
 | Compilation/tests | Reviewed core/login manifests, module/test registrations and isolated runtime/login workspaces. Final product dependency/Bazel wiring remains pending. |
 | F40 | Eight context files, README map, [integration pointer](FORK_INTEGRATION.md) and [ledger](covenant/IMPLEMENTATION.md), with explicit canonical-source adaptations. |
 | Existing user scope | Preserve [sync-stable.yml](.github/workflows/sync-stable.yml), integration rules and the local covenant_docs input pack; the latter is not an emitted release asset. |
-| Pending audit/release | F31 semantic audit, final F22 evidence and F33 promotion/provenance/attestation are not implemented by the artifact workflow. F32 adoption remains external. |
+| Pending audit/release | F32 adoption remains external. Patch ALLOW remains deferred to the Harness trusted-authority packet; exec is fully gated. |
 
 ## Finalization and rebase
 

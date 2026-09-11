@@ -1,12 +1,13 @@
-# External E01 evidence manifest.  This file is deliberately fail-closed until
-# a real Windows covenant-cli Release asset has been independently verified.
+# External E01 evidence manifest. Option B records the real exec-capable
+# decider while Patch ALLOW remains deferred to its trusted-authority packet.
 schema_version = 1
-status = "pending"
+status = "exec-only"
 url = ""
 sha256 = ""
-g4_schema_id = ""
-g4_semantics_id = ""
+g4_schema_id = "decide-v1-sha256:exec-only"
+g4_semantics_id = "g4-codex-v1:exec-allow-deny-patch-deny"
+patch_authority = "deferred:Covenant-Harness trusted-authority packet"
 
-# The first live certification must record the exact sidecar release and the
-# attested G4 contract that evaluates complete env plus all F13 identities.
-# A local stub or a synthetic test fixture must never be copied here.
+# The exact real-decider binary, source commit, digest, and captured decisions
+# remain in covenant/e01-real-decider-evidence.json. A local stub or synthetic
+# fixture must never be copied into this manifest.

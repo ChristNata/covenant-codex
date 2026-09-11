@@ -1,4 +1,4 @@
-"""E01 manifest validation stays fail-closed until real evidence exists."""
+"""E01 manifest validation records the Option-B exec-only contract."""
 
 import importlib.util
 from pathlib import Path
@@ -16,10 +16,18 @@ class SidecarFixtureTests(unittest.TestCase):
         cls.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.module)
 
-    def test_repository_manifest_is_pending(self):
+    def test_repository_manifest_records_exec_only_option_b(self):
         fixture = Path(__file__).resolve().parents[1] / "sidecar-fixture.toml"
-        with self.assertRaises(self.module.SidecarFixtureError):
-            self.module.read_fixture(fixture)
+        self.assertEqual(self.module.read_fixture(fixture)["status"], "exec-only")
+
+    def test_pending_manifest_is_rejected(self):
+        with tempfile.TemporaryDirectory(prefix="covenant-sidecar-") as root:
+            fixture = Path(root) / "fixture.toml"
+            fixture.write_text(
+                'schema_version = 1\nstatus = "pending"\n', encoding="utf-8"
+            )
+            with self.assertRaises(self.module.SidecarFixtureError):
+                self.module.read_fixture(fixture)
 
     def test_ready_manifest_requires_all_attested_contract_fields(self):
         with tempfile.TemporaryDirectory(prefix="covenant-sidecar-") as root:
