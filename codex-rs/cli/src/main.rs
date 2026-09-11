@@ -149,8 +149,7 @@ struct MultitoolCli {
     #[arg(
         long = "__covenant-subcommand",
         hide = true,
-        required = true,
-        default_value_if("covenant_inventory", "true", "inventory")
+        required_unless_present = "covenant_inventory"
     )]
     _covenant_subcommand: Option<String>,
 }
