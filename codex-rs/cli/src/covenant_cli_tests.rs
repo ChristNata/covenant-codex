@@ -1,3 +1,7 @@
+#[cfg(feature = "covenant")]
+use super::DebugCommand;
+#[cfg(feature = "covenant")]
+use super::DebugSubcommand;
 use super::LoginSubcommand;
 use super::MultitoolCli;
 use super::Subcommand;
@@ -139,7 +143,7 @@ fn covenant_cli_surface_has_only_canonical_commands_and_truthful_help() {
     assert_retained_parses();
     let mut command = built_command();
     let expected_rows = || {
-        ["exec", "login", "logout", "help"]
+        ["exec", "login", "logout", "debug", "help"]
             .map(|name| CommandRow {
                 name: name.to_owned(),
                 aliases: Vec::new(),
@@ -170,14 +174,61 @@ fn covenant_cli_surface_has_only_canonical_commands_and_truthful_help() {
     );
     insta::assert_snapshot!(intro_and_commands, @"
     Codex CLI
-    A subcommand is required. Use exec, login, or logout.
+    A subcommand is required. Use exec, login, logout, or debug models.
     Usage: codex [OPTIONS] <COMMAND> [ARGS]
     Commands:
     exec Run Codex non-interactively
     login Manage login
     logout Remove stored authentication credentials
+    debug Debugging tools
     help Print this message or the help of the given subcommand(s)
     ");
+}
+
+#[cfg(feature = "covenant")]
+#[test]
+fn covenant_debug_surface_retains_only_models() {
+    let command = built_command();
+    let debug = command.find_subcommand("debug").expect("debug command");
+    assert_eq!(
+        command_rows(debug),
+        Vec::from(["models", "help"].map(|name| CommandRow {
+            name: name.to_owned(),
+            aliases: Vec::new(),
+            visible_aliases: Vec::new(),
+            hidden: false,
+        }))
+    );
+
+    for argv in [
+        vec!["codex", "debug", "models"],
+        vec!["codex", "debug", "models", "--bundled"],
+    ] {
+        let cli = MultitoolCli::try_parse_from(argv).expect("supported debug models command");
+        let Some(Subcommand::Debug(DebugCommand {
+            subcommand: DebugSubcommand::Models(_),
+        })) = cli.subcommand
+        else {
+            panic!("debug models must reach its existing payload");
+        };
+    }
+
+    for argv in [
+        vec!["codex", "debug", "app-server"],
+        vec!["codex", "debug", "prompt-input"],
+        vec!["codex", "debug", "trace-reduce"],
+        vec!["codex", "debug", "clear-memories"],
+        vec!["codex", "help", "debug", "app-server"],
+        vec!["codex", "help", "debug", "prompt-input"],
+        vec!["codex", "help", "debug", "trace-reduce"],
+        vec!["codex", "help", "debug", "clear-memories"],
+    ] {
+        let error = MultitoolCli::try_parse_from(argv).expect_err("excluded debug command");
+        assert!(!matches!(
+            error.kind(),
+            ErrorKind::DisplayHelp | ErrorKind::DisplayVersion
+        ));
+    }
 }
 
 #[cfg(feature = "covenant")]
@@ -198,7 +249,6 @@ fn covenant_cli_surface_rejects_excluded_spellings_and_root_prompt_prefixes() {
         "update",
         "doctor",
         "sandbox",
-        "debug",
         "execpolicy",
         "apply",
         "a",

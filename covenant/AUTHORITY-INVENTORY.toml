@@ -613,7 +613,7 @@ family = "process"
 disposition = "excluded"
 path = "codex-rs/cli/src/main.rs"
 symbol = "enum Subcommand"
-reason = "PROPOSED F21 must exclude alternate app-server, MCP server, cloud, debug and management entrypoints from the fork artifact."
+reason = "F21 excludes alternate app-server, MCP server, cloud and management entrypoints from the fork artifact. The diagnostic debug models leaf is retained for provider-catalog discovery; every other debug leaf remains excluded."
 
 [[authorities]]
 id = "cli.arg0_dispatch"
@@ -1248,7 +1248,7 @@ family = "network"
 disposition = "trusted_support"
 path = "codex-rs/model-provider/src/provider.rs"
 symbol = "create_model_provider"
-reason = "REVIEW PROPOSAL F21 review provider support boundary; direct model inference is trusted native support, not a tool authority."
+reason = "REVIEW PROPOSAL F21 review provider support boundary; direct model inference and the explicit debug models catalog query are trusted native support, not tool authorities."
 
 [[authorities]]
 id = "model.transport"
@@ -1257,7 +1257,7 @@ family = "network"
 disposition = "trusted_support"
 path = "codex-rs/codex-api/src/provider.rs"
 symbol = "pub struct Provider"
-reason = "REVIEW PROPOSAL F21 preserve model transport while proving hosted/extension specifications absent from captured requests."
+reason = "REVIEW PROPOSAL F21 preserve inference and /models catalog transport while proving hosted/extension specifications absent from captured requests."
 
 [[authorities]]
 id = "session.state_db"

@@ -92,7 +92,12 @@ use codex_login::CodexAuth;
 use codex_login::is_workload_identity_selected;
 use codex_login::read_codex_access_token_from_env;
 use codex_memories_write::clear_memory_roots_contents;
+#[cfg(not(feature = "covenant"))]
 use codex_models_manager::bundled_models_response;
+#[cfg(feature = "covenant")]
+use codex_models_manager::covenant_model_catalog;
+#[cfg(feature = "covenant")]
+use codex_models_manager::covenant_selected_model;
 use codex_models_manager::manager::RefreshStrategy;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::user_input::UserInput;
@@ -119,7 +124,7 @@ use codex_terminal_detection::TerminalName;
 #[cfg_attr(
     feature = "covenant",
     clap(
-        long_about = "Codex CLI\n\nA subcommand is required. Use exec, login, or logout.",
+        long_about = "Codex CLI\n\nA subcommand is required. Use exec, login, logout, or debug models.",
         override_usage = "codex [OPTIONS] <COMMAND> [ARGS]"
     )
 )]
@@ -223,7 +228,6 @@ enum Subcommand {
     Sandbox(HostSandboxArgs),
 
     /// Debugging tools.
-    #[cfg_attr(feature = "covenant", command(skip))]
     Debug(DebugCommand),
 
     /// Execpolicy tooling.
@@ -302,22 +306,27 @@ struct DebugCommand {
 }
 
 #[derive(Debug, clap::Subcommand)]
+#[cfg_attr(feature = "covenant", allow(dead_code))]
 enum DebugSubcommand {
     /// Render the raw model catalog as JSON.
     Models(DebugModelsCommand),
 
     /// Tooling: helps debug the app server.
+    #[cfg_attr(feature = "covenant", command(skip))]
     AppServer(DebugAppServerCommand),
 
     /// Render the model-visible prompt input list as JSON.
+    #[cfg_attr(feature = "covenant", command(skip))]
     PromptInput(DebugPromptInputCommand),
 
     /// Replay a rollout trace bundle and write reduced state JSON.
-    #[clap(hide = true)]
+    #[cfg_attr(not(feature = "covenant"), clap(hide = true))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     TraceReduce(DebugTraceReduceCommand),
 
     /// Internal: reset local memory state for a fresh start.
-    #[clap(hide = true)]
+    #[cfg_attr(not(feature = "covenant"), clap(hide = true))]
+    #[cfg_attr(feature = "covenant", command(skip))]
     ClearMemories,
 }
 
@@ -2367,15 +2376,32 @@ async fn run_debug_models_command(
     root_config_overrides: CliConfigOverrides,
 ) -> anyhow::Result<()> {
     let catalog = if cmd.bundled {
-        bundled_models_response()?
+        #[cfg(feature = "covenant")]
+        let catalog = covenant_model_catalog()?;
+        #[cfg(not(feature = "covenant"))]
+        let catalog = bundled_models_response()?;
+        catalog
     } else {
         let cli_overrides = root_config_overrides
             .parse_overrides()
             .map_err(anyhow::Error::msg)?;
+        #[cfg(feature = "covenant")]
+        let mut cli_overrides = cli_overrides;
+        #[cfg(feature = "covenant")]
+        cli_overrides.push((
+            "model".to_owned(),
+            toml::Value::String(covenant_selected_model(/*requested*/ None)?.to_owned()),
+        ));
         let config = ConfigBuilder::default()
             .cli_overrides(cli_overrides)
             .build()
             .await?;
+        #[cfg(feature = "covenant")]
+        let config = {
+            let mut config = config;
+            config.model_catalog = None;
+            config
+        };
         let auth_manager =
             AuthManager::shared_from_config(&config, /*enable_codex_api_key_env*/ true).await?;
         let models_manager = build_models_manager(&config, auth_manager);
@@ -3500,6 +3526,7 @@ mod tests {
             .expect("default app-server socket path")
     }
 
+    #[cfg(not(feature = "covenant"))]
     #[test]
     fn debug_prompt_input_parses_prompt_and_images() {
         let cli = MultitoolCli::try_parse_from([

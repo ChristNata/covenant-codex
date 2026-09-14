@@ -19,11 +19,12 @@ not expand Codex's supported product surface.
 
 ## Scope
 
-The target artifact supports constrained `codex exec` and optional JSON output.
-It excludes interactive and independent authorities: TUI, public app-server, MCP,
-plugins, Code Mode, hosted web, dynamic tools, multi-agent features, and
-interactive process input. The internal app-server orchestration required by
-upstream exec remains; this is not an entirely removed library.
+The target artifact supports constrained `codex exec`, optional JSON output, and
+diagnostic `codex debug models` discovery of the provider catalog. It excludes all
+other debug leaves and interactive or independent authorities: TUI, public
+app-server, MCP, plugins, Code Mode, hosted web, dynamic tools, multi-agent
+features, and interactive process input. The internal app-server orchestration
+required by upstream exec remains; this is not an entirely removed library.
 
 The integrated fork must ask Covenant's managed decider before every admitted
 process start or patch write. Only the exact response `{"decision":"ALLOW"}` authorizes the

@@ -22,7 +22,8 @@ does not certify its own work or become a long-lived service.
 
 This fork is one managed child binary. Covenant supplies its executable, launch
 environment, role instructions, and policy decider. The fork supplies a narrow
-`codex exec` surface and asks the decider before its two mutating authorities.
+`codex exec` surface, plus diagnostic `codex debug models` discovery, and asks the
+decider before its two mutating authorities.
 The policy response is an input to execution, not a report the child may judge.
 
 ## Why this fork exists
@@ -33,8 +34,9 @@ combines login material with mutable per-attempt data. Covenant needs a small,
 re-auditable binary that removes these residuals without rewriting Codex's
 reasoning, turn, or agent loop.
 
-The supported artifact is Windows x64 constrained `codex exec` and optional
-`codex exec --json`. It is not an interactive Codex distribution.
+The supported artifact is Windows x64 constrained `codex exec`, optional
+`codex exec --json`, and diagnostic `codex debug models`. It is not an interactive
+Codex distribution.
 
 ## Adoption sequence
 

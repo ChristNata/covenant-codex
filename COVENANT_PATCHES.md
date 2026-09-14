@@ -137,7 +137,10 @@ SC5 remain pending exact identity binding and execution of the F02-produced
 executable. The prior external-serde Bazel failure also leaves the product gate
 open; no unrelated upstream repair is included.
 
-The final reviewed CLI contract defines exec, native login and inventory access.
+The reviewed CLI contract defines exec, native login, inventory access and the
+diagnostic `codex debug models` catalog query. Covenant exposes no other debug
+leaf. The default query uses the native OpenAI provider's online/fresh-cache
+catalog path; explicit `--bundled` reports Covenant's pinned four-model catalog.
 The published artifact must exclude public TUI/server/MCP/plugin/Code Mode,
 hosted web, dynamic-tool, multi-agent and interactive-input authorities. Retain
 upstream exec's required internal app-server library while removing alternate
