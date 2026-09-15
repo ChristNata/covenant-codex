@@ -461,6 +461,72 @@ async fn injected_cache_hit_avoids_remote_fetch() {
 }
 
 #[tokio::test]
+async fn fresh_catalog_uses_exact_remote_snapshot_instead_of_cache() {
+    let cache = TestModelsCache::with_entry(ModelsCacheEntry {
+        fetched_at: Utc::now(),
+        etag: Some("cached-etag".to_string()),
+        client_version: Some(crate::client_version_to_whole()),
+        models: vec![remote_model("cached", "Cached", /*priority*/ 0)],
+    });
+    let live_models = vec![remote_model("live", "Live", /*priority*/ 0)];
+    let endpoint = TestModelsEndpoint::new(vec![live_models.clone()]);
+    let manager = OpenAiModelsManager::new_with_cache(
+        cache,
+        endpoint.clone(),
+        Some(AuthManager::from_auth_for_testing(
+            CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        )),
+    );
+
+    assert_eq!(
+        manager
+            .fresh_model_catalog(DEFAULT_HTTP_CLIENT_FACTORY)
+            .await
+            .expect("live catalog"),
+        ModelsResponse {
+            models: live_models
+        }
+    );
+    assert_eq!(endpoint.fetch_count(), 1);
+}
+
+#[tokio::test]
+async fn fresh_catalog_refuses_non_codex_backend_without_fetching() {
+    let endpoint = TestModelsEndpoint::without_refresh(vec![vec![remote_model(
+        "api-only", "API only", /*priority*/ 0,
+    )]]);
+    let manager =
+        OpenAiModelsManager::new_without_cache(endpoint.clone(), /*auth_manager*/ None);
+
+    assert!(
+        manager
+            .fresh_model_catalog(DEFAULT_HTTP_CLIENT_FACTORY)
+            .await
+            .is_err()
+    );
+    assert_eq!(endpoint.fetch_count(), 0);
+}
+
+#[tokio::test]
+async fn fresh_catalog_refuses_duplicate_remote_ids_without_promoting_them() {
+    let model = remote_model("duplicate", "Duplicate", /*priority*/ 0);
+    let endpoint = TestModelsEndpoint::new(vec![vec![model.clone(), model]]);
+    let manager = OpenAiModelsManager::new_without_cache(
+        endpoint.clone(),
+        Some(AuthManager::from_auth_for_testing(
+            CodexAuth::create_dummy_chatgpt_auth_for_testing(),
+        )),
+    );
+
+    let error = manager
+        .fresh_model_catalog(DEFAULT_HTTP_CLIENT_FACTORY)
+        .await
+        .expect_err("duplicate identity must refuse");
+    assert_eq!(error.to_string(), "live Codex model catalog refused");
+    assert_eq!(endpoint.fetch_count(), 1);
+}
+
+#[tokio::test]
 async fn injected_cache_read_error_falls_back_and_persists_remote_models() {
     let remote_models = vec![remote_model("remote", "Remote", /*priority*/ 0)];
     let cache = TestModelsCache::failing(/*load_error*/ true, /*store_error*/ false);

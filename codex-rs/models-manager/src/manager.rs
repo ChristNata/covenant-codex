@@ -14,6 +14,7 @@ use codex_protocol::openai_models::ModelInfo;
 use codex_protocol::openai_models::ModelPreset;
 use codex_protocol::openai_models::ModelVisibility;
 use codex_protocol::openai_models::ModelsResponse;
+use std::collections::HashSet;
 use std::fmt;
 use std::future::Future;
 use std::path::PathBuf;
@@ -28,6 +29,8 @@ use tracing::info;
 
 const MODEL_CACHE_FILE: &str = "models_cache.json";
 const DEFAULT_MODEL_CACHE_TTL: Duration = Duration::from_secs(300);
+const MAX_LIVE_MODELS: usize = 256;
+const MAX_LIVE_MODEL_SLUG_BYTES: usize = 128;
 
 /// Remote endpoint used by the OpenAI-compatible model manager.
 ///
@@ -110,6 +113,21 @@ pub trait ModelsManager: fmt::Debug + Send + Sync {
         refresh_strategy: RefreshStrategy,
         http_client_factory: HttpClientFactory,
     ) -> ModelsManagerFuture<'_, ModelsResponse>;
+
+    /// Fetch the current provider catalog without trusting bundled or on-disk fallback models.
+    /// Callers that authorize a model identity should use this rather than `raw_model_catalog`.
+    fn fresh_model_catalog(
+        &self,
+        _http_client_factory: HttpClientFactory,
+    ) -> ModelsManagerFuture<'_, CoreResult<ModelsResponse>> {
+        Box::pin(async move {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "provider has no live model catalog",
+            )
+            .into())
+        })
+    }
 
     /// Return the current in-memory remote model catalog without refreshing or loading cache state.
     fn get_remote_models(&self) -> ModelsManagerFuture<'_, Vec<ModelInfo>>;
@@ -295,6 +313,16 @@ impl StaticModelsManager {
 }
 
 impl ModelsManager for OpenAiModelsManager {
+    fn fresh_model_catalog(
+        &self,
+        http_client_factory: HttpClientFactory,
+    ) -> ModelsManagerFuture<'_, CoreResult<ModelsResponse>> {
+        Box::pin(OpenAiModelsManager::fresh_model_catalog(
+            self,
+            http_client_factory,
+        ))
+    }
+
     fn raw_model_catalog(
         &self,
         refresh_strategy: RefreshStrategy,
@@ -337,6 +365,43 @@ impl ModelsManager for OpenAiModelsManager {
 }
 
 impl OpenAiModelsManager {
+    async fn fresh_model_catalog(
+        &self,
+        http_client_factory: HttpClientFactory,
+    ) -> CoreResult<ModelsResponse> {
+        if !self.endpoint_client.uses_codex_backend().await {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "live Codex catalog requires Codex backend authentication",
+            )
+            .into());
+        }
+        let client_version = crate::client_version_to_whole();
+        let (models, etag) = self
+            .endpoint_client
+            .list_models(&client_version, http_client_factory)
+            .await?;
+        let mut slugs = HashSet::with_capacity(models.len().min(MAX_LIVE_MODELS));
+        if models.is_empty()
+            || models.len() > MAX_LIVE_MODELS
+            || models.iter().any(|model| {
+                model.slug.is_empty()
+                    || model.slug.len() > MAX_LIVE_MODEL_SLUG_BYTES
+                    || model.slug.trim() != model.slug
+                    || !slugs.insert(model.slug.as_str())
+            })
+        {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "live Codex model catalog refused",
+            )
+            .into());
+        }
+        self.apply_remote_models(models.clone()).await;
+        *self.etag.write().await = etag;
+        Ok(ModelsResponse { models })
+    }
+
     async fn raw_model_catalog(
         &self,
         refresh_strategy: RefreshStrategy,
