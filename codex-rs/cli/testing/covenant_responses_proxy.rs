@@ -40,7 +40,7 @@ use tokio_rustls::TlsAcceptor;
 use tokio_rustls::rustls;
 use transport::ConnectionObservation;
 
-pub(super) const API_KEY: &str = "covenant-sc5-synthetic-noncredential";
+pub(super) const ACCESS_TOKEN: &str = "covenant-sc5-synthetic-noncredential";
 pub(super) const PROMPT: &str = "Return the owned SC5 completion marker.";
 pub(super) const MARKER: &str = "COVENANT_SC5_TEXT_COMPLETE";
 const WARMUP_ID: &str = "resp_covenant_owned_warmup";
@@ -52,6 +52,9 @@ pub(super) struct Capture {
     pub connections: usize,
     pub connects: Vec<Vec<u8>>,
     pub handshakes: Vec<(String, Vec<(String, String)>)>,
+    pub catalog_requests: usize,
+    pub auxiliary_requests: usize,
+    pub settings_requests: usize,
     pub requests: Vec<Value>,
     pub inference_input: Vec<Value>,
     pub warmup_completed: bool,
@@ -82,7 +85,7 @@ impl Proxy {
             ca_params,
             KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256)?,
         )?;
-        let mut leaf_params = CertificateParams::new(vec!["api.openai.com".to_string()])?;
+        let mut leaf_params = CertificateParams::new(vec!["chatgpt.com".to_string()])?;
         leaf_params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ServerAuth];
         leaf_params.key_usages = vec![KeyUsagePurpose::DigitalSignature];
         let key = KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256)?;
@@ -143,7 +146,7 @@ fn captured(capture: &Mutex<Capture>) -> MutexGuard<'_, Capture> {
         .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
-type ConnectionResult = Result<Arc<ConnectionObservation>>;
+type ConnectionResult = Result<Option<Arc<ConnectionObservation>>>;
 
 fn spawn_connection(
     stream: TcpStream,
@@ -178,7 +181,8 @@ fn collect_connection(
     capture: &Mutex<Capture>,
 ) {
     match result {
-        Ok(Ok(observation)) => completed.push(observation),
+        Ok(Ok(Some(observation))) => completed.push(observation),
+        Ok(Ok(None)) => {}
         Ok(Err(_)) => {
             captured(capture)
                 .failure

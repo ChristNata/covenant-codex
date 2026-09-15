@@ -104,7 +104,7 @@ impl TrafficBudget {
         let result = add(
             &mut self.connections,
             1,
-            4,
+            8,
             ObservationError::ConnectionLimit,
         );
         self.record(result)

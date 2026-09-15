@@ -101,7 +101,7 @@ async fn covenant_hook_mcp_effects_are_absent() -> Result<()> {
     assert_eq!(
         serde_json::to_value(config)?,
         json!({
-            "cli_auth_credentials_store":"file","forced_login_method":"api",
+            "cli_auth_credentials_store":"file","forced_login_method":"chatgpt",
             "projects":{project_key:{"trust_level":"trusted"}},
             "features":{"hooks":true,"mcp_2026_07_28":false},
             "mcp_servers":{"covenant_effect_probe":{
@@ -130,7 +130,7 @@ async fn covenant_hook_mcp_effects_are_absent() -> Result<()> {
 
     let capture = &observed.model;
     assert_eq!(capture.failure, None);
-    assert!((1..=4).contains(&capture.connections));
+    assert!((1..=8).contains(&capture.connections));
     assert_eq!(
         (
             capture.connects.len(),
@@ -139,13 +139,16 @@ async fn covenant_hook_mcp_effects_are_absent() -> Result<()> {
         ),
         (
             capture.connections,
-            capture.connections,
-            capture.connections
+            capture.connections - capture.catalog_requests - capture.auxiliary_requests,
+            capture.connections - capture.catalog_requests - capture.auxiliary_requests
         )
     );
-    let authorization = format!("Bearer {}", proxy::API_KEY);
+    assert_eq!(capture.catalog_requests, 1);
+    assert_eq!(capture.settings_requests, 1);
+    assert!(capture.auxiliary_requests >= 2);
+    let authorization = format!("Bearer {}", proxy::ACCESS_TOKEN);
     for (sni, headers) in &capture.handshakes {
-        assert_eq!(sni, "api.openai.com");
+        assert_eq!(sni, "chatgpt.com");
         assert_eq!(
             headers
                 .iter()
@@ -160,7 +163,7 @@ async fn covenant_hook_mcp_effects_are_absent() -> Result<()> {
                 .filter(|(name, _)| name == "host")
                 .map(|(_, value)| value.as_str())
                 .collect::<Vec<_>>(),
-            vec!["api.openai.com"]
+            vec!["chatgpt.com"]
         );
     }
     let warmups = capture
@@ -260,6 +263,9 @@ async fn covenant_hook_mcp_effects_are_absent() -> Result<()> {
 
     let model_value = json!({"kind":"canonical_sc5","capture":{
         "connections":capture.connections,"connects":capture.connects,
+        "catalog_requests":capture.catalog_requests,
+        "auxiliary_requests":capture.auxiliary_requests,
+        "settings_requests":capture.settings_requests,
         "handshakes":capture.handshakes,"requests":capture.requests,
         "inference_input":capture.inference_input,"warmup_completed":capture.warmup_completed,
         "inference_completed":capture.inference_completed,"messages":capture.messages,

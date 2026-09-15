@@ -1,5 +1,4 @@
 use super::covenant_model_catalog;
-use super::covenant_selected_model;
 use super::decode;
 use codex_protocol::openai_models::ModelsResponse;
 use pretty_assertions::assert_eq;
@@ -11,7 +10,6 @@ use std::io::ErrorKind;
 const CATALOG: &[u8] = include_bytes!("../../../covenant/model-catalog.json");
 const LIMIT: usize = 256 * 1024;
 const CATALOG_REFUSAL: &str = "Covenant model catalog refused";
-const SELECTION_REFUSAL: &str = "Covenant model selection refused";
 
 fn fixture() -> Value {
     serde_json::from_slice(CATALOG).expect("frozen owned catalog is JSON")
@@ -220,31 +218,4 @@ fn covenant_catalog_requires_exactly_four_unique_approved_identities() {
     let mut missing = original;
     missing["models"][0].as_object_mut().unwrap().remove("slug");
     refused(&encoded(&missing));
-}
-
-#[test]
-fn covenant_catalog_selection_defaults_and_refuses_unknown_requested_ids() {
-    assert_eq!(covenant_selected_model(/*model*/ None).unwrap(), "gpt-5.5");
-    for model in ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.2"] {
-        assert_eq!(covenant_selected_model(Some(model)).unwrap(), model);
-    }
-    let long = "owned-secret-model-canary-".repeat(4096);
-    for model in [
-        "",
-        "gpt-6-astra",
-        "openai/gpt-5.5",
-        "gpt-5.5/extra",
-        "gpt-5.5 ",
-        " gpt-5.5",
-        "GPT-5.5",
-        "gpt-5.4-latest",
-        "gpt-5.5\0",
-        long.as_str(),
-    ] {
-        let error = covenant_selected_model(Some(model)).expect_err("model must refuse");
-        assert_eq!(
-            (error.kind(), error.to_string()),
-            (ErrorKind::InvalidData, SELECTION_REFUSAL.to_owned())
-        );
-    }
 }

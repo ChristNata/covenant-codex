@@ -219,8 +219,13 @@ try {{\n\
         file.sync_all()?;
         drop(file);
         let project_key = &expected.cwd;
+        let forced_login_method = if cfg!(feature = "covenant") {
+            "chatgpt"
+        } else {
+            "api"
+        };
         let config = toml::Value::try_from(json!({
-            "cli_auth_credentials_store":"file", "forced_login_method":"api",
+            "cli_auth_credentials_store":"file", "forced_login_method":forced_login_method,
             "projects":{project_key:{"trust_level":"trusted"}},
             "features":{"hooks":true,"mcp_2026_07_28":false}
         }))?;
@@ -236,6 +241,20 @@ try {{\n\
         );
         fs::write(root.join("home/config.toml"), config)?;
         fs::write(root.join("home/hooks.json"), hooks)?;
+        #[cfg(feature = "covenant")]
+        fs::write(
+            root.join("auth/auth.json"),
+            serde_json::to_vec(&json!({
+                "auth_mode": "chatgpt",
+                "tokens": {
+                    "id_token": "eyJhbGciOiJub25lIn0.e30.c2ln",
+                    "access_token": super::proxy::ACCESS_TOKEN,
+                    "refresh_token": "covenant-sc5-synthetic-refresh",
+                    "account_id": "covenant-sc5-synthetic-account"
+                },
+                "last_refresh": "2099-01-01T00:00:00Z"
+            }))?,
+        )?;
         Ok(Self {
             _temporary: temporary,
             root,
@@ -260,8 +279,13 @@ try {{\n\
         let address = listener.local_addr()?;
         let mcp_url = format!("http://{address}/mcp/{}", fixture.expected.nonce);
         let project_key = &fixture.expected.cwd;
+        let forced_login_method = if cfg!(feature = "covenant") {
+            "chatgpt"
+        } else {
+            "api"
+        };
         let mut config = toml::Value::try_from(json!({
-            "cli_auth_credentials_store":"file", "forced_login_method":"api",
+            "cli_auth_credentials_store":"file", "forced_login_method":forced_login_method,
             "projects":{project_key:{"trust_level":"trusted"}},
             "features":{"hooks":true,"mcp_2026_07_28":false},
             "mcp_servers":{"covenant_effect_probe":{

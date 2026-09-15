@@ -127,7 +127,8 @@ Reviewed owners under [core/config](codex-rs/core/src/config/mod.rs) include
 `managed_features.rs`, `covenant_profile.rs`, `covenant_non_features.rs` and
 `mod.rs`, plus [mcp.rs](codex-rs/core/src/mcp.rs), with dedicated profile/config/
 role/MCP tests. The four [model-catalog.json](covenant/model-catalog.json) records
-are reviewed data; extraction alone does not prove catalog immutability.
+remain reviewed, bounded data for the explicit `--bundled` diagnostic only.
+They no longer gate headless model selection or act as the default runtime catalog.
 
 Local evidence now covers the reviewed provider/catalog construction, startup
 closure, effective two-tool specification and constrained CLI, plus ordinary
@@ -139,8 +140,13 @@ open; no unrelated upstream repair is included.
 
 The reviewed CLI contract defines exec, native login, inventory access and the
 diagnostic `codex debug models` catalog query. Covenant exposes no other debug
-leaf. The default query uses the native OpenAI provider's online/fresh-cache
-catalog path; explicit `--bundled` reports Covenant's pinned four-model catalog.
+leaf. The default query and headless `codex exec` admission require a fresh,
+authenticated ChatGPT/Codex backend `/models` response; no stale cache or
+bundled catalog can authorize an ID. Only exact list-visible slugs are admitted,
+after a bounded unique-ID and native two-tool-capability check, and exec binds
+the admitting metadata snapshot to its internal app-server.
+OpenAI API-key catalog selection is not supported. Explicit `--bundled` reports
+the pinned four-model diagnostic catalog.
 The published artifact must exclude public TUI/server/MCP/plugin/Code Mode,
 hosted web, dynamic-tool, multi-agent and interactive-input authorities. Retain
 upstream exec's required internal app-server library while removing alternate

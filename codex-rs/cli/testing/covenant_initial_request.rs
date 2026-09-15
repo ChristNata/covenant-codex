@@ -43,10 +43,23 @@ impl Fixture {
             .ok_or_else(|| anyhow!("owned path encoding refused"))?;
         let config = toml::Value::try_from(json!({
             "cli_auth_credentials_store": "file",
-            "forced_login_method": "api",
+            "forced_login_method": "chatgpt",
             "projects": {project_key: {"trust_level":"trusted"}}
         }))?;
         fs::write(root.join("home/config.toml"), toml::to_string(&config)?)?;
+        fs::write(
+            root.join("auth/auth.json"),
+            serde_json::to_vec(&json!({
+                "auth_mode": "chatgpt",
+                "tokens": {
+                    "id_token": "eyJhbGciOiJub25lIn0.e30.c2ln",
+                    "access_token": proxy::ACCESS_TOKEN,
+                    "refresh_token": "covenant-sc5-synthetic-refresh",
+                    "account_id": "covenant-sc5-synthetic-account"
+                },
+                "last_refresh": "2099-01-01T00:00:00Z"
+            }))?,
+        )?;
         Ok(Self {
             _temporary: temporary,
             root,
@@ -78,7 +91,6 @@ impl Fixture {
             .env("TEMP", self.root.join("temp"))
             .env("TMP", self.root.join("temp"))
             .env("PATH", self.root.join("path"))
-            .env("CODEX_API_KEY", proxy::API_KEY)
             .env("HTTPS_PROXY", &peer.address)
             .env("CODEX_CA_CERTIFICATE", &ca_path)
             .args([
@@ -183,6 +195,8 @@ struct Outcome {
     proxy_clean: bool,
     attempts_bounded_and_captured: bool,
     authenticated_upgrades: bool,
+    live_catalog_fetched: bool,
+    auxiliary_requests_observed: bool,
     warmup_count: usize,
     inference_count: usize,
     completed_counts_agree: bool,
@@ -239,10 +253,10 @@ async fn covenant_initial_request_captures_canonical_wss_catalog_and_jsonl_compl
             .iter()
             .all(|request| request.get("tools") == Some(first))
     });
-    let expected_auth = format!("Bearer {}", proxy::API_KEY);
+    let expected_auth = format!("Bearer {}", proxy::ACCESS_TOKEN);
     let authenticated_upgrades = !capture.handshakes.is_empty()
         && capture.handshakes.iter().all(|(sni, headers)| {
-            sni == "api.openai.com"
+            sni == "chatgpt.com"
                 && headers
                     .iter()
                     .filter(|(name, value)| name == "authorization" && value == &expected_auth)
@@ -250,17 +264,21 @@ async fn covenant_initial_request_captures_canonical_wss_catalog_and_jsonl_compl
                     == 1
                 && headers
                     .iter()
-                    .filter(|(name, value)| name == "host" && value == "api.openai.com")
+                    .filter(|(name, value)| name == "host" && value == "chatgpt.com")
                     .count()
                     == 1
         });
     let observed = Outcome {
         native_success: exit.success(),
         proxy_clean: capture.failure.is_none(),
-        attempts_bounded_and_captured: (1..=4).contains(&capture.connections)
+        attempts_bounded_and_captured: (1..=8).contains(&capture.connections)
             && capture.connects.len() == capture.connections
-            && capture.handshakes.len() == capture.connections,
+            && capture.handshakes.len() + capture.catalog_requests + capture.auxiliary_requests
+                == capture.connections,
         authenticated_upgrades,
+        live_catalog_fetched: capture.catalog_requests == 1,
+        auxiliary_requests_observed: capture.settings_requests == 1
+            && capture.auxiliary_requests >= 2,
         warmup_count: warmups,
         inference_count: inferences,
         completed_counts_agree: warmups <= 1
@@ -277,6 +295,8 @@ async fn covenant_initial_request_captures_canonical_wss_catalog_and_jsonl_compl
             proxy_clean: true,
             attempts_bounded_and_captured: true,
             authenticated_upgrades: true,
+            live_catalog_fetched: true,
+            auxiliary_requests_observed: true,
             warmup_count: usize::from(capture.warmup_completed),
             inference_count: 1,
             completed_counts_agree: true,

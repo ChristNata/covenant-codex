@@ -46,6 +46,9 @@ struct ArchivedCapture<'a> {
     connections: usize,
     connects: &'a [Vec<u8>],
     handshakes: &'a [(String, Vec<(String, String)>)],
+    catalog_requests: usize,
+    auxiliary_requests: usize,
+    settings_requests: usize,
     requests: &'a [serde_json::Value],
     inference_input: &'a [serde_json::Value],
     warmup_completed: bool,
@@ -142,7 +145,6 @@ impl Fixture {
             .env("TEMP", self.root.join("temp"))
             .env("TMP", self.root.join("temp"))
             .env("PATH", self.root.join("path"))
-            .env("CODEX_API_KEY", proxy::API_KEY)
             .env("HTTPS_PROXY", &model_peer.address)
             .env("CODEX_CA_CERTIFICATE", &ca_path)
             .args([
@@ -297,6 +299,9 @@ fn archived_capture(capture: &Capture) -> ArchivedCapture<'_> {
         connections: capture.connections,
         connects: &capture.connects,
         handshakes: &capture.handshakes,
+        catalog_requests: capture.catalog_requests,
+        auxiliary_requests: capture.auxiliary_requests,
+        settings_requests: capture.settings_requests,
         requests: &capture.requests,
         inference_input: &capture.inference_input,
         warmup_completed: capture.warmup_completed,

@@ -19,20 +19,6 @@ pub fn covenant_model_catalog() -> io::Result<ModelsResponse> {
     decode(include_bytes!("../../../covenant/model-catalog.json"))
 }
 
-/// Resolve an exact approved identity, using the compiled default when absent.
-pub fn covenant_selected_model(model: Option<&str>) -> io::Result<&'static str> {
-    let requested = model.unwrap_or(MODEL_IDS[0]);
-    MODEL_IDS
-        .into_iter()
-        .find(|candidate| *candidate == requested)
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                "Covenant model selection refused",
-            )
-        })
-}
-
 fn catalog_error() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "Covenant model catalog refused")
 }

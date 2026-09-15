@@ -1,5 +1,5 @@
 //! Actual scripted WebSocket exchange; original request, tool and event checks are retained.
-use super::API_KEY;
+use super::ACCESS_TOKEN;
 use super::Capture;
 use super::INFERENCE_ID;
 use super::MARKER;
@@ -21,6 +21,7 @@ use serde_json::Value;
 use serde_json::json;
 use std::sync::Arc;
 use std::sync::Mutex;
+use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio_rustls::TlsAcceptor;
@@ -36,11 +37,11 @@ pub(super) async fn connection(
     acceptor: TlsAcceptor,
     capture: Arc<Mutex<Capture>>,
     budget: Arc<Mutex<TrafficBudget>>,
-) -> Result<Arc<ConnectionObservation>> {
+) -> Result<Option<Arc<ConnectionObservation>>> {
     let connect = read_header(&mut stream).await?;
     captured(&capture).connects.push(connect.clone());
     ensure!(
-        connect.starts_with(b"CONNECT api.openai.com:443 HTTP/1.1\r\n"),
+        connect.starts_with(b"CONNECT chatgpt.com:443 HTTP/1.1\r\n"),
         "unexpected authority"
     );
     stream
@@ -56,8 +57,18 @@ pub(super) async fn connection(
         .server_name()
         .unwrap_or_default()
         .to_string();
-    ensure!(sni == "api.openai.com", "unexpected SNI");
+    ensure!(sni == "chatgpt.com", "unexpected SNI");
     let prefix = read_header(&mut tls).await?;
+    if prefix.starts_with(b"GET /backend-api/codex/models?") {
+        serve_catalog(&mut tls, &prefix, &capture).await?;
+        return Ok(None);
+    }
+    if prefix.starts_with(b"POST /backend-api/codex/analytics-events/events HTTP/1.1\r\n")
+        || prefix.starts_with(b"GET /backend-api/wham/settings/user HTTP/1.1\r\n")
+    {
+        serve_auxiliary(&mut tls, &prefix, &capture).await?;
+        return Ok(None);
+    }
     let observed = Arc::clone(&capture);
     let callback = move |request: &Request, response: Response| {
         let headers = request
@@ -71,17 +82,17 @@ pub(super) async fn connection(
             })
             .collect();
         captured(&observed).handshakes.push((sni.clone(), headers));
-        let expected_auth = format!("Bearer {API_KEY}");
+        let expected_auth = format!("Bearer {ACCESS_TOKEN}");
         let accepted = request.method() == http::Method::GET
             && request
                 .uri()
                 .path_and_query()
-                .is_some_and(|value| value.as_str() == "/v1/responses")
+                .is_some_and(|value| value.as_str() == "/backend-api/codex/responses")
             && request.headers().get_all("host").iter().count() == 1
             && request
                 .headers()
                 .get("host")
-                .is_some_and(|value| value == "api.openai.com")
+                .is_some_and(|value| value == "chatgpt.com")
             && request.headers().get_all("authorization").iter().count() == 1
             && request
                 .headers()
@@ -117,7 +128,7 @@ pub(super) async fn connection(
                     && observation.missing_close_notify_observed() =>
             {
                 // Qualification is deferred until the actual child and every task are joined.
-                return Ok(observation);
+                return Ok(Some(observation));
             }
             Some(Err(_)) | None => return Err(anyhow!("owned WebSocket terminal unqualified")),
         };
@@ -190,6 +201,148 @@ pub(super) async fn connection(
             }
         }
     }
+}
+
+async fn serve_catalog(
+    tls: &mut (impl tokio::io::AsyncWrite + Unpin),
+    header: &[u8],
+    capture: &Mutex<Capture>,
+) -> Result<()> {
+    let header =
+        std::str::from_utf8(header).map_err(|_| anyhow!("catalog header encoding refused"))?;
+    let mut lines = header.split("\r\n");
+    ensure!(
+        lines.next().is_some_and(|line| {
+            line.starts_with("GET /backend-api/codex/models?client_version=")
+                && line.ends_with(" HTTP/1.1")
+        }),
+        "catalog request path refused"
+    );
+    let headers = lines
+        .take_while(|line| !line.is_empty())
+        .filter_map(|line| line.split_once(':'))
+        .map(|(name, value)| (name.trim().to_ascii_lowercase(), value.trim().to_owned()))
+        .collect::<Vec<_>>();
+    ensure!(
+        headers
+            .iter()
+            .filter(|(name, value)| name == "host" && value == "chatgpt.com")
+            .count()
+            == 1
+            && headers
+                .iter()
+                .filter(|(name, value)| name == "authorization"
+                    && value == &format!("Bearer {ACCESS_TOKEN}"))
+                .count()
+                == 1,
+        "catalog host or synthetic auth refused"
+    );
+    let model = json!({
+        "slug": "gpt-5.5",
+        "display_name": "GPT-5.5",
+        "description": "Synthetic live catalog model",
+        "default_reasoning_level": "medium",
+        "supported_reasoning_levels": [{"effort": "medium", "description": "Balanced"}],
+        "shell_type": "unified_exec",
+        "visibility": "list",
+        "supported_in_api": true,
+        "priority": 1,
+        "availability_nux": null,
+        "upgrade": null,
+        "model_messages": {
+            "instructions_template": "Synthetic subscription model instructions",
+            "instructions_variables": null
+        },
+        "support_verbosity": true,
+        "default_verbosity": "low",
+        "apply_patch_tool_type": "freeform",
+        "truncation_policy": {"mode": "tokens", "limit": 10000},
+        "experimental_supported_tools": []
+    });
+    let body = serde_json::to_vec(&json!({"models": [model]}))?;
+    ensure!(body.len() <= MESSAGE_LIMIT, "catalog response cap exceeded");
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        body.len()
+    );
+    tls.write_all(response.as_bytes()).await?;
+    tls.write_all(&body).await?;
+    tls.shutdown().await?;
+    captured(capture).catalog_requests += 1;
+    Ok(())
+}
+
+async fn serve_auxiliary(
+    tls: &mut (impl tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin),
+    header: &[u8],
+    capture: &Mutex<Capture>,
+) -> Result<()> {
+    let header =
+        std::str::from_utf8(header).map_err(|_| anyhow!("auxiliary header encoding refused"))?;
+    let mut lines = header.split("\r\n");
+    let request_line = lines
+        .next()
+        .ok_or_else(|| anyhow!("auxiliary request line missing"))?;
+    let analytics = request_line == "POST /backend-api/codex/analytics-events/events HTTP/1.1";
+    ensure!(
+        analytics || request_line == "GET /backend-api/wham/settings/user HTTP/1.1",
+        "auxiliary path refused"
+    );
+    let headers = lines
+        .take_while(|line| !line.is_empty())
+        .map(|line| {
+            line.split_once(':')
+                .ok_or_else(|| anyhow!("auxiliary header refused"))
+        })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .map(|(name, value)| (name.trim().to_ascii_lowercase(), value.trim().to_owned()))
+        .collect::<Vec<_>>();
+    let expected_auth = format!("Bearer {ACCESS_TOKEN}");
+    ensure!(
+        headers
+            .iter()
+            .filter(|(name, value)| name == "host" && value == "chatgpt.com")
+            .count()
+            == 1
+            && headers
+                .iter()
+                .filter(|(name, value)| name == "authorization" && value == &expected_auth)
+                .count()
+                == 1,
+        "auxiliary host or synthetic auth refused"
+    );
+    if analytics {
+        let lengths = headers
+            .iter()
+            .filter(|(name, _)| name == "content-length")
+            .map(|(_, value)| value.parse::<usize>())
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        ensure!(
+            lengths.len() == 1 && lengths[0] <= MESSAGE_LIMIT,
+            "analytics body cap refused"
+        );
+        let mut body = vec![0; lengths[0]];
+        tls.read_exact(&mut body).await?;
+        serde_json::from_slice::<Value>(&body).map_err(|_| anyhow!("analytics JSON refused"))?;
+        tls.write_all(b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+            .await?;
+    } else {
+        let body = br#"{"commit_attribution_enabled":false}"#;
+        let response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            body.len()
+        );
+        tls.write_all(response.as_bytes()).await?;
+        tls.write_all(body).await?;
+    }
+    tls.shutdown().await?;
+    let mut state = captured(capture);
+    state.auxiliary_requests += 1;
+    if !analytics {
+        state.settings_requests += 1;
+    }
+    Ok(())
 }
 
 fn observe_request(capture: &Mutex<Capture>, request: Value) -> Result<bool> {

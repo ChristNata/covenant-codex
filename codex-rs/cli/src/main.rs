@@ -89,6 +89,8 @@ use codex_features::is_known_feature_key;
 use codex_home::CodexHomeUserInstructionsProvider;
 use codex_login::AuthManager;
 use codex_login::CodexAuth;
+#[cfg(feature = "covenant")]
+use codex_login::default_client::set_default_client_residency_requirement;
 use codex_login::is_workload_identity_selected;
 use codex_login::read_codex_access_token_from_env;
 use codex_memories_write::clear_memory_roots_contents;
@@ -96,8 +98,7 @@ use codex_memories_write::clear_memory_roots_contents;
 use codex_models_manager::bundled_models_response;
 #[cfg(feature = "covenant")]
 use codex_models_manager::covenant_model_catalog;
-#[cfg(feature = "covenant")]
-use codex_models_manager::covenant_selected_model;
+#[cfg(not(feature = "covenant"))]
 use codex_models_manager::manager::RefreshStrategy;
 use codex_protocol::protocol::AskForApproval;
 use codex_protocol::user_input::UserInput;
@@ -2385,32 +2386,27 @@ async fn run_debug_models_command(
         let cli_overrides = root_config_overrides
             .parse_overrides()
             .map_err(anyhow::Error::msg)?;
-        #[cfg(feature = "covenant")]
-        let mut cli_overrides = cli_overrides;
-        #[cfg(feature = "covenant")]
-        cli_overrides.push((
-            "model".to_owned(),
-            toml::Value::String(covenant_selected_model(/*requested*/ None)?.to_owned()),
-        ));
         let config = ConfigBuilder::default()
             .cli_overrides(cli_overrides)
             .build()
             .await?;
         #[cfg(feature = "covenant")]
-        let config = {
-            let mut config = config;
-            config.model_catalog = None;
-            config
-        };
+        set_default_client_residency_requirement(config.enforce_residency.value());
         let auth_manager =
             AuthManager::shared_from_config(&config, /*enable_codex_api_key_env*/ true).await?;
         let models_manager = build_models_manager(&config, auth_manager);
-        models_manager
+        #[cfg(feature = "covenant")]
+        let catalog = models_manager
+            .fresh_model_catalog(config.http_client_factory())
+            .await?;
+        #[cfg(not(feature = "covenant"))]
+        let catalog = models_manager
             .raw_model_catalog(
                 RefreshStrategy::OnlineIfUncached,
                 config.http_client_factory(),
             )
-            .await
+            .await;
+        catalog
     };
 
     serde_json::to_writer(std::io::stdout(), &catalog)?;

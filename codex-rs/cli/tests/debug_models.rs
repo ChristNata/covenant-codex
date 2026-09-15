@@ -17,6 +17,9 @@ const CACHED_REMOTE_MODEL: &str = "live-catalog-test";
 fn codex_command(codex_home: &Path) -> Result<assert_cmd::Command> {
     let mut cmd = assert_cmd::Command::new(codex_utils_cargo_bin::cargo_bin("codex")?);
     cmd.env("CODEX_HOME", codex_home);
+    cmd.env_remove("OPENAI_API_KEY");
+    cmd.env_remove("CODEX_API_KEY");
+    cmd.env_remove("CODEX_ACCESS_TOKEN");
     Ok(cmd)
 }
 
@@ -63,28 +66,32 @@ fn debug_models_bundled_prints_json() -> Result<()> {
 }
 
 #[test]
-fn debug_models_default_prints_json_without_auth() -> Result<()> {
+fn debug_models_default_requires_live_codex_auth() -> Result<()> {
     let codex_home = TempDir::new()?;
     #[cfg(feature = "covenant")]
     std::fs::write(
         codex_home.path().join("config.toml"),
-        "model = \"not-a-covenant-model\"\n",
+        "model = \"not-a-covenant-model\"\ncli_auth_credentials_store = 'file'\n",
     )?;
     #[cfg(feature = "covenant")]
     write_remote_models_cache(codex_home.path())?;
     let mut cmd = codex_command(codex_home.path())?;
     let output = cmd.args(["debug", "models"]).output()?;
 
-    assert!(output.status.success());
-    let actual = catalog_from_stdout(&output.stdout)?;
-    assert!(!actual.models.is_empty());
     #[cfg(feature = "covenant")]
-    assert!(
-        actual
-            .models
-            .iter()
-            .any(|model| model.slug == CACHED_REMOTE_MODEL)
-    );
+    {
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(stderr.contains("live Codex catalog requires Codex backend authentication"));
+        assert!(!stderr.contains(CACHED_REMOTE_MODEL));
+    }
+    #[cfg(not(feature = "covenant"))]
+    {
+        assert!(output.status.success());
+        let actual = catalog_from_stdout(&output.stdout)?;
+        assert!(!actual.models.is_empty());
+    }
 
     Ok(())
 }

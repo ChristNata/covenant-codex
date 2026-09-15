@@ -135,9 +135,13 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             & (Join-Path $env:RUNNER_TEMP 'covenant-sink-tests.exe') --quiet
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            just test -p codex-cli -E 'test(/covenant/)'
+            just test -p codex-cli -E 'test(/covenant|debug_models/)'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             just test -p codex-core --features covenant -E 'test(/covenant/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-models-manager -E 'test(/fresh_catalog|covenant_catalog/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-cli -p codex-exec -E 'test(/covenant_models/)'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             just test -p codex-login -E 'test(/covenant/)'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -156,7 +160,7 @@ jobs:
               binary = 'codex-x86_64-pc-windows-msvc.exe'
               binary_sha256 = $sha
               inventory = 'codex --covenant-inventory -c model=gpt-5.5'
-              suite = 'covenant-python, covenant-sink, codex-cli/core/login selectors, codex-covenant runtime'
+              suite = 'covenant-python, covenant-sink, codex-cli/core/models-manager/exec/login selectors, codex-covenant runtime'
             }
             $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $env:COVENANT_ARTIFACT_DIR 'reaudit.json') -Encoding utf8NoBOM
           }
