@@ -4390,6 +4390,24 @@ fn elicitation_capability_advertises_url_support_when_enabled() {
 }
 
 #[test]
+fn mcp_initialize_omits_empty_elicitation_and_advertises_real_support() {
+    let disabled = crate::rmcp_client::mcp_initialize_request_params(
+        ElicitationCapability::default(),
+        ClientMcpExtensions::default(),
+    );
+    assert_eq!(disabled.capabilities.elicitation, None);
+
+    let enabled = crate::rmcp_client::mcp_initialize_request_params(
+        ElicitationCapability::new().with_form(rmcp::model::FormElicitationCapability::new()),
+        ClientMcpExtensions::default(),
+    );
+    assert_eq!(
+        enabled.capabilities.elicitation,
+        Some(ElicitationCapability::new().with_form(rmcp::model::FormElicitationCapability::new()))
+    );
+}
+
+#[test]
 fn mcp_init_error_display_prompts_for_github_pat() {
     let server_name = "github";
     let config = McpServerConfig {

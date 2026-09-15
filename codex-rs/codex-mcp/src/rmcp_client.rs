@@ -1018,7 +1018,12 @@ pub(crate) fn mcp_initialize_request_params(
     client_mcp_extensions: ClientMcpExtensions,
 ) -> InitializeRequestParams {
     let mut capabilities = ClientCapabilities::default();
-    capabilities.elicitation = Some(client_elicitation_capability);
+    // Do not claim interactive reverse traffic when the client has no form or
+    // URL elicitation capability. A proxy such as fanin uses mere presence as
+    // its forwarding gate, even for an otherwise empty capability object.
+    if client_elicitation_capability != ElicitationCapability::default() {
+        capabilities.elicitation = Some(client_elicitation_capability);
+    }
     let extensions = client_mcp_extensions
         .iter()
         .filter_map(|(id, settings)| {

@@ -28,6 +28,8 @@ pub(super) const FEATURE_PINS: &[(Feature, bool)] = &[
     (Feature::EnableMcpApps, false),
     (Feature::Mcp20260728, false),
     (Feature::McpOAuthRefreshCoordination, false),
+    (Feature::ToolCallMcpElicitation, false),
+    (Feature::AuthElicitation, false),
     (Feature::DeferredToolWorldState, false),
     (Feature::NonPrefixedMcpToolNames, false),
     (Feature::ToolSuggest, false),

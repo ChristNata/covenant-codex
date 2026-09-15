@@ -104,7 +104,7 @@ impl McpServerContributor<Config> for Contributor {
             let facts = (
                 context
                     .thread_init()
-                    .and_then(|init| init.get::<Seed>())
+                    .and_then(codex_extension_api::ExtensionDataInit::get::<Seed>)
                     .map(|seed| seed.0),
                 context.thread_store().map(ExtensionData::level_id),
                 context.session_source().cloned(),
@@ -243,8 +243,13 @@ impl Fixture {
             Some("https://fixture.invalid/initial")
         );
         let security_before = security(&config);
-        if let Input::Replaced = input {
-            let replacement = HashMap::from([("replacement".to_owned(), server("replacement"))]);
+        if matches!(input, Input::Replaced | Input::ReplacedFanin) {
+            let name = match input {
+                Input::Replaced => "replacement",
+                Input::ReplacedFanin => "fanin",
+                Input::Configured => unreachable!("replacement branch"),
+            };
+            let replacement = HashMap::from([(name.to_owned(), server(name))]);
             config.mcp_servers = Constrained::allow_any(replacement.clone());
             assert_eq!(config.mcp_servers.get(), &replacement);
         }
@@ -320,6 +325,7 @@ impl Fixture {
 enum Input {
     Configured,
     Replaced,
+    ReplacedFanin,
 }
 
 fn security(config: &Config) -> impl Debug + PartialEq + use<> {
@@ -427,6 +433,7 @@ fn ordinary(input: Input) -> Observation {
     let name = match input {
         Input::Configured => "initial",
         Input::Replaced => "replacement",
+        Input::ReplacedFanin => "fanin",
     };
     let servers = BTreeMap::from([
         (name.to_owned(), (server(name), McpServerSource::Config)),
@@ -480,8 +487,11 @@ async fn covenant_mcp_projection_skips_global_and_step_effects() -> std::io::Res
 async fn covenant_mcp_projection_replaced_wrapper_cannot_restore_effects() -> std::io::Result<()> {
     let fixture = Fixture::new()?;
     assert_eq!(
-        fixture.observe(Input::Replaced).await?,
-        Observation::default()
+        [
+            fixture.observe(Input::Replaced).await?,
+            fixture.observe(Input::ReplacedFanin).await?,
+        ],
+        [Observation::default(), Observation::default()]
     );
     Ok(())
 }

@@ -165,6 +165,8 @@ use toml_edit::DocumentMut;
 
 mod auth_keyring;
 #[cfg(feature = "covenant")]
+mod covenant_fanin;
+#[cfg(feature = "covenant")]
 mod covenant_non_features;
 #[cfg(feature = "covenant")]
 mod covenant_profile;
@@ -2169,8 +2171,10 @@ fn constrain_mcp_servers(
 ) -> ConstraintResult<Constrained<HashMap<String, McpServerConfig>>> {
     #[cfg(feature = "covenant")]
     {
-        let _ = mcp_requirements;
-        Constrained::normalized(mcp_servers, |_| HashMap::new())
+        let mut pinned = mcp_servers;
+        filter_mcp_servers_by_requirements(&mut pinned, mcp_requirements);
+        let frozen = pinned.clone();
+        Constrained::normalized(pinned, move |_| frozen.clone())
     }
     #[cfg(not(feature = "covenant"))]
     {

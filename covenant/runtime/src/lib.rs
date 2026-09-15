@@ -9,6 +9,8 @@ mod decision_reply;
 #[cfg(windows)]
 mod exec_envelope;
 #[cfg(windows)]
+mod fanin_binding;
+#[cfg(windows)]
 mod launch_contract;
 mod numbers;
 mod patch;
@@ -45,17 +47,30 @@ pub use exec_envelope::FinalExecInput;
 #[cfg(windows)]
 pub use exec_envelope::NetworkAccess;
 #[cfg(windows)]
+pub use fanin_binding::FaninBinding;
+#[cfg(windows)]
+pub use fanin_binding::FaninBindingError;
+#[cfg(windows)]
 pub use launch_contract::LaunchContract;
 #[cfg(windows)]
 pub use launch_contract::LaunchContractError;
 #[cfg(windows)]
 pub use launch_contract::StartupControls;
-pub use patch::{
-    AncestorIdentity, IdentityKind, PatchHunk, PatchHunkLine, PatchHunkLineKind, PatchOperation,
-    PatchOperationKind, PatchPermissions, PatchRequest, PatchRequestError, ResolvedIdentity,
-    encode_patch_request,
-};
-pub use sidecar::{SidecarClient, SidecarDecision, SidecarError};
+pub use patch::AncestorIdentity;
+pub use patch::IdentityKind;
+pub use patch::PatchHunk;
+pub use patch::PatchHunkLine;
+pub use patch::PatchHunkLineKind;
+pub use patch::PatchOperation;
+pub use patch::PatchOperationKind;
+pub use patch::PatchPermissions;
+pub use patch::PatchRequest;
+pub use patch::PatchRequestError;
+pub use patch::ResolvedIdentity;
+pub use patch::encode_patch_request;
+pub use sidecar::SidecarClient;
+pub use sidecar::SidecarDecision;
+pub use sidecar::SidecarError;
 #[cfg(windows)]
 pub use windows_environment::FrozenWindowsEnvironment;
 #[cfg(windows)]

@@ -35,7 +35,7 @@ pub(super) fn apply_config_profile(
         }),
     });
     cfg.agents.get_or_insert_default().enabled = Some(false);
-    cfg.mcp_servers.clear();
+    super::covenant_fanin::clamp_fanin(cfg)?;
     cfg.web_search = Some(WebSearchMode::Disabled);
     cfg.notify = None;
     cfg.tool_suggest = Some(ToolSuggestConfig::default());

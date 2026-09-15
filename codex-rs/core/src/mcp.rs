@@ -22,6 +22,7 @@ use codex_features::Feature;
 use codex_login::CodexAuth;
 use codex_mcp::CODEX_APPS_MCP_SERVER_NAME;
 use codex_mcp::EffectiveMcpServer;
+use codex_mcp::McpCatalogBuilder;
 use codex_mcp::McpConfig;
 use codex_mcp::McpEnvironmentAuthority;
 use codex_mcp::McpPluginAttribution;
@@ -163,7 +164,20 @@ impl McpManager {
                 &PluginLoadOutcome::default(),
                 std::iter::empty(),
             );
-            mcp_config.mcp_server_catalog = Default::default();
+            // A replacement of Config's constrained wrapper must not restore
+            // startup effects. Accept only the frozen snapshot produced by the
+            // managed profile, then project its single fanin registration.
+            let mut probe = config.mcp_servers.clone();
+            let frozen =
+                probe.set(HashMap::new()).is_ok() && probe.get() == config.mcp_servers.get();
+            let mut catalog = McpCatalogBuilder::default();
+            if frozen && let Some(fanin) = config.mcp_servers.get().get("fanin") {
+                catalog.register(McpServerRegistration::from_config(
+                    "fanin".to_owned(),
+                    fanin.clone(),
+                ));
+            }
+            mcp_config.mcp_server_catalog = catalog.build();
             mcp_config.connector_snapshot = Default::default();
             return McpRuntimeProjection {
                 config: mcp_config,
