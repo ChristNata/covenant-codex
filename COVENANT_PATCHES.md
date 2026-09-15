@@ -145,6 +145,8 @@ authenticated ChatGPT/Codex backend `/models` response; no stale cache or
 bundled catalog can authorize an ID. Only exact list-visible slugs are admitted,
 after a bounded unique-ID and native two-tool-capability check, and exec binds
 the admitting metadata snapshot to its internal app-server.
+The fork keeps the direct two-tool router even when live model metadata advertises
+`code_mode_only`; that upstream selector grants no alternate tool authority.
 OpenAI API-key catalog selection is not supported. Explicit `--bundled` reports
 the pinned four-model diagnostic catalog.
 The published artifact must exclude public TUI/server/MCP/plugin/Code Mode,
