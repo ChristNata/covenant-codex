@@ -22,8 +22,9 @@ does not certify its own work or become a long-lived service.
 
 This fork is one managed child binary. Covenant supplies its executable, launch
 environment, role instructions, and policy decider. The fork supplies a narrow
-`codex exec` surface, plus diagnostic `codex debug models` discovery, and asks the
-decider before its two mutating authorities.
+`codex exec` surface, diagnostic `codex debug models` discovery, and the sole
+managed `fanin` MCP client. It asks the decider before its local exec and patch
+authorities; upstream MCP effects remain subject to the selected fanin namespace.
 The policy response is an input to execution, not a report the child may judge.
 
 ## Why this fork exists
@@ -35,8 +36,8 @@ re-auditable binary that removes these residuals without rewriting Codex's
 reasoning, turn, or agent loop.
 
 The supported artifact is Windows x64 constrained `codex exec`, optional
-`codex exec --json`, and diagnostic `codex debug models`. It is not an interactive
-Codex distribution.
+`codex exec --json`, diagnostic `codex debug models`, and the fanin-only stdio
+MCP client. It is not an interactive Codex distribution.
 
 ## Adoption sequence
 
@@ -65,8 +66,9 @@ an intermediate push. Releases must identify an immutable, audited fork tree.
 ## The four patches
 
 - **F11 — tool identity admission.** The compiled table in
-  `codex-rs/tools/src/covenant_admission.rs` admits only unqualified function
-  `exec_command` and custom `apply_patch`. For covered local tool calls, core
+  `codex-rs/tools/src/covenant_admission.rs` admits unqualified function
+  `exec_command`, custom `apply_patch`, and exactly three namespaced `mcp__fanin`
+  functions: `list_tools`, `get_tool_schema`, and `invoke_tool`. For covered local tool calls, core
   router, parallel and registry guards reject other identities before callbacks
   or handlers. This classifies
   identity; it grants no process-start or patch permission.
@@ -93,8 +95,10 @@ Neither the six-row index nor a component test substitutes for final re-audit.
 - Do not add an executor, tool identity, policy override, or runtime allowlist
   extension without a new audit and an updated patch index.
 - Do not re-enable interactive terminals, `write_stdin`, TUI entrypoints, public
-  app-server entrypoints, MCP, plugins, Code Mode, hosted web, dynamic tools or
-  multi-agent authorities in the published artifact. The internal app-server
+  app-server entrypoints, arbitrary MCP servers/resources or MCP management,
+  plugins, Code Mode, hosted web, dynamic tools or multi-agent authorities in
+  the published artifact. The sole reviewed MCP exception is a launcher-bound
+  `fanin-mcp.exe` stdio client with its three meta-tools. The internal app-server
   library required by upstream `codex exec` remains; clamp its alternate effects.
 - Do not use stock `PreToolUse` or ordinary hooks as an enforcement boundary.
 - Do not change files outside `COVENANT_PATCHES.md`'s patch index without an
@@ -109,6 +113,7 @@ The managed launcher supplies these variables only for a fork-selected child:
 | `COVENANT_DECIDER_PATH` | Absolute launcher-owned path to the policy executable. |
 | `COVENANT_DECIDER_SHA256` | Expected SHA-256 of that executable. |
 | `COVENANT_CHILD_MARKER` | Opaque, presence-checked marker binding this process to a managed child launch. Capability upgrade (nonce + WorkerContract) is a follow-up, not this cycle. |
+| `COVENANT_MCP_NAMESPACE` | Harness-selected `global`/project namespace, optionally explorer-restricted; the fork substitutes this validated value into only fanin's `--namespace` argument. |
 
 Freeze launcher controls once. Before each policy creation, the native design
 requires an opened-file digest, guarded immutable namespace and suspended-image
@@ -164,8 +169,9 @@ GOOD: Accept only the one exact ALLOW object; every other outcome returns
 
 BAD: Add a config or environment allowlist so a project can enable one more tool.
 
-GOOD: Keep the admission table compiled into the binary. An unreviewed identity
-is denied before its handler runs.
+GOOD: Keep the admission table compiled into the binary. The only new identities
+are the three exact `mcp__fanin` meta-tools; an unreviewed identity is denied
+before its handler runs.
 
 BAD: Use `PreToolUse` because it already observes tool calls.
 

@@ -127,6 +127,17 @@ jobs:
           $env:RUSTFLAGS = '-Cdebuginfo=0'
           Push-Location $root
           try {
+            $faninTestRoot = Join-Path $env:RUNNER_TEMP 'covenant-fanin-test'
+            cargo install --locked fanin-mcp --version 1.2.0 --root $faninTestRoot
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $faninTestExe = Join-Path $faninTestRoot 'bin/fanin-mcp.exe'
+            if (!(Test-Path -LiteralPath $faninTestExe -PathType Leaf) -or
+                ((& $faninTestExe --version).Trim() -cne 'fanin-mcp 1.2.0')) {
+              throw 'F31 requires pinned fanin-mcp 1.2.0 for the end-to-end test'
+            }
+            $env:COVENANT_FANIN_MCP_TEST_EXE = $faninTestExe
+            cargo build --manifest-path (Join-Path $root 'codex-rs/Cargo.toml') -p codex-rmcp-client --bin test_stdio_server
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             & $env:COVENANT_PYTHON -m unittest discover -s covenant/tests -p 'test_*.py'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             & $env:COVENANT_PYTHON covenant/scripts/validate_integration.py --repo . --upstream covenant/UPSTREAM.toml --integration covenant/INTEGRATION-FILES.toml --inventory covenant/AUTHORITY-INVENTORY.toml
@@ -136,6 +147,8 @@ jobs:
             & (Join-Path $env:RUNNER_TEMP 'covenant-sink-tests.exe') --quiet
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             just test -p codex-cli -E 'test(/covenant|debug_models/)'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            just test -p codex-tools -p codex-mcp -E 'test(/covenant|mcp_initialize_omits_empty_elicitation/)'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             just test -p codex-core --features covenant -E 'test(/covenant/)'
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -160,7 +173,7 @@ jobs:
               binary = 'codex-x86_64-pc-windows-msvc.exe'
               binary_sha256 = $sha
               inventory = 'codex --covenant-inventory -c model=gpt-5.5'
-              suite = 'covenant-python, covenant-sink, codex-cli/core/models-manager/exec/login selectors, codex-covenant runtime'
+              suite = 'covenant-python, covenant-sink, codex-cli/tools/mcp/core/models-manager/exec/login selectors, pinned fanin two-upstream E2E, codex-covenant runtime'
             }
             $receipt | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $env:COVENANT_ARTIFACT_DIR 'reaudit.json') -Encoding utf8NoBOM
           }

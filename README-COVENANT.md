@@ -20,9 +20,11 @@ not expand Codex's supported product surface.
 ## Scope
 
 The target artifact supports constrained `codex exec`, optional JSON output, and
-diagnostic `codex debug models` discovery of the provider catalog. It excludes all
-other debug leaves and interactive or independent authorities: TUI, public
-app-server, MCP, plugins, Code Mode, hosted web, dynamic tools, multi-agent
+diagnostic `codex debug models` discovery of the provider catalog, and one
+launcher-bound `fanin` stdio MCP client exposing only three gateway meta-tools.
+It excludes all other debug leaves and interactive or independent authorities:
+TUI, public app-server, arbitrary MCP servers/resources/management, plugins,
+Code Mode, hosted web, dynamic tools, multi-agent
 features, and interactive process input. The internal app-server orchestration
 required by upstream exec remains; this is not an entirely removed library.
 

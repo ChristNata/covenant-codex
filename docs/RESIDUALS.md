@@ -32,6 +32,7 @@ bytes written on the current real-decider `DENY` path.
 | External decider dependency | H5 |
 | Credential bytes remain in Codex | H6 |
 | Human rebase maintenance | H7 |
+| Upstream effects through fanin | H8 |
 
 ## F1.4 — shell-mediated auth-store reads
 
@@ -49,9 +50,10 @@ Ordinary Codex command/MCP hook authorities must be excluded from the
 promoted artifact and cannot be an enforcement boundary. Stock
 hook parsing can fail open; that is not the Covenant boundary.
 F11 admits identities, F12 and F13 decide at the final process
-and patch sites. If a hook or MCP implementation remains
-reachable despite being disabled, that is an F21 packaging
-defect, not an accepted fail-open hook residual.
+and patch sites. The only MCP client exception is the launcher-bound
+`fanin` stdio gateway and its three exact meta-tools. A different server,
+MCP resource, public MCP command, or hook implementation becoming reachable
+is an F21 packaging defect, not an accepted fail-open residual.
 
 ## H1 — durable vendor data
 
@@ -132,6 +134,19 @@ A semantic upstream refactor may require judgment even when
 text diffs are small. Rebase CI compares patch seams and
 semantic sinks, records hunk digests, and rejects promotion
 until a human resolves the audit result.
+
+## H8 — upstream effects through fanin
+
+`invoke_tool` can make an upstream MCP server write files, change external data,
+or use the network outside Codex's local file sandbox. F12 and F13 do not
+authorize those effects. The compensating control is the Harness-generated
+project/role namespace and fanin's per-server/per-tool ACL, checked again at
+invocation. Before promotion, verify the actual reader/writer role assignment,
+unknown-project fallback, and a two-upstream denial/allow matrix. The Harness
+outer no-breakaway Job must also contain fanin and its lazily spawned upstreams
+on cancellation; the fork's internal MCP Job fallback is insufficient by itself.
+This is a separate accepted-risk decision, not a claim that local patch/exec
+guards cover upstream writes.
 
 ## Residual acceptance rule
 

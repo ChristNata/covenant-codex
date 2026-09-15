@@ -16,7 +16,7 @@ each phase's fork-owned source paths against the pinned baseline in
 `UPSTREAM.toml`. They bind the promoted patch index to the reviewed candidate
 tree.
 
-F11 hunk_sha256 = "a54f03804bde94de146cdbaa6a0830491ae8e329b9d59498dd1194e67853c389"
+F11 hunk_sha256 = "cdb48c06a442fb344dcca0e2ec75c63cf483ce344790fc598eea5eba7933222f"
 F12 hunk_sha256 = "f95cda497bd24e2700b0172cea12ded384f95cf304822605e464fb9e70a64b14"
 F13 hunk_sha256 = "36a4dede7674447b20f2d4d5e0e3cb39827f2352edba1840afe9264dac3f8645"
 F14 hunk_sha256 = "0e877776d9070f19b03eb8e71ff2b26e089c0483fe4195eddf61bb85c8b2abc2"
@@ -31,12 +31,12 @@ can enable legitimate patches in the same binary.
 
 | Phase | Reviewed local portion | Remaining acceptance |
 | --- | --- | --- |
-| F11 | Identity policy and router/parallel/registry/streaming guards | Final product, effective registry/effects and semantic audit |
+| F11 | Exact five-identity policy and router/parallel/registry/streaming guards | Final fanin registry/effects and semantic audit |
 | F12 | Standalone launch/env/envelope/reply/command-line components | Native image/Job/process ownership, final backend gates and real G4 |
 | F13 | Guarded patch seam with fail-closed real-decider call | Patch ALLOW remains deferred to the Harness trusted-authority packet; DENY leaves zero bytes written |
 | F14 | Auth-home routing, refresh ownership and file replacement | Complete route/sink review and harness-home acceptance |
-| F21 | Feature/config/role/metadata/MCP projection, catalog/provider/CLI/startup and local H/M/C effect evidence | Acceptance pending exact F02 executable binding for SC1/SC5 and the product/Bazel gate |
-| F22 | Planned certificate contract | Actual inventory command, effective-state evidence and mismatch refusal |
+| F21 | Constrained profile plus launcher-bound fanin-only MCP projection/catalog and bounded tool exposure | Local two-upstream allow/deny E2E is green; Harness role/fallback decision, product/Bazel and Windows release re-audit remain |
+| F22 | Runtime certificate with five compiled identity/form rows | Final executable/inventory equivalence and fanin mismatch refusal |
 
 ## F11 — tool identity admission
 
@@ -47,8 +47,11 @@ Core integrates it through [router.rs](codex-rs/core/src/tools/router.rs),
 [registry.rs](codex-rs/core/src/tools/registry.rs) and
 [stream_events_utils.rs](codex-rs/core/src/stream_events_utils.rs).
 
-The two identities are unqualified function `exec_command` and custom
-`apply_patch`. Classification grants no spawn/patch permit. Other covered
+The identities are unqualified function `exec_command`, custom `apply_patch`,
+and exactly `mcp__fanin` function `list_tools`, `get_tool_schema`, and
+`invoke_tool`. Classification grants no spawn, patch, or upstream-effect permit.
+The fanin gateway is bound to the managed launcher installation and its
+Harness-selected namespace separately. Other covered
 identity/form/namespace combinations return terminal `CovenantDenied` before
 lookup, readiness, callbacks, streaming consumers or handlers. Constrained
 pre-hook payload creation/rewriting cannot become an alternate authority.
@@ -56,6 +59,7 @@ pre-hook payload creation/rewriting cannot become an alternate authority.
 Existing focused evidence is in [registry tests](codex-rs/core/src/tools/covenant_admission_tests.rs),
 [raw-wire tests](codex-rs/core/src/tools/covenant_wire_admission_tests.rs) and
 [readiness tests](codex-rs/core/src/tools/covenant_readiness_admission_tests.rs).
+The fanin raw-wire positive/negative cases are in the same wire suite.
 The ledger records accepted runs and limitations. F31 must still prove the final
 effective registry and effect closure; these tests do not certify all startup routes.
 
@@ -130,13 +134,18 @@ role/MCP tests. The four [model-catalog.json](covenant/model-catalog.json) recor
 remain reviewed, bounded data for the explicit `--bundled` diagnostic only.
 They no longer gate headless model selection or act as the default runtime catalog.
 
-Local evidence now covers the reviewed provider/catalog construction, startup
-closure, effective two-tool specification and constrained CLI, plus ordinary
-hook/MCP positive controls and constrained effect absence after a successful
-turn. Master criteria SC2-SC4 have complete local supporting evidence. SC1 and
-SC5 remain pending exact identity binding and execution of the F02-produced
-executable. The prior external-serde Bazel failure also leaves the product gate
-open; no unrelated upstream repair is included.
+The fanin-only exception keeps one native local stdio client from the final
+config catalog. [covenant_fanin.rs](codex-rs/core/src/config/covenant_fanin.rs)
+checks the existing managed decider/marker controls, binds the gateway and
+generated config as launcher siblings through
+[fanin_binding.rs](covenant/runtime/src/fanin_binding.rs), substitutes only the
+validated namespace, and freezes the final server map. Higher-priority managed
+MCP requirements may still disable it. The direct router exposes only the
+gateway's three bounded meta-tools; missing or oversized specs refuse the plan.
+MCP client elicitation is disabled in this headless profile. No public MCP CLI,
+other server, resource, app, plugin, HTTP MCP, or executor-owned MCP path is
+admitted. The Windows two-upstream E2E and exact executable release audit are
+required evidence, not inferred from component tests.
 
 The reviewed CLI contract defines exec, native login, inventory access and the
 diagnostic `codex debug models` catalog query. Covenant exposes no other debug
@@ -145,11 +154,12 @@ authenticated ChatGPT/Codex backend `/models` response; no stale cache or
 bundled catalog can authorize an ID. Only exact list-visible slugs are admitted,
 after a bounded unique-ID and native two-tool-capability check, and exec binds
 the admitting metadata snapshot to its internal app-server.
-The fork keeps the direct two-tool router even when live model metadata advertises
+The fork keeps the direct native exec/patch router, with only the optional
+fanin namespace added, even when live model metadata advertises
 `code_mode_only`; that upstream selector grants no alternate tool authority.
 OpenAI API-key catalog selection is not supported. Explicit `--bundled` reports
 the pinned four-model diagnostic catalog.
-The published artifact must exclude public TUI/server/MCP/plugin/Code Mode,
+The published artifact must exclude public TUI/server/arbitrary MCP/plugin/Code Mode,
 hosted web, dynamic-tool, multi-agent and interactive-input authorities. Retain
 upstream exec's required internal app-server library while removing alternate
 effects. Each constructor/effect needs inventory and tests; flags alone do not
@@ -157,12 +167,13 @@ prove exclusion.
 
 ## F22 — runtime inventory and certificate
 
-The planned `codex --covenant-inventory` command and proposed
-`codex-rs/cli/src/covenant_inventory.rs` are not implemented or certified here.
-Inventory must derive binary/profile digests, inventory ID and required
-schema/source/feature evidence from the effective executable. An unclassified
-identity or registry mismatch must make inventory nonzero and prevent exec
-startup. A static catalog/table fixture is not this certificate.
+`codex --covenant-inventory` in
+[covenant_inventory.rs](codex-rs/cli/src/covenant_inventory.rs) emits the
+executable digest, inventory ID and compiled identity/form evidence. Its five
+rows include the exact `mcp__fanin` namespace/function identities; a mismatch
+refuses the certificate. The release must compare this against the final
+model-visible registry and gateway E2E, since a static identity table alone
+cannot prove live server behavior.
 
 ## Supporting files and preserved scope
 

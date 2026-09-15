@@ -336,9 +336,12 @@ contract and [COVENANT_PATCHES.md](COVENANT_PATCHES.md) for its draft surface.
 - The target is managed local Windows `codex exec`, with optional JSON output.
   Keep upstream agent/turn/reasoning orchestration. Retain required internal
   app-server code while excluding public server and other alternate authorities.
-- F11 admits only unqualified function `exec_command` and custom `apply_patch`.
-  This is identity classification. Separate F12 final-exec and F13 guarded-patch
-  gates must authorize effects; their native integration remains unfinished.
+- F11 admits unqualified function `exec_command`, custom `apply_patch`, and
+  exactly the namespaced `mcp__fanin` functions `list_tools`,
+  `get_tool_schema`, and `invoke_tool`. This is identity classification, not
+  effect authorization. F21 may connect only the launcher-bound local fanin
+  stdio gateway; arbitrary MCP servers, resources and public MCP commands remain
+  excluded. F12 and F13 still guard their separate local effects.
 - F14 native auth belongs to `codex-rs/login/src/auth/`. Keep credential bytes in
   Codex; do not copy login material into mutable CODEX_HOME or expose it to
   Covenant. Standalone runtime concepts belong outside codex-core.

@@ -65,11 +65,17 @@ captures after a green re-audit.
    source and toolchain inputs on the audited `covenant-ver` branch/tag.
 2. Run the constrained fork test suite, including exact-ALLOW exec and
    real-decider Patch DENY with zero bytes written. Patch ALLOW is deferred to
-   the Harness trusted-authority packet under Option B.
+   the Harness trusted-authority packet under Option B. The Windows re-audit
+   must also run the pinned `fanin-mcp` two-upstream turn: only its three
+   meta-tools may be model-visible, both allowed upstream invocations must
+   route through fanin, and a namespace-denied tool must remain denied at
+   invocation.
 3. Run the re-audit against the recorded upstream commit. It
    must verify all four patch insertions, constrained packaging,
    inventory equivalence, admitted tool effects, and
-   model-originated semantic sinks.
+   model-originated semantic sinks. Resolve the fanin upstream-effect and
+   unresolved-project namespace policies before calling the result promotable;
+   Codex's local exec/patch decider does not cover upstream MCP writes.
 4. Hash the built exe. Run `codex --covenant-inventory` against
    that exe and record its `inventory_id` and evidence digests.
 5. Record provenance.

@@ -116,6 +116,39 @@ symbol = "ListMcpResourcesHandler"
 reason = "PROPOSED F11 denial and F21 constructor/advertisement exclusion. Provisional effect class does not grant admission. Upstream identity remains present."
 
 [[authorities]]
+id = "tool.fanin.list_tools"
+kind = "tool"
+tool_id = "fanin.list_tools"
+family = "mcp"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/mcp.rs"
+symbol = "McpHandler"
+gate = "mcp_manager"
+reason = "F11 admits only this fanin namespace/function identity; F21 binds the managed gateway and its scoped namespace before native MCP connection."
+
+[[authorities]]
+id = "tool.fanin.get_tool_schema"
+kind = "tool"
+tool_id = "fanin.get_tool_schema"
+family = "mcp"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/mcp.rs"
+symbol = "McpHandler"
+gate = "mcp_manager"
+reason = "F11 admits only this fanin namespace/function identity; gateway ACL resolves one upstream schema without direct Codex registration."
+
+[[authorities]]
+id = "tool.fanin.invoke_tool"
+kind = "tool"
+tool_id = "fanin.invoke_tool"
+family = "mcp"
+disposition = "gated"
+path = "codex-rs/core/src/tools/handlers/mcp.rs"
+symbol = "McpHandler"
+gate = "mcp_manager"
+reason = "F11 admits only this fanin namespace/function identity; native MCP calls only the gateway, which checks the selected namespace ACL before invoking an upstream tool."
+
+[[authorities]]
 id = "tool.builtin.list_mcp_resource_templates"
 kind = "tool"
 tool_id = "builtin.list_mcp_resource_templates"
@@ -700,19 +733,21 @@ reason = "PROPOSED F21 exclude executor-owned HTTP MCP discovery before model di
 id = "mcp.connection"
 kind = "constructor"
 family = "mcp"
-disposition = "excluded"
+disposition = "gated"
 path = "codex-rs/codex-mcp/src/connection_manager.rs"
 symbol = "pub async fn new"
-reason = "PROPOSED F21 block configured, plugin, app and executor server creation, not only tool invocation."
+gate = "mcp_manager"
+reason = "F21 retains exactly one launcher-bound local fanin stdio registration; plugin, app, HTTP and executor contributions remain excluded."
 
 [[authorities]]
 id = "mcp.tool_names"
 kind = "constructor"
 family = "mcp"
-disposition = "excluded"
+disposition = "gated"
 path = "codex-rs/codex-mcp/src/tools.rs"
 symbol = "canonical_tool_name"
-reason = "PROPOSED F21 dynamic callable namespaces/names require constructor exclusion; no fake finite name expansion."
+gate = "tool_admission"
+reason = "F11 recognizes only the three compiled mcp__fanin function identities; all other MCP names remain denied before handlers."
 
 [[authorities]]
 id = "tools.dynamic"
@@ -984,10 +1019,11 @@ reason = "PROPOSED F21 provider policy pending: native AWS refresh invokes confi
 id = "process.mcp_stdio"
 kind = "sink"
 family = "process"
-disposition = "excluded"
+disposition = "gated"
 path = "codex-rs/rmcp-client/src/stdio_server_launcher.rs"
 symbol = "launch_server"
-reason = "PROPOSED F21 exclude both local and executor stdio launch before connection discovery."
+gate = "mcp_launcher"
+reason = "F21 binds only the absolute managed fanin-mcp.exe/config/namespace before local stdio launch; executor stdio remains excluded."
 
 [[authorities]]
 id = "network.executor_http"
@@ -1020,10 +1056,11 @@ reason = "PROPOSED F21 exclude HTTP transport and OAuth-associated MCP startup."
 id = "network.mcp_call"
 kind = "sink"
 family = "mcp"
-disposition = "excluded"
+disposition = "gated"
 path = "codex-rs/codex-mcp/src/connection_manager.rs"
 symbol = "pub async fn call_tool"
-reason = "PROPOSED F11 deny identities; F21 constructor exclusion also needed for side effects before calls."
+gate = "mcp_manager"
+reason = "Only exact fanin identities can reach this native call path, and fanin checks the scoped ACL before any upstream invocation."
 
 [[authorities]]
 id = "hook.command_runner"
