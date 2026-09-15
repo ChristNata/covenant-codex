@@ -2092,7 +2092,7 @@ fn load_model_catalog(
                 "Covenant model catalog refused",
             ));
         }
-        codex_models_manager::covenant_model_catalog().map(Some)
+        Ok(None)
     }
     #[cfg(not(feature = "covenant"))]
     {
@@ -3932,9 +3932,6 @@ impl Config {
         let forced_login_method = cfg.forced_login_method;
 
         let model = model.or(cfg.model);
-        #[cfg(feature = "covenant")]
-        let model =
-            Some(codex_models_manager::covenant_selected_model(model.as_deref())?.to_owned());
         let notices = cfg.notice.unwrap_or_default();
         let service_tier = match service_tier_override {
             Some(Some(service_tier)) => Some(service_tier),

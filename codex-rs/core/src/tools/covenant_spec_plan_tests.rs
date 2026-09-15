@@ -35,7 +35,16 @@ use std::collections::HashMap;
 use std::fs;
 use std::sync::Arc;
 
-const MODELS: [&str; 4] = ["gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.2"];
+const MODELS: [&str; 8] = [
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini",
+    "gpt-5.2",
+    "gpt-6-astra",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+];
 const EXTRA_FLAGS: [&str; 3] = ["deferred_executor", "token_budget", "current_time_reminder"];
 const SECURITY: &str = "allowed_approval_policies = ['on-request']\nallowed_sandbox_modes = ['read-only']\nallowed_login_methods = ['api']\ncli_auth_credentials_store = 'file'\nallow_login_shell = false\n";
 
@@ -144,7 +153,7 @@ impl Fixture {
         }
         fs::write(&self.selected, toml::to_string(&profile).unwrap()).unwrap();
         let requested_overrides = overrides.clone();
-        let config = ConfigBuilder::default()
+        let mut config = ConfigBuilder::default()
             .codex_home(self.home.to_path_buf())
             .loader_overrides(self.loader.clone())
             .cli_overrides(overrides)
@@ -179,10 +188,21 @@ impl Fixture {
         }
         assert_security(&config);
         assert!(config.codex_home.starts_with(&self.root));
-        assert!(
-            config.model_catalog.is_some(),
-            "fixture requires the actual static catalog branch"
-        );
+        #[cfg(feature = "covenant")]
+        {
+            assert!(config.model_catalog.is_none());
+            // Emulate the exact remote snapshot already admitted by headless exec.
+            let mut snapshot = codex_models_manager::covenant_model_catalog().unwrap();
+            if !snapshot
+                .models
+                .iter()
+                .any(|candidate| candidate.slug == model)
+            {
+                snapshot.models[0].slug = model.to_owned();
+            }
+            config.model_catalog = Some(snapshot);
+        }
+        assert!(config.model_catalog.is_some());
         let auth = AuthManager::from_auth_for_testing_with_home(
             CodexAuth::from_api_key("synthetic-tool-fixture"),
             self.home.to_path_buf(),
@@ -356,7 +376,7 @@ fn assert_two_tools(observed: &Observation) {
         observed
             .exposures
             .iter()
-            .all(|(_, exposure)| exposure.is_some_and(|value| value.is_direct())),
+            .all(|(_, exposure)| exposure.is_some_and(codex_tools::ToolExposure::is_direct)),
         true
     );
     let exec = observed

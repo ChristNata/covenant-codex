@@ -5,6 +5,8 @@
 #![deny(clippy::print_stdout)]
 
 mod cli;
+#[cfg(feature = "covenant")]
+mod covenant_models;
 mod event_processor;
 mod event_processor_with_human_output;
 pub(crate) mod event_processor_with_jsonl_output;
@@ -476,6 +478,8 @@ pub async fn run_main(cli: Cli, arg0_paths: Arg0DispatchPaths) -> anyhow::Result
         eprintln!("{err}");
         std::process::exit(1);
     }
+    #[cfg(feature = "covenant")]
+    let config = covenant_models::validate(config).await?;
 
     let otel = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         codex_core::otel_init::build_provider(

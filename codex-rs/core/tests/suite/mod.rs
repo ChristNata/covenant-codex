@@ -59,6 +59,8 @@ mod compact_remote;
 mod compact_remote_parity;
 mod compact_resume_fork;
 mod context_annotations;
+#[cfg(feature = "covenant")]
+mod covenant_live_model;
 mod current_time_reminder;
 mod cyber_access_program;
 mod cyber_exec_policy;

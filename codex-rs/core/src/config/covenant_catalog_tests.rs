@@ -1,16 +1,8 @@
 use super::*;
-#[cfg(feature = "covenant")]
-use codex_login::AuthManager;
-#[cfg(feature = "covenant")]
-use codex_login::CodexAuth;
-#[cfg(feature = "covenant")]
-use codex_models_manager::manager::RefreshStrategy;
 use pretty_assertions::assert_eq;
 use std::fs;
 
 const SECURITY: &str = "allowed_approval_policies = ['on-request']\nallowed_sandbox_modes = ['read-only']\nallowed_login_methods = ['api']\ncli_auth_credentials_store = 'file'\nallow_login_shell = false\n";
-#[cfg(feature = "covenant")]
-const SELECTION_REFUSAL: &str = "Covenant model selection refused";
 #[cfg(feature = "covenant")]
 const CATALOG_REFUSAL: &str = "Covenant model catalog refused";
 
@@ -131,7 +123,7 @@ impl Fixture {
                 .and_then(TomlValue::as_str)
                 .map(str::to_owned),
             effort: config.model_reasoning_effort.clone(),
-            // Evaluate complete typed equality without printing a 156KiB catalog on failure.
+            // Evaluate complete typed equality without dumping the catalog on failure.
             complete_catalog_matches: config.model_catalog.as_ref() == expected_catalog,
         }
     }
@@ -215,10 +207,9 @@ fn exact_refusal(result: std::io::Result<Config>, expected: &str) -> bool {
 
 #[cfg(feature = "covenant")]
 #[tokio::test]
-async fn covenant_catalog_config_selection_reload_and_manager_preserve_catalog()
+async fn covenant_catalog_config_preserves_model_precedence_without_pinning_catalog()
 -> std::io::Result<()> {
     let fixture = Fixture::new()?;
-    let expected = expected_catalog();
     let default = fixture.builder().build().await?;
     fixture.profile("model = 'gpt-5.4'\nmodel_reasoning_effort = 'low'")?;
     let profile = fixture.builder().build().await?;
@@ -248,36 +239,9 @@ async fn covenant_catalog_config_selection_reload_and_manager_preserve_catalog()
     for config in configs {
         assert_eq!(security(config), security(&default));
     }
-    let observed = configs.map(|config| fixture.observe(config, Some(&expected)));
-
-    let auth = AuthManager::from_auth_for_testing_with_home(
-        CodexAuth::from_api_key("fixture-not-a-real-key"),
-        fixture.home.to_path_buf(),
-    );
-    let manager = crate::thread_manager::build_models_manager(&rebuilt, auth);
-    let mut raw_matches = vec![
-        manager
-            .raw_model_catalog(RefreshStrategy::Offline, rebuilt.http_client_factory())
-            .await
-            == expected,
-    ];
-    for strategy in [
-        RefreshStrategy::Offline,
-        RefreshStrategy::OnlineIfUncached,
-        RefreshStrategy::Online,
-    ] {
-        manager
-            .refresh_if_new_etag("owned-etag".to_owned(), rebuilt.http_client_factory())
-            .await;
-        raw_matches.push(
-            manager
-                .raw_model_catalog(strategy, rebuilt.http_client_factory())
-                .await
-                == expected,
-        );
-    }
+    let observed = configs.map(|config| fixture.observe(config, None));
     let expected_rows = [
-        (Some("gpt-5.5"), None, ReasoningEffort::Low),
+        (None, None, ReasoningEffort::Low),
         (Some("gpt-5.4"), Some("gpt-5.4"), ReasoningEffort::Low),
         (
             Some("gpt-5.4-mini"),
@@ -298,58 +262,22 @@ async fn covenant_catalog_config_selection_reload_and_manager_preserve_catalog()
         effort: Some(effort),
         complete_catalog_matches: true,
     });
-    assert_eq!((observed, raw_matches), (expected_rows, vec![true; 4]));
+    assert_eq!(observed, expected_rows);
     Ok(())
 }
 
 #[cfg(feature = "covenant")]
 #[tokio::test]
-async fn covenant_catalog_config_refuses_unknown_effective_selections() -> std::io::Result<()> {
+async fn covenant_catalog_config_preserves_live_candidate_until_exec_admission()
+-> std::io::Result<()> {
     let fixture = Fixture::new()?;
-    let accepted = fixture.builder().build().await?;
-    let before = fixture.observe(&accepted, Some(&expected_catalog()));
-    let mut refused = Vec::new();
-    for model in ["owned-unknown", "openai/gpt-5.5", "GPT-5.5", "gpt-5.5 "] {
-        fixture.profile(&format!("model = {}", TomlValue::String(model.to_owned())))?;
-        assert_eq!(
-            fixture.layers(&[]).await?.effective_config()["model"].as_str(),
-            Some(model)
-        );
-        refused.push(exact_refusal(
-            fixture.builder().build().await,
-            SELECTION_REFUSAL,
-        ));
-        fixture.profile("model = 'gpt-5.4'")?;
-        refused.push(exact_refusal(
-            fixture
-                .builder()
-                .cli_overrides(vec![(
-                    "model".to_owned(),
-                    TomlValue::String(model.to_owned()),
-                )])
-                .build()
-                .await,
-            SELECTION_REFUSAL,
-        ));
-        refused.push(exact_refusal(
-            fixture
-                .builder()
-                .harness_overrides(ConfigOverrides {
-                    cwd: Some(fixture.project.to_path_buf()),
-                    model: Some(model.to_owned()),
-                    ..Default::default()
-                })
-                .build()
-                .await,
-            SELECTION_REFUSAL,
-        ));
-    }
-    fixture.profile("model = 'owned-shadowed-unknown'\nmodel_reasoning_effort = 'low'")?;
+    fixture.profile("model = 'gpt-6-astra'\nmodel_reasoning_effort = 'low'")?;
+    let profile = fixture.builder().build().await?;
     let cli = fixture
         .builder()
         .cli_overrides(vec![(
             "model".to_owned(),
-            TomlValue::String("gpt-5.4-mini".to_owned()),
+            TomlValue::String("gpt-5.6-sol".to_owned()),
         )])
         .build()
         .await?;
@@ -357,19 +285,16 @@ async fn covenant_catalog_config_refuses_unknown_effective_selections() -> std::
         .builder()
         .harness_overrides(ConfigOverrides {
             cwd: Some(fixture.project.to_path_buf()),
-            model: Some("gpt-5.2".to_owned()),
+            model: Some("gpt-5.6-terra".to_owned()),
             ..Default::default()
         })
         .build()
         .await?;
-    let expected = expected_catalog();
-    let controls = [
-        fixture.observe(&cli, Some(&expected)),
-        fixture.observe(&harness, Some(&expected)),
-    ];
-    let expected_controls = [
-        ("gpt-5.4-mini", "gpt-5.4-mini"),
-        ("gpt-5.2", "owned-shadowed-unknown"),
+    let observed = [&profile, &cli, &harness].map(|config| fixture.observe(config, None));
+    let expected = [
+        ("gpt-6-astra", "gpt-6-astra"),
+        ("gpt-5.6-sol", "gpt-5.6-sol"),
+        ("gpt-5.6-terra", "gpt-6-astra"),
     ]
     .map(|(model, raw_model)| Observation {
         model: Some(model.to_owned()),
@@ -379,13 +304,9 @@ async fn covenant_catalog_config_refuses_unknown_effective_selections() -> std::
     });
     assert_eq!(
         [security(&cli), security(&harness)],
-        [security(&accepted), security(&accepted)]
+        [security(&profile), security(&profile)]
     );
-    assert_eq!(
-        fixture.observe(&accepted, Some(&expected_catalog())),
-        before
-    );
-    assert_eq!((refused, controls), (vec![true; 12], expected_controls));
+    assert_eq!(observed, expected);
     Ok(())
 }
 
@@ -428,7 +349,7 @@ async fn covenant_catalog_config_refuses_caller_paths_independent_of_contents()
         (bytes, b"CATALOG-PRIVATE not JSON".to_vec(), false)
     );
     let control = fixture.builder().build().await?;
-    let observed_control = fixture.observe(&control, Some(&expected_catalog()));
+    let observed_control = fixture.observe(&control, None);
     let expected_control = Observation {
         model: Some("gpt-5.5".to_owned()),
         raw_model: Some("gpt-5.5".to_owned()),
