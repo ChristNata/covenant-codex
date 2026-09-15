@@ -9,9 +9,16 @@ use serde::Serialize;
 use sha2::Digest;
 use sha2::Sha256;
 use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::fs;
 
-const ADMITTED_IDENTITIES: [&str; 2] = ["exec_command", "apply_patch"];
+const ADMITTED_IDENTITIES: [(&str, &str, &str); 5] = [
+    ("", "exec_command", "function"),
+    ("", "apply_patch", "custom"),
+    ("mcp__fanin", "list_tools", "function"),
+    ("mcp__fanin", "get_tool_schema", "function"),
+    ("mcp__fanin", "invoke_tool", "function"),
+];
 
 #[derive(Debug, Serialize)]
 struct PinCertificate {
@@ -33,6 +40,8 @@ struct Evidence {
 #[derive(Debug, Serialize)]
 struct ToolSchemaEntry {
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    namespace: Option<&'static str>,
     wire_type: &'static str,
 }
 
@@ -51,7 +60,7 @@ pub(crate) async fn run(overrides: &CliConfigOverrides) -> Result<()> {
         skill_sources: Vec::new(),
         features,
     };
-    validate_tool_schema(evidence.tool_schema.iter().map(|entry| entry.name.as_str()))?;
+    validate_tool_schema(&evidence.tool_schema)?;
     let profile_digest = digest_bytes(b"");
     let inventory_input = serde_json::to_vec(&evidence)?;
     let inventory_id = digest_bytes(
@@ -79,20 +88,46 @@ fn tool_schema() -> Vec<ToolSchemaEntry> {
     vec![
         ToolSchemaEntry {
             name: "exec_command".to_string(),
+            namespace: None,
             wire_type: "function",
         },
         ToolSchemaEntry {
             name: "apply_patch".to_string(),
+            namespace: None,
             wire_type: "custom",
+        },
+        ToolSchemaEntry {
+            name: "list_tools".to_string(),
+            namespace: Some("mcp__fanin"),
+            wire_type: "function",
+        },
+        ToolSchemaEntry {
+            name: "get_tool_schema".to_string(),
+            namespace: Some("mcp__fanin"),
+            wire_type: "function",
+        },
+        ToolSchemaEntry {
+            name: "invoke_tool".to_string(),
+            namespace: Some("mcp__fanin"),
+            wire_type: "function",
         },
     ]
 }
 
-fn validate_tool_schema<'a>(names: impl IntoIterator<Item = &'a str>) -> Result<()> {
-    for name in names {
-        if !ADMITTED_IDENTITIES.contains(&name) {
-            anyhow::bail!("Covenant inventory contains unclassified tool identity: {name}");
-        }
+fn validate_tool_schema(entries: &[ToolSchemaEntry]) -> Result<()> {
+    let actual = entries
+        .iter()
+        .map(|entry| {
+            (
+                entry.namespace.unwrap_or_default(),
+                entry.name.as_str(),
+                entry.wire_type,
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let expected = ADMITTED_IDENTITIES.into_iter().collect::<BTreeSet<_>>();
+    if actual != expected || entries.len() != ADMITTED_IDENTITIES.len() {
+        anyhow::bail!("Covenant inventory tool identities differ from compiled admission");
     }
     Ok(())
 }

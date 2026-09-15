@@ -73,6 +73,29 @@ fn covenant_wire_admission_preserves_unqualified_allowed_calls() {
 
 #[cfg(feature = "covenant")]
 #[test]
+fn covenant_wire_admission_preserves_only_fanin_meta_tools() {
+    let namespace = "mcp__fanin";
+    for name in ["list_tools", "get_tool_schema", "invoke_tool"] {
+        assert_eq!(
+            ToolRouter::build_tool_call(wire(Form::Function, name, Some(namespace))),
+            Ok(Some(expected(Form::Function, name, Some(namespace))))
+        );
+    }
+
+    let denied = [
+        wire(Form::Custom, "invoke_tool", Some(namespace)),
+        wire(Form::Function, "invoke_tool", Some("mcp__other")),
+        wire(Form::Function, "mcp__fanin__invoke_tool", None),
+        wire(Form::Function, "read_resource", Some(namespace)),
+    ];
+    assert_eq!(
+        denied.map(ToolRouter::build_tool_call),
+        std::array::from_fn(|_| Err(FunctionCallError::CovenantDenied))
+    );
+}
+
+#[cfg(feature = "covenant")]
+#[test]
 fn covenant_wire_admission_denies_namespaces_names_and_wrong_forms() {
     let mut cases = Vec::new();
     for (form, name) in [

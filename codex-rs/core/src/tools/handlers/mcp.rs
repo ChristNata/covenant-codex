@@ -47,6 +47,7 @@ const LEGACY_MCP_TOOL_NAME_PREFIX: &str = "mcp__";
 const MCP_TOOL_NAME_DELIMITER: &str = "__";
 const MAX_AGENT_PLUGIN_MCP_NAMESPACE_DESCRIPTION_BYTES: usize = 1_000;
 const MAX_MCP_NAMESPACE_DESCRIPTION_BYTES: usize = 512 * 1024;
+const MAX_COVENANT_FANIN_OUTPUT_TOKENS: usize = 4_000;
 
 pub struct McpHandler {
     tool_info: ToolInfo,
@@ -219,11 +220,17 @@ impl McpHandler {
         };
 
         // Capture presentation policy from the same config snapshot used for execution.
-        let truncation_policy = prepared_mcp_call
+        let mut truncation_policy = prepared_mcp_call
             .as_ref()
             .and_then(codex_mcp::PreparedMcpCall::output_token_limit)
             .map(TruncationPolicy::Tokens)
             .unwrap_or(turn.model_info().truncation_policy.into());
+        if cfg!(feature = "covenant") && self.tool_info.server_name == "fanin" {
+            let maximum = TruncationPolicy::Tokens(MAX_COVENANT_FANIN_OUTPUT_TOKENS);
+            if maximum.byte_budget() < truncation_policy.byte_budget() {
+                truncation_policy = maximum;
+            }
+        }
         let started = Instant::now();
         let result = handle_mcp_tool_call(
             Arc::clone(&session),

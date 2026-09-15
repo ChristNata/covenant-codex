@@ -18,6 +18,8 @@ use tracing::warn;
 
 const MAX_AGENT_PLUGIN_MCP_SPEC_BYTES: usize = 8_000;
 const MAX_AGENT_PLUGIN_MCP_TOTAL_BYTES: usize = 64_000;
+const MAX_COVENANT_FANIN_MCP_SPEC_BYTES: usize = 4_000;
+const MAX_COVENANT_FANIN_MCP_TOTAL_BYTES: usize = 12_000;
 
 use crate::config::Config;
 use crate::tools::handlers::McpHandler;
@@ -95,6 +97,17 @@ fn append_mcp_tools(
     let mut registered_tools = HashSet::new();
     let mut agent_plugin_bytes = 0usize;
     for tool in non_app_tools.chain(app_tools) {
+        let covenant_fanin = cfg!(feature = "covenant")
+            && tool.server_name == "fanin"
+            && tool.callable_namespace == "mcp__fanin"
+            && tool.callable_name == tool.tool.name.as_ref()
+            && matches!(
+                tool.callable_name.as_str(),
+                "list_tools" | "get_tool_schema" | "invoke_tool"
+            );
+        if cfg!(feature = "covenant") && !covenant_fanin {
+            continue;
+        }
         let tool_name = tool.canonical_tool_name();
         let agent_plugin = mcp_server_catalog
             .server(&tool.server_name)
@@ -102,7 +115,7 @@ fn append_mcp_tools(
         let handler = match handlers.entry(tool_name.clone()) {
             Entry::Occupied(entry) => Arc::clone(entry.get()),
             Entry::Vacant(entry) => {
-                let handler = if agent_plugin {
+                let handler = if agent_plugin || covenant_fanin {
                     McpHandler::new_agent_plugin(tool.clone())
                 } else {
                     McpHandler::new(tool.clone())
@@ -118,13 +131,23 @@ fn append_mcp_tools(
             }
         };
 
-        let fits_agent_budget = if agent_plugin {
+        let fits_agent_budget = if agent_plugin || covenant_fanin {
             handler.model_spec_bytes().is_ok_and(|bytes| {
-                if bytes > MAX_AGENT_PLUGIN_MCP_SPEC_BYTES {
+                let per_tool_limit = if covenant_fanin {
+                    MAX_COVENANT_FANIN_MCP_SPEC_BYTES
+                } else {
+                    MAX_AGENT_PLUGIN_MCP_SPEC_BYTES
+                };
+                let total_limit = if covenant_fanin {
+                    MAX_COVENANT_FANIN_MCP_TOTAL_BYTES
+                } else {
+                    MAX_AGENT_PLUGIN_MCP_TOTAL_BYTES
+                };
+                if bytes > per_tool_limit {
                     return false;
                 }
                 let next = agent_plugin_bytes.saturating_add(bytes);
-                if next <= MAX_AGENT_PLUGIN_MCP_TOTAL_BYTES {
+                if next <= total_limit {
                     agent_plugin_bytes = next;
                     true
                 } else {

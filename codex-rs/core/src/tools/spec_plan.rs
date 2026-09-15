@@ -153,7 +153,7 @@ pub(crate) fn build_tool_router(
         wait_agent_timeouts: wait_agent_timeout_options(turn_context),
     };
     if cfg!(feature = "covenant") {
-        return Ok(covenant_spec_plan::build_tool_router(&context));
+        return covenant_spec_plan::build_tool_router(session, &context, mcp);
     }
     let mut registry = ToolRegistry::default();
     add_core_tool_sources(&context, &mut registry);
