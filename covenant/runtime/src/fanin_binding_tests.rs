@@ -24,7 +24,7 @@ fn managed_args(namespace_arg: &str) -> Vec<String> {
 #[test]
 fn covenant_fanin_binding_accepts_managed_project_and_explorer_namespaces() {
     let contract = managed_contract();
-    for namespace in ["p_47de8f8d", "p_47de8f8d_explorer", "global_explorer"] {
+    for namespace in ["p_47de8f8d", "p_47de8f8d_explorer"] {
         assert_eq!(
             FaninBinding::from_managed_launch(
                 &contract,
@@ -83,6 +83,16 @@ fn covenant_fanin_binding_refuses_non_managed_paths_flags_and_namespace() {
             r"C:\Covenant\fanin-mcp.exe",
             managed_args(NAMESPACE_PLACEHOLDER),
             "p_47de8f8d_other",
+        ),
+        (
+            r"C:\Covenant\fanin-mcp.exe",
+            managed_args(NAMESPACE_PLACEHOLDER),
+            "global",
+        ),
+        (
+            r"C:\Covenant\fanin-mcp.exe",
+            managed_args(NAMESPACE_PLACEHOLDER),
+            "global_explorer",
         ),
         (
             r"C:\Covenant\fanin-mcp.exe",

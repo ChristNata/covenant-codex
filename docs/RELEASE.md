@@ -73,8 +73,10 @@ captures after a green re-audit.
 3. Run the re-audit against the recorded upstream commit. It
    must verify all four patch insertions, constrained packaging,
    inventory equivalence, admitted tool effects, and
-   model-originated semantic sinks. Resolve the fanin upstream-effect and
-   unresolved-project namespace policies before calling the result promotable;
+   model-originated semantic sinks. Verify that registered-project writers can
+   invoke project-ACL-admitted mutating upstream tools while unknown projects fail closed
+   even when an inherited project key is stale. Verify that non-explorer readers
+   retain the current Harness project ACL and explorer retains its exact allowlist.
    Codex's local exec/patch decider does not cover upstream MCP writes.
 4. Hash the built exe. Run `codex --covenant-inventory` against
    that exe and record its `inventory_id` and evidence digests.

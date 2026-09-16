@@ -84,13 +84,12 @@ impl FaninBinding {
 
 fn valid_namespace(namespace: &str) -> bool {
     let scoped = namespace.strip_suffix("_explorer").unwrap_or(namespace);
-    scoped == "global"
-        || scoped.strip_prefix("p_").is_some_and(|short| {
-            short.len() == 8
-                && short
-                    .bytes()
-                    .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-        })
+    scoped.strip_prefix("p_").is_some_and(|short| {
+        short.len() == 8
+            && short
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    })
 }
 
 #[cfg(test)]

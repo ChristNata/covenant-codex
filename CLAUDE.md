@@ -113,7 +113,7 @@ The managed launcher supplies these variables only for a fork-selected child:
 | `COVENANT_DECIDER_PATH` | Absolute launcher-owned path to the policy executable. |
 | `COVENANT_DECIDER_SHA256` | Expected SHA-256 of that executable. |
 | `COVENANT_CHILD_MARKER` | Opaque, presence-checked marker binding this process to a managed child launch. Capability upgrade (nonce + WorkerContract) is a follow-up, not this cycle. |
-| `COVENANT_MCP_NAMESPACE` | Harness-selected `global`/project namespace, optionally explorer-restricted; the fork substitutes this validated value into only fanin's `--namespace` argument. |
+| `COVENANT_MCP_NAMESPACE` | Harness-selected registered-project namespace, optionally explorer-restricted; the fork refuses `global` and substitutes the project key into only fanin's `--namespace` argument. Harness must fail closed when project lookup cannot be proven. |
 
 Freeze launcher controls once. Before each policy creation, the native design
 requires an opened-file digest, guarded immutable namespace and suspended-image

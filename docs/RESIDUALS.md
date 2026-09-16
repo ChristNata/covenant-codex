@@ -139,13 +139,18 @@ until a human resolves the audit result.
 
 `invoke_tool` can make an upstream MCP server write files, change external data,
 or use the network outside Codex's local file sandbox. F12 and F13 do not
-authorize those effects. The compensating control is the Harness-generated
-project/role namespace and fanin's per-server/per-tool ACL, checked again at
-invocation. Before promotion, verify the actual reader/writer role assignment,
-unknown-project fallback, and a two-upstream denial/allow matrix. The Harness
+authorize those effects. Registered-project writers are explicitly allowed to
+invoke mutating upstream tools through fanin. The compensating control is the
+Harness-generated project/role namespace and fanin's per-server/per-tool ACL,
+checked again at invocation. Unknown projects must fail closed: the fork refuses
+`global`, but Harness must also reject lookup failure rather than accepting a
+stale inherited `p_*` namespace. Non-explorer readers retain Harness's current
+project upstream-tool access, including tools that may mutate; explorer retains
+its exact allowlist. Before promotion, verify the actual role assignment,
+fail-closed project resolution and a two-upstream denial/allow matrix. The Harness
 outer no-breakaway Job must also contain fanin and its lazily spawned upstreams
 on cancellation; the fork's internal MCP Job fallback is insufficient by itself.
-This is a separate accepted-risk decision, not a claim that local patch/exec
+This is a separate project upstream-effect risk decision, not a claim that local patch/exec
 guards cover upstream writes.
 
 ## Residual acceptance rule

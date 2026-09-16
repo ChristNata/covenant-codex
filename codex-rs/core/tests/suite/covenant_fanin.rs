@@ -40,7 +40,7 @@ MCP_TEST_DYNAMIC_SERVER_METADATA = "1"
 [namespaces.{NAMESPACE}]
 servers = ["alpha", "beta"]
 [namespaces.{NAMESPACE}.tools]
-alpha = ["echo"]
+alpha = ["echo", "sync"]
 beta = ["echo"]
 "#
     ))
@@ -125,6 +125,12 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
         ),
         (
             "resp-5",
+            "call-non-read-only",
+            "invoke_tool",
+            r#"{"name":"alpha__sync","arguments":{}}"#,
+        ),
+        (
+            "resp-6",
             "call-denied",
             "invoke_tool",
             r#"{"name":"beta__cwd","arguments":{}}"#,
@@ -140,9 +146,9 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
         })
         .to_vec();
     bodies.push(responses::sse(vec![
-        responses::ev_response_created("resp-6"),
-        responses::ev_assistant_message("msg-6", "fanin done"),
-        responses::ev_completed("resp-6"),
+        responses::ev_response_created("resp-7"),
+        responses::ev_assistant_message("msg-7", "fanin done"),
+        responses::ev_completed("resp-7"),
     ]));
     let response_mock = responses::mount_sse_sequence(&server, bodies).await;
 
@@ -168,11 +174,13 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
         });
     let test = builder.build_with_auto_env(&server).await?;
     wait_for_mcp_server(&test.codex, "fanin").await?;
-    test.submit_turn("Use fanin's two upstream echo tools, then reply done")
-        .await?;
+    test.submit_turn(
+        "Use fanin's two upstream echo tools and the non-read-only sync tool, then reply done",
+    )
+    .await?;
 
     let requests = response_mock.requests();
-    assert_eq!(requests.len(), 6);
+    assert_eq!(requests.len(), 7);
     let expected_tools = vec![
         ("apply_patch".to_owned(), "custom".to_owned(), vec![]),
         ("exec_command".to_owned(), "function".to_owned(), vec![]),
@@ -188,7 +196,7 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
     ];
     assert_eq!(
         requests.iter().map(tool_identities).collect::<Vec<_>>(),
-        vec![expected_tools; 6]
+        vec![expected_tools; 7]
     );
     let output_text = |index: usize, call_id: &str| -> Result<String> {
         let item = requests[index].function_call_output(call_id);
@@ -221,11 +229,13 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
     let schema = output_text(2, "call-schema")?;
     let alpha = output_text(3, "call-alpha")?;
     let beta = output_text(4, "call-beta")?;
-    let denied = output_text(5, "call-denied")?;
+    let non_read_only = output_text(5, "call-non-read-only")?;
+    let denied = output_text(6, "call-denied")?;
     anyhow::ensure!(
         list.contains("\"server\":\"alpha\"")
             && list.contains("\"server\":\"beta\"")
-            && list.contains("\"tool\":\"echo\""),
+            && list.contains("\"tool\":\"echo\"")
+            && list.contains("\"tool\":\"sync\""),
         "fanin did not list both upstreams: {list}"
     );
     anyhow::ensure!(
@@ -237,6 +247,10 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
             && beta.contains("rmcp-test-process-")
             && alpha != beta,
         "fanin did not invoke two distinct upstream processes"
+    );
+    anyhow::ensure!(
+        non_read_only.contains("\"result\":\"ok\""),
+        "fanin did not invoke the allowed non-read-only upstream tool: {non_read_only}"
     );
     anyhow::ensure!(
         denied.contains("namespace_denied") && denied.contains("beta") && denied.contains("cwd"),

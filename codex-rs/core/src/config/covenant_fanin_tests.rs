@@ -67,11 +67,13 @@ fn covenant_fanin_profile_without_gateway_preserves_two_tool_mode() -> io::Resul
 
 #[test]
 fn covenant_fanin_profile_refuses_unmanaged_gateway_before_connection() {
-    let mut servers = HashMap::from([("fanin".to_string(), managed_fanin())]);
-    let result = clamp_with_startup(&mut servers, managed_controls(), Some("unknown"));
-    assert_eq!(
-        result.map_err(|error| error.kind()),
-        Err(io::ErrorKind::InvalidData)
-    );
-    assert_eq!(servers, HashMap::new());
+    for namespace in ["unknown", "global", "global_explorer"] {
+        let mut servers = HashMap::from([("fanin".to_string(), managed_fanin())]);
+        let result = clamp_with_startup(&mut servers, managed_controls(), Some(namespace));
+        assert_eq!(
+            result.map_err(|error| error.kind()),
+            Err(io::ErrorKind::InvalidData)
+        );
+        assert_eq!(servers, HashMap::new());
+    }
 }

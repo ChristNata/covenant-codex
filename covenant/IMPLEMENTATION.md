@@ -63,7 +63,7 @@ external-pending status.
 | A14 | F12 decider identity uses an opened-file hash, guarded immutable namespace and suspended-image path/file identity proof from a local non-reparse installation. | Root accepts this explicit construction proof; QueryFullProcessImageNameW is a name, not a direct mapped-image handle. Installation/dependency trust assumptions and replacement tests remain required. Do not claim a kernel mapped-image-handle comparison. |
 | A15 | F12's 1000 ms limit is an authorization deadline with fully owned cleanup before settlement. | No ALLOW after the deadline; no hard-real-time promise that creation/I/O/cleanup finishes in exactly 1000 ms. Concrete transport/request/resource limits still need their test-first design and cannot silently narrow F10's schema. |
 | A16 | Fixed trusted sandbox preparation may precede model authorization and is inventoried separately. | Root approves necessary existing token/ACL/proxy/cwd/helper preparation, with zero model payload execution on denial. Do not claim zero infrastructure filesystem effects or classify trusted preparation as the model patch. Expanded backend seams require their bounded source/test ownership before implementation. |
-| A17 | Add only the launcher-bound `fanin` stdio MCP gateway to the managed Windows Codex profile. | User approves full E2E fanin support without reopening native arbitrary servers, public MCP CLI or alternate tools. F11/F22 admit and inventory only the gateway's three exact namespaced function tools; F21 keeps a frozen sole-server catalog, scoped namespace and bounded schemas/results. Upstream MCP effects and the Harness global fallback remain separate promotion-risk decisions, not F12/F13 permissions. |
+| A17 | Add only the launcher-bound `fanin` stdio MCP gateway to the managed Windows Codex profile. | User approves full E2E fanin support without reopening native arbitrary servers, public MCP CLI or alternate tools. F11/F22 admit and inventory only the gateway's three exact namespaced function tools; F21 keeps a frozen sole-server catalog, scoped namespace and bounded schemas/results. Registered-project writers may invoke mutating upstream tools through fanin, and non-explorer readers retain Harness's current project upstream-tool access; neither is F12/F13 permission. Unknown projects must fail closed, so the fork refuses `global` and Harness must not substitute a stale inherited project key after lookup failure. |
 
 The one-shot path is compatible with the planned exec gate on this baseline:
 `Feature::UnifiedExec = false` selects `ExecCommandHandler::one_shot`, which
@@ -2425,8 +2425,9 @@ release workflow and `refs/tags/covenant-v0.1.4` identity constraints.
 The pinned `fanin-mcp 1.2.0` Windows E2E turn exercised two distinct
 upstream stdio processes through the sole native `mcp__fanin` namespace.
 Only `list_tools`, `get_tool_schema` and `invoke_tool` were model-visible;
-`alpha__echo` and `beta__echo` returned separate process identities, while
-the excluded `beta__cwd` invocation returned `namespace_denied`. The
+`alpha__echo` and `beta__echo` returned separate process identities; the
+allowed, non-read-only-annotated `alpha__sync` returned `ok`, while the
+excluded `beta__cwd` invocation returned `namespace_denied`. The
 fork-owned Covenant core selector passed 43/43, CLI selector 15/15 with its
 owned receipt fixture, exec live-catalog selector 5/5, admission/MCP packages
 314/314, and isolated runtime 61/61. The structural inventory validator
@@ -2434,5 +2435,5 @@ resolved 15 seams, 57 tool rows and 184 authority rows; fork Python tests
 passed 66/66. An unscoped core run remains non-green on unrelated upstream
 multi-agent/alternate-tool assumptions under this sealed profile and is not
 release evidence. Local tests do not prove Harness writer-role effects,
-unknown-project fallback acceptance, no-breakaway Job containment, a final
+unknown-project fail-closed resolution, no-breakaway Job containment, a final
 Windows artifact or a hosted F31/F33 release; those gates remain pending.
