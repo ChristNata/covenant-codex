@@ -279,6 +279,8 @@ jobs:
           if ($assets.Count -ne 5) { throw 'promotion did not produce exactly five release assets' }
           gh release create $env:GITHUB_REF_NAME `
             --repo $env:GITHUB_REPOSITORY `
+            --verify-tag `
             --title "Covenant Codex $env:GITHUB_REF_NAME" `
             --generate-notes `
+            --notes 'Fork-side fanin MCP artifact only. Harness unknown-project fail-closed lookup and outer Job cancellation verification remain pending; do not switch the Harness Codex pin yet.' `
             $assets.FullName

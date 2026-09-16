@@ -35,7 +35,7 @@ can enable legitimate patches in the same binary.
 | F12 | Standalone launch/env/envelope/reply/command-line components | Native image/Job/process ownership, final backend gates and real G4 |
 | F13 | Guarded patch seam with fail-closed real-decider call | Patch ALLOW remains deferred to the Harness trusted-authority packet; DENY leaves zero bytes written |
 | F14 | Auth-home routing, refresh ownership and file replacement | Complete route/sink review and harness-home acceptance |
-| F21 | Constrained profile plus launcher-bound fanin-only MCP projection/catalog and bounded tool exposure | Local two-upstream allow/deny E2E is green; Harness role/fallback decision, product/Bazel and Windows release re-audit remain |
+| F21 | Constrained profile plus launcher-bound fanin-only MCP projection/catalog and bounded tool exposure | Local two-upstream allow/deny E2E is green; Harness fail-closed lookup and cancellation verification remain F32 handoff, while product/Bazel and Windows release re-audit remain fork gates |
 | F22 | Runtime certificate with five compiled identity/form rows | Final executable/inventory equivalence and fanin mismatch refusal |
 
 ## F11 — tool identity admission

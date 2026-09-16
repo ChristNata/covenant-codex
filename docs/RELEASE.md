@@ -9,6 +9,7 @@ explicitly deny-only until the Harness trusted-authority packet lands. The
 tagged workflow performs the pinned F02 Windows build, F22 inventory, F31
 re-audit/test receipt, and F33 provenance/attestation before publication.
 Harness adoption remains a separate F32 handoff.
+Publishing a green fork artifact does not itself authorize a Harness pin switch.
 
 A Covenant Codex release is a Windows x64 artifact with a recorded
 binary digest, inventory evidence, and green re-audit. A release
@@ -73,11 +74,11 @@ captures after a green re-audit.
 3. Run the re-audit against the recorded upstream commit. It
    must verify all four patch insertions, constrained packaging,
    inventory equivalence, admitted tool effects, and
-   model-originated semantic sinks. Verify that registered-project writers can
-   invoke project-ACL-admitted mutating upstream tools while unknown projects fail closed
-   even when an inherited project key is stale. Verify that non-explorer readers
-   retain the current Harness project ACL and explorer retains its exact allowlist.
-   Codex's local exec/patch decider does not cover upstream MCP writes.
+   model-originated semantic sinks. Verify the fork refuses `global` fanin
+   namespaces, admits only its three bounded gateway tools and retains the
+   tested upstream ACL denial. Actual Harness project lookup, role ACL and
+   cancellation behavior belong to F32 before pin adoption; Codex's local
+   exec/patch decider does not cover upstream MCP writes.
 4. Hash the built exe. Run `codex --covenant-inventory` against
    that exe and record its `inventory_id` and evidence digests.
 5. Record provenance.
@@ -134,6 +135,12 @@ Official/Fork source type, plus `--client codex`; its active pin is Official
 0.153.4. This source observation is not a fresh remote artifact verification.
 Real G4 decide_v1/complete-env/identity semantics, the home adapter and C7
 inventory/attestation integration remain missing.
+
+Before any `source=fork` pin switch, Harness must reject unknown-project MCP
+lookup failures even when an inherited `p_*` namespace is stale, verify its
+actual reader/writer/explorer ACLs and two-upstream allow/deny matrix, and prove
+its outer Job contains fanin and lazily spawned upstreams on cancellation.
+The tagged fork release alone cannot discharge these external checks.
 
 The final harness consumption contract uses exactly four fields:
 
