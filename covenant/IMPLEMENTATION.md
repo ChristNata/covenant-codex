@@ -2438,3 +2438,31 @@ multi-agent/alternate-tool assumptions under this sealed profile and is not
 release evidence. Local tests do not prove Harness writer-role effects,
 unknown-project fail-closed resolution, no-breakaway Job containment, a final
 Windows artifact or a hosted F31/F33 release; those gates remain pending.
+
+### v0.1.8: current-Harness patch and fanin compatibility
+
+The candidate updates the Patch gate to encode the capability it actually uses:
+native absolute paths, `workspace-write`, only the turn cwd as a write root, and
+network/TTY disabled. Existing targets and add parents carry decimal-string
+Win32 volume/file identities, normalized handle paths, complete ancestor
+identity chains, and SHA-256 pre-images. The response parser accepts the current
+optional `remediation` field on DENY and displays the real bounded reason.
+
+Against the installed Covenant-dev 1.8.42 decider built from Harness main
+`0f8db86a48db14784d53637ed7b51f8575e1b135` (SHA-256
+`3dbae4e34cefe7a7674557c3ca1e364643e0db0c7e25d0d3a7938c5862d2cba9`), the
+generated add, update, delete, and move requests returned ALLOW with launcher session mode
+`test`. Omitting that launch variable returned the real remediated session-mode
+DENY instead of a false malformed-sidecar error. This proves current request and
+response interoperability, not the remaining F13 post-decision race matrix or
+Harness pin adoption.
+
+The fanin test now uses a managed `workspace-write` permission profile and
+global `approval_policy=never`. The current Harness-proposed `auto` server mode
+reproduced `MCP tool call requires approval, but approval policy is never`.
+Because the Covenant catalog and F11 admission expose only `list_tools`,
+`get_tool_schema`, and `invoke_tool` on the launcher-bound `fanin` server, the
+fork clamps that exact server to `approve`. The same two-upstream E2E then passed,
+including its namespace denial. Full observations and nextest run identities are
+recorded in
+[`v0.1.8-compatibility-evidence.json`](v0.1.8-compatibility-evidence.json).

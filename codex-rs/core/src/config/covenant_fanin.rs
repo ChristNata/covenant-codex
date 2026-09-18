@@ -4,6 +4,8 @@ use codex_config::config_toml::ConfigToml;
 use std::io;
 
 #[cfg(windows)]
+use codex_config::types::AppToolApproval;
+#[cfg(windows)]
 use codex_config::types::McpServerConfig;
 #[cfg(windows)]
 use codex_config::types::McpServerTransportConfig;
@@ -72,7 +74,7 @@ fn clamp_with_startup(
     fanin.supports_parallel_tool_calls = false;
     fanin.omit_tools_from = None;
     fanin.disabled_reason = None;
-    fanin.default_tools_approval_mode = None;
+    fanin.default_tools_approval_mode = Some(AppToolApproval::Approve);
     fanin.enabled_tools = Some(vec![
         "list_tools".to_string(),
         "get_tool_schema".to_string(),

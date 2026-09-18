@@ -20,7 +20,10 @@ pub enum SidecarDecision {
     /// The sidecar explicitly authorized the frozen request.
     Allow,
     /// The sidecar refused the request.
-    Deny { reason: String },
+    Deny {
+        reason: String,
+        remediation: Option<String>,
+    },
     /// The sidecar authorized the request and returned bounded context.
     AllowWithContext { context: String },
 }
@@ -142,6 +145,8 @@ struct WireDecision {
     reason: Option<String>,
     #[serde(default)]
     context: Option<String>,
+    #[serde(default)]
+    remediation: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -156,7 +161,11 @@ fn parse_response(bytes: &[u8]) -> Result<SidecarDecision, SidecarError> {
     let response: WireDecision =
         serde_json::from_slice(bytes).map_err(|_| SidecarError::Malformed)?;
     match response.decision {
-        WireDecisionKind::Allow if response.reason.is_none() && response.context.is_none() => {
+        WireDecisionKind::Allow
+            if response.reason.is_none()
+                && response.context.is_none()
+                && response.remediation.is_none() =>
+        {
             Ok(SidecarDecision::Allow)
         }
         WireDecisionKind::Deny if response.context.is_none() => Ok(SidecarDecision::Deny {
@@ -164,8 +173,11 @@ fn parse_response(bytes: &[u8]) -> Result<SidecarDecision, SidecarError> {
                 .reason
                 .filter(|reason| !reason.is_empty())
                 .ok_or(SidecarError::Malformed)?,
+            remediation: response.remediation.filter(|remediation| !remediation.is_empty()),
         }),
-        WireDecisionKind::AllowWithContext if response.reason.is_none() => {
+        WireDecisionKind::AllowWithContext
+            if response.reason.is_none() && response.remediation.is_none() =>
+        {
             Ok(SidecarDecision::AllowWithContext {
                 context: response
                     .context

@@ -4,11 +4,14 @@ Adapted from the [canonical harness context](https://github.com/ChristNata/Coven
 commit `b6e933a4590a2ef848755c4a593a7e9e8f2072d4`. This copy incorporates the
 [approved fork decisions](../covenant/IMPLEMENTATION.md); it is not byte-identical to the source.
 
-**Status:** Option-B E01 is green: exec is real-decider gated and Patch is
-explicitly deny-only until the Harness trusted-authority packet lands. The
-tagged workflow performs the pinned F02 Windows build, F22 inventory, F31
-re-audit/test receipt, and F33 provenance/attestation before publication.
-Harness adoption remains a separate F32 handoff.
+**Status:** the historical Option-B E01 evidence remains the immutable published
+sidecar fixture. The v0.1.8 candidate additionally has local cross-boundary
+evidence that its generated bounded Patch add/update/delete/move requests are accepted by
+the current managed Harness decider and that its exact fanin tools operate under
+global `approval_policy=never`. The tagged workflow performs the pinned F02
+Windows build, F22 inventory, F31 re-audit/test receipt, and F33
+provenance/attestation before publication. Harness adoption remains a separate
+F32 handoff.
 Publishing a green fork artifact does not itself authorize a Harness pin switch.
 
 A Covenant Codex release is a Windows x64 artifact with a recorded
@@ -64,10 +67,11 @@ captures after a green re-audit.
 1. Complete the product graph, locked dependencies, native gates and separately
    verified build prerequisites. Then build the Windows executable from recorded
    source and toolchain inputs on the audited `covenant-ver` branch/tag.
-2. Run the constrained fork test suite, including exact-ALLOW exec and
-   real-decider Patch DENY with zero bytes written. Patch ALLOW is deferred to
-   the Harness trusted-authority packet under Option B. The Windows re-audit
-   must also run the pinned `fanin-mcp` two-upstream turn: only its three
+2. Run the constrained fork test suite, including exact-ALLOW exec, remediated
+   Patch DENY parsing, and generated bounded Patch add/update/delete/move requests against
+   the current managed decider. The Windows re-audit must also run the pinned
+   `fanin-mcp` two-upstream turn under managed `workspace-write` plus global
+   `approval_policy=never`: only its three
    meta-tools may be model-visible, both allowed upstream invocations must
    route through fanin, and a namespace-denied tool must remain denied at
    invocation.

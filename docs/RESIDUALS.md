@@ -13,13 +13,15 @@ The fork narrows authority; it does not turn a coding agent into
 a sandbox. Each accepted residual has a compensating control
 owned by Covenant Harness.
 
-## Option-B release residual
+## Patch compatibility and release residual
 
-`apply_patch` is deny-only until Covenant-Harness implements the Patch
-trusted-authority packet; `exec` is fully gated. No fork re-publish is required
-when that packet lands. The published fork already emits the Patch decide
-envelope, calls the real decider, accepts only an exact `ALLOW`, and leaves zero
-bytes written on the current real-decider `DENY` path.
+The historical published sidecar fixture remains Option-B/exec-only because no
+immutable current Harness sidecar release URL exists. Separately, the v0.1.8
+candidate generated native bounded add/update/delete/move envelopes that the current managed
+Harness decider accepted. A missing session mode produced a remediated `DENY`
+whose real reason was surfaced. This closes the request-shape/parser mismatch;
+it does not waive the F13 post-decision identity/race requirements below or
+constitute Harness pin-adoption evidence.
 
 | Residual | Control |
 | --- | --- |

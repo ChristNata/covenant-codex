@@ -17,23 +17,45 @@ each phase's fork-owned source paths against the pinned baseline in
 tree.
 
 F11 hunk_sha256 = "cdb48c06a442fb344dcca0e2ec75c63cf483ce344790fc598eea5eba7933222f"
-F12 hunk_sha256 = "f95cda497bd24e2700b0172cea12ded384f95cf304822605e464fb9e70a64b14"
-F13 hunk_sha256 = "36a4dede7674447b20f2d4d5e0e3cb39827f2352edba1840afe9264dac3f8645"
+F12 hunk_sha256 = "33b70e3c99f90330b879eb270facbf3a761901307845376f8dfc4c12ecf3c8c4"
+F13 hunk_sha256 = "538deff91e84dc68e1331b533902a0aefc0511278344b44bc8789c9d41029eb1"
 F14 hunk_sha256 = "0e877776d9070f19b03eb8e71ff2b26e089c0483fe4195eddf61bb85c8b2abc2"
 
-### Option-B patch residual
+The v0.1.8 F12 hash covers these production source paths:
 
-`apply_patch` is deny-only until Covenant-Harness implements the Patch
-trusted-authority packet; `exec` is fully gated. No fork re-publish is required
-when that packet lands. The fork already builds the Patch envelope, calls the
-decider, and honors only an exact `ALLOW`, so a Harness-side authority update
-can enable legitimate patches in the same binary.
+- `codex-rs/core/src/tools/runtimes/covenant_exec_gate.rs`
+- `codex-rs/core/src/tools/runtimes/mod.rs`
+- `codex-rs/core/src/tools/runtimes/unified_exec.rs`
+- `covenant/runtime/src/decision_reply.rs`
+- `covenant/runtime/src/exec_envelope.rs`
+- `covenant/runtime/src/launch_contract.rs`
+- `covenant/runtime/src/lib.rs`
+- `covenant/runtime/src/secret_policy.rs`
+- `covenant/runtime/src/sidecar.rs`
+- `covenant/runtime/src/windows_command_line.rs`
+- `covenant/runtime/src/windows_environment.rs`
+
+The v0.1.8 F13 hash covers these production source paths:
+
+- `codex-rs/core/src/tools/runtimes/apply_patch.rs`
+- `codex-rs/core/src/tools/runtimes/covenant_patch_gate.rs`
+
+### v0.1.8 compatibility correction
+
+The historical promoted sidecar fixture remains Option-B evidence. The v0.1.8
+candidate corrects the fork's current-Harness request drift: native absolute
+paths, the worktree-only `workspace-write` root, disabled patch network/TTY,
+decimal-string Win32 identities, complete ancestor identities, and matching
+pre-image digests. It also accepts the decider's optional `remediation` field so
+a valid DENY is not mislabeled as malformed. Current managed-Harness add/update/delete/move
+ALLOW and missing-session-mode DENY are recorded in
+[`v0.1.8-compatibility-evidence.json`](covenant/v0.1.8-compatibility-evidence.json).
 
 | Phase | Reviewed local portion | Remaining acceptance |
 | --- | --- | --- |
 | F11 | Exact five-identity policy and router/parallel/registry/streaming guards | Final fanin registry/effects and semantic audit |
 | F12 | Standalone launch/env/envelope/reply/command-line components | Native image/Job/process ownership, final backend gates and real G4 |
-| F13 | Guarded patch seam with fail-closed real-decider call | Patch ALLOW remains deferred to the Harness trusted-authority packet; DENY leaves zero bytes written |
+| F13 | Guarded patch seam with current-Harness-compatible native request and fail-closed real-decider call | Add/update/delete/move compatibility and remediated DENY are cross-boundary green; post-decision identity/race qualification remains tracked under H3 |
 | F14 | Auth-home routing, refresh ownership and file replacement | Complete route/sink review and harness-home acceptance |
 | F21 | Constrained profile plus launcher-bound fanin-only MCP projection/catalog and bounded tool exposure | Local two-upstream allow/deny E2E is green; Harness fail-closed lookup and cancellation verification remain F32 handoff, while product/Bazel and Windows release re-audit remain fork gates |
 | F22 | Runtime certificate with five compiled identity/form rows | Final executable/inventory equivalence and fanin mismatch refusal |
@@ -95,16 +117,20 @@ ancestor/target identities and pre-images through committed mutation. A prefligh
 check followed by the ordinary text-reparsing writer is insufficient. Settled
 denial/effective precommit races must leave zero committed delta. Qualification
 must refuse unsupported APIs/volumes without an ordinary-writer fallback.
-The real Harness currently denies every Patch request because its
-launcher-bound trusted-authority packet is not implemented. Option B therefore
-accepts real-decider DENY-only behavior for this release; add/delete/move
-ALLOW coverage is deferred to that Harness packet and does not require a fork
-republish when it lands.
+The current managed Harness accepts the candidate's bounded native add, update,
+delete, and move requests when the launcher supplies a valid session mode. The fork now
+uses native absolute paths, the current worktree as its sole write root,
+`workspace-write` with network/TTY disabled, decimal-string Win32 object
+identities, complete ancestor identities, and matching SHA-256 pre-images.
+Adversarial replacement/race qualification remains distinct F13 acceptance
+work; the compatibility result does not claim those cases.
 
 Cancellation before commit admission rolls back. After owner-admitted commit,
 settle the actual result without false denial or retrying an unknown outcome.
-The real-decider DENY path is covered by E01; live Patch ALLOW and its
-discriminating G4 pairs remain a Harness-owned follow-up.
+The historical real-decider DENY path is covered by E01. The current managed
+decider add/update/delete/move ALLOW and remediated DENY compatibility cases are recorded in
+the v0.1.8 evidence overlay; the remaining discriminating G4 race pairs are not
+claimed by that overlay.
 
 ## F14 — native auth ownership
 
@@ -142,6 +168,10 @@ generated config as launcher siblings through
 validated namespace, and freezes the final server map. Higher-priority managed
 MCP requirements may still disable it. The direct router exposes only the
 gateway's three bounded meta-tools; missing or oversized specs refuse the plan.
+The clamp assigns `approve` only to that frozen three-tool server. This is the
+narrow exception required for managed `workspace-write` when the global policy
+is `never`; an `auto` control reproduces the denial and the `approve` case passes
+the two-upstream live turn. It does not admit another MCP server or tool.
 MCP client elicitation is disabled in this headless profile. No public MCP CLI,
 other server, resource, app, plugin, HTTP MCP, or executor-owned MCP path is
 admitted. The Windows two-upstream E2E and exact executable release audit are
@@ -185,7 +215,7 @@ cannot prove live server behavior.
 | Compilation/tests | Reviewed core/login manifests, module/test registrations and isolated runtime/login workspaces. Final product dependency/Bazel wiring remains pending. |
 | F40 | Eight context files, README map, [integration pointer](FORK_INTEGRATION.md) and [ledger](covenant/IMPLEMENTATION.md), with explicit canonical-source adaptations. |
 | Existing user scope | Preserve [sync-stable.yml](.github/workflows/sync-stable.yml), integration rules and the local covenant_docs input pack; the latter is not an emitted release asset. |
-| Pending audit/release | F32 adoption remains external. Patch ALLOW remains deferred to the Harness trusted-authority packet; exec is fully gated. |
+| Pending audit/release | F32 adoption remains external. Current-Harness Patch add/update/delete/move compatibility is green; F13 race qualification and hosted Windows release evidence remain separate gates. |
 
 ## Finalization and rebase
 

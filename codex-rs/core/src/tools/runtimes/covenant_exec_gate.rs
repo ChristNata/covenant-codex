@@ -37,8 +37,16 @@ pub(crate) fn authorize_exec(
         .map_err(|error| format!("Covenant exec sidecar failed: {error}"))?
     {
         SidecarDecision::Allow => Ok(()),
-        SidecarDecision::Deny { reason } => {
-            Err(format!("Covenant exec sidecar denied launch: {reason}"))
+        SidecarDecision::Deny {
+            reason,
+            remediation,
+        } => {
+            let remediation = remediation
+                .map(|remediation| format!(" Remediation: {remediation}"))
+                .unwrap_or_default();
+            Err(format!(
+                "Covenant exec sidecar denied launch: {reason}{remediation}"
+            ))
         }
         SidecarDecision::AllowWithContext { .. } => Err(
             "Covenant exec sidecar returned ALLOW_WITH_CONTEXT; exact ALLOW is required"

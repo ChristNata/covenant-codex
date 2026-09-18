@@ -1,5 +1,7 @@
-# External E01 evidence manifest. Option B records the real exec-capable
-# decider while Patch ALLOW remains deferred to its trusted-authority packet.
+# Historical external E01 evidence manifest for the last immutable published
+# sidecar fixture. Current managed-Harness Patch compatibility is recorded
+# separately in v0.1.8-compatibility-evidence.json until a new immutable
+# Harness sidecar release URL exists.
 schema_version = 1
 status = "exec-only"
 url = ""
@@ -8,6 +10,6 @@ g4_schema_id = "decide-v1-sha256:exec-only"
 g4_semantics_id = "g4-codex-v1:exec-allow-deny-patch-deny"
 patch_authority = "deferred:Covenant-Harness trusted-authority packet"
 
-# The exact real-decider binary, source commit, digest, and captured decisions
-# remain in covenant/e01-real-decider-evidence.json. A local stub or synthetic
-# fixture must never be copied into this manifest.
+# The exact historical real-decider binary, source commit, digest, and captured
+# decisions remain in covenant/e01-real-decider-evidence.json. A local stub or
+# synthetic fixture must never be copied into this manifest.

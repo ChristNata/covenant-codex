@@ -37,6 +37,7 @@ fn covenant_fanin_profile_keeps_only_validated_gateway_and_meta_tools() -> io::R
     };
     args[3] = "p_47de8f8d".to_string();
     expected.required = true;
+    expected.default_tools_approval_mode = Some(AppToolApproval::Approve);
     expected.enabled_tools = Some(vec![
         "list_tools".to_string(),
         "get_tool_schema".to_string(),

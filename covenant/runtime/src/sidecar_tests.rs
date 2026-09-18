@@ -8,7 +8,16 @@ fn parses_only_closed_decision_shapes() {
     ));
     assert!(matches!(
         parse_response(br#"{"decision":"DENY","reason":"blocked"}"#),
-        Ok(SidecarDecision::Deny { reason }) if reason == "blocked"
+        Ok(SidecarDecision::Deny { reason, remediation: None }) if reason == "blocked"
+    ));
+    assert!(matches!(
+        parse_response(
+            br#"{"decision":"DENY","reason":"blocked","remediation":"use the bounded tool"}"#
+        ),
+        Ok(SidecarDecision::Deny {
+            reason,
+            remediation: Some(remediation),
+        }) if reason == "blocked" && remediation == "use the bounded tool"
     ));
     assert!(matches!(
         parse_response(br#"{"decision":"ALLOW_WITH_CONTEXT","context":"facts"}"#),

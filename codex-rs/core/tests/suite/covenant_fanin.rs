@@ -2,10 +2,13 @@
 
 use anyhow::Context;
 use anyhow::Result;
+use codex_config::types::AppToolApproval;
 use codex_config::types::McpServerConfig;
 use codex_core::config::Constrained;
 use codex_login::CodexAuth;
 use codex_protocol::openai_models::ToolMode;
+use codex_protocol::protocol::AskForApproval;
+use codex_protocol::protocol::SandboxPolicy;
 use core_test_support::responses;
 use core_test_support::test_codex::test_codex;
 use core_test_support::wait_for_mcp_server;
@@ -156,9 +159,14 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
         "command": gateway,
         "args": ["--config", config_path, "--namespace", NAMESPACE],
         "enabled_tools": ["list_tools", "get_tool_schema", "invoke_tool"],
+        "default_tools_approval_mode": "approve",
         "required": true,
         "supports_parallel_tool_calls": false,
     }))?;
+    assert_eq!(
+        server_config.default_tools_approval_mode,
+        Some(AppToolApproval::Approve)
+    );
     let mut catalog = codex_models_manager::covenant_model_catalog()?;
     catalog.models[0].slug = LIVE_MODEL.to_owned();
     catalog.models[0].tool_mode = Some(ToolMode::CodeModeOnly);
@@ -174,8 +182,10 @@ async fn covenant_fanin_turn_exposes_only_gateway_tools_and_calls_two_upstreams(
         });
     let test = builder.build_with_auto_env(&server).await?;
     wait_for_mcp_server(&test.codex, "fanin").await?;
-    test.submit_turn(
+    test.submit_turn_with_policies(
         "Use fanin's two upstream echo tools and the non-read-only sync tool, then reply done",
+        AskForApproval::Never,
+        SandboxPolicy::new_workspace_write_policy(),
     )
     .await?;
 

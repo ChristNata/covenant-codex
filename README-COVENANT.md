@@ -4,10 +4,11 @@ Adapted from the [canonical harness context](https://github.com/ChristNata/Coven
 commit `b6e933a4590a2ef848755c4a593a7e9e8f2072d4`. This copy incorporates the
 [approved fork decisions](covenant/IMPLEMENTATION.md); it is not byte-identical to the source.
 
-**Status:** prior Option-B fork releases exist. The fanin-only extension passed
-its fork-owned local tests; each tagged artifact is certified by its Windows
-build, re-audit and attestation, not by those tests alone. Harness pin adoption
-remains a later handoff. See the [implementation ledger](covenant/IMPLEMENTATION.md)
+**Status:** prior Option-B fork releases exist. The v0.1.8 candidate fixes the
+current Harness Patch wire mismatch and the exact fanin approval path, with
+local cross-boundary evidence. Each tagged artifact is certified by its Windows
+build, re-audit and attestation, not by local tests alone. Harness pin adoption
+remains a separate handoff. See the [implementation ledger](covenant/IMPLEMENTATION.md)
 for accepted stages.
 
 This fork keeps Codex upstream-first. Its target managed Windows `codex exec`
@@ -39,8 +40,10 @@ already-resolved operation.
 the harness verifies its digest, provenance, attestation and required integration
 tests. `official` is the fallback for initial testing or a broken rebase; it is
 a harness pin choice, not an unconstrained mode inside the published binary.
-The local harness source inspected at `c78e2a25` still selects Official 0.153.4.
-The local fanin checkpoint alone certifies neither its new release nor adoption.
+The current local Harness checkout inspected for v0.1.8 compatibility is
+`0f8db86a48db14784d53637ed7b51f8575e1b135`; its pin remains a separate
+promotion decision. The local compatibility checkpoint certifies neither the
+new fork release nor adoption.
 The repository is public; the intended release download path is token-free.
 
 ## Branch and release topology

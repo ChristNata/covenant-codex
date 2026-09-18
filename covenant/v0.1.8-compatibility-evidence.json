@@ -1,0 +1,63 @@
+{
+  "format": "covenant-v0.1.8-compatibility-v1",
+  "observed_at": "2026-09-18",
+  "status": "local-cross-boundary-green",
+  "fork_parent_commit": "8e480737c94dc99b8de7f5cba292044d753cd4f9",
+  "harness": {
+    "source_repository": "ChristNata/Covenant-Harness",
+    "source_branch": "main",
+    "source_commit": "0f8db86a48db14784d53637ed7b51f8575e1b135",
+    "managed_channel": "Covenant-dev",
+    "version": "1.8.42",
+    "sha256": "3dbae4e34cefe7a7674557c3ca1e364643e0db0c7e25d0d3a7938c5862d2cba9"
+  },
+  "patch_cases": [
+    {
+      "name": "missing_session_mode_deny",
+      "decision": "DENY",
+      "reason": "Write denied: session mode is missing, malformed, or unknown.",
+      "remediation_observed": true,
+      "masked_as_malformed": false
+    },
+    {
+      "name": "bounded_add_allow",
+      "session_mode": "test",
+      "decision": "ALLOW"
+    },
+    {
+      "name": "bounded_update_allow",
+      "session_mode": "test",
+      "decision": "ALLOW"
+    },
+    {
+      "name": "bounded_delete_allow",
+      "session_mode": "test",
+      "decision": "ALLOW"
+    },
+    {
+      "name": "bounded_move_allow",
+      "session_mode": "test",
+      "decision": "ALLOW"
+    }
+  ],
+  "patch_test": {
+    "name": "real_decider_allows_all_bounded_operations_when_configured",
+    "nextest_run_id": "4053309c-7f38-44b3-b726-9fcb180203ea"
+  },
+  "fanin_cases": [
+    {
+      "name": "auto_under_managed_workspace_write_and_global_never",
+      "approval_mode": "auto",
+      "result": "DENY",
+      "reason": "MCP tool call requires approval, but approval policy is never",
+      "nextest_run_id": "68e5eb90-70a3-4045-bc5d-da4c5d575e17"
+    },
+    {
+      "name": "approve_under_managed_workspace_write_and_global_never",
+      "approval_mode": "approve",
+      "result": "PASS",
+      "nextest_run_id": "f56bb7a5-1169-4df3-95e5-cef705a8dc0e"
+    }
+  ],
+  "limits": "This is local compatibility evidence for the current managed Harness build. It is not a published Harness release URL, a fork release attestation, or Harness pin-adoption evidence."
+}

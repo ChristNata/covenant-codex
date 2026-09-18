@@ -282,5 +282,5 @@ jobs:
             --verify-tag `
             --title "Covenant Codex $env:GITHUB_REF_NAME" `
             --generate-notes `
-            --notes 'Fork-side fanin MCP artifact only. Harness unknown-project fail-closed lookup and outer Job cancellation verification remain pending; do not switch the Harness Codex pin yet.' `
+            --notes 'Windows-only Covenant Codex release. Fixes Patch Decide v1 request compatibility and remediated DENY parsing, and permits only the three pinned fanin meta-tools under global approval_policy=never. Harness pin promotion still requires digest, attestation, and live dispatch verification.' `
             $assets.FullName

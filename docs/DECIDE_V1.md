@@ -5,9 +5,10 @@ commit `b6e933a4590a2ef848755c4a593a7e9e8f2072d4`. This copy incorporates the
 [approved fork decisions](../covenant/IMPLEMENTATION.md); it is not byte-identical to the source.
 
 **Status:** F10 wire validation and the standalone F12 exec foundations are
-locally accepted. Native spawning/identity/Job integration, the patch gate and
-real G4 interoperability remain pending. Requirements below describe the final
-contract; helper tests do not certify a spawned environment or policy authority.
+locally accepted. The v0.1.8 compatibility work has exercised generated Patch
+add, update, delete, and move envelopes against the current managed Harness decider. Native
+spawning/identity/Job integration and the remaining F13 race matrix are separate
+acceptance gates; helper tests do not certify those broader guarantees.
 
 `decide_v1` is the versioned object sent from the Covenant Codex
 fork to the managed policy decider before an exec process starts
@@ -181,13 +182,14 @@ A denied patch exchange:
 ```
 
 ```json
-{"decision":"DENY","reason":"outside-approved-scope"}
+{"decision":"DENY","reason":"outside-approved-scope","remediation":"Use a path inside the active worktree."}
 ```
 
-The latter response, any response other than the exact ALLOW
-object, and any transport failure deny with zero intended side
-effect. This is the required integrated behavior, not current F13 acceptance.
-The fork may retain a redacted reason code, never raw
+For a `DENY`, `reason` is required and `remediation` is optional. Neither field
+grants authority. The latter response, any response other than the exact ALLOW
+object, and any transport failure deny with zero intended side effect. The fork
+surfaces the bounded reason/remediation instead of relabeling a valid DENY as a
+malformed response. The fork may retain a redacted reason code, never raw
 command text, patch body, environment secret, or sensitive path
 by default.
 

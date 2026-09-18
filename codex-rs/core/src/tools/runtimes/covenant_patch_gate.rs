@@ -2,6 +2,7 @@
 
 use codex_apply_patch::Hunk;
 use codex_apply_patch::UpdateFileChunk;
+use codex_covenant::AncestorIdentity;
 use codex_covenant::IdentityKind;
 use codex_covenant::PatchHunk;
 use codex_covenant::PatchHunkLine;
@@ -33,16 +34,9 @@ pub(crate) enum PatchGateError {
 
 /// Captures native identities, encodes the complete request, and asks the
 /// selected real sidecar. Only an exact `ALLOW` response can pass.
-pub(crate) fn authorize_patch(
-    patch: &str,
-    cwd: &PathUri,
-    write_roots: &[PathUri],
-    sandbox: &str,
-    network: bool,
-    tty: bool,
-) -> Result<(), PatchGateError> {
-    let request = prepare_patch(patch, cwd, write_roots, sandbox, network, tty)?;
-    let encoded = encode_patch_request(&request, &cwd.to_string())
+pub(crate) fn authorize_patch(patch: &str, cwd: &PathUri) -> Result<(), PatchGateError> {
+    let request = prepare_patch(patch, cwd)?;
+    let encoded = encode_patch_request(&request, &native_path_string(cwd))
         .map_err(|error| PatchGateError::Refused(error.to_string()))?;
     let executable = std::env::var_os(DECIDER_PATH_ENV)
         .filter(|value| !value.is_empty())
@@ -54,21 +48,22 @@ pub(crate) fn authorize_patch(
         .map_err(|error| PatchGateError::Refused(error.to_string()))?
     {
         SidecarDecision::Allow => Ok(()),
-        SidecarDecision::Deny { reason } => Err(PatchGateError::Refused(reason)),
+        SidecarDecision::Deny {
+            reason,
+            remediation,
+        } => {
+            let remediation = remediation
+                .map(|remediation| format!(" Remediation: {remediation}"))
+                .unwrap_or_default();
+            Err(PatchGateError::Refused(format!("{reason}{remediation}")))
+        }
         SidecarDecision::AllowWithContext { .. } => Err(PatchGateError::Refused(
             "sidecar returned ALLOW_WITH_CONTEXT instead of exact ALLOW".to_string(),
         )),
     }
 }
 
-fn prepare_patch(
-    patch: &str,
-    cwd: &PathUri,
-    write_roots: &[PathUri],
-    sandbox: &str,
-    network: bool,
-    tty: bool,
-) -> Result<PatchRequest, PatchGateError> {
+fn prepare_patch(patch: &str, cwd: &PathUri) -> Result<PatchRequest, PatchGateError> {
     let parsed = codex_apply_patch::parse_patch(patch)
         .map_err(|_| PatchGateError::Refused("patch parsing failed".to_string()))?;
     if parsed.hunks.is_empty() {
@@ -82,12 +77,12 @@ fn prepare_patch(
     let mut identities = Vec::with_capacity(parsed.hunks.len());
     for hunk in parsed.hunks {
         let (path, operation, destination, requires_existing) = describe_hunk(&hunk, cwd)?;
-        let path_string = path.to_string();
+        let path_string = native_path_string(&path);
         if !paths.contains(&path_string) {
             paths.push(path_string.clone());
         }
         if let Some(destination) = destination.as_ref() {
-            let destination_string = destination.to_string();
+            let destination_string = native_path_string(destination);
             if !paths.contains(&destination_string) {
                 paths.push(destination_string);
             }
@@ -99,7 +94,7 @@ fn prepare_patch(
                 PatchGateError::Refused("new patch target has no parent".to_string())
             })?
         };
-        let identity = resolve_identity(&identity_path, true)?;
+        let identity = resolve_identity(&identity_path)?;
         if !identities
             .iter()
             .any(|existing: &ResolvedIdentity| existing.path == identity.path)
@@ -109,7 +104,7 @@ fn prepare_patch(
         operations.push(PatchOperation {
             path: path_string,
             op: operation,
-            destination: destination.map(|value| value.to_string()),
+            destination: destination.map(|value| native_path_string(&value)),
             hunks: hunk_to_wire(&hunk),
             pre_image_digest: pre_image_digest(&path, requires_existing)?,
         });
@@ -119,13 +114,17 @@ fn prepare_patch(
         paths,
         operations,
         permissions: PatchPermissions {
-            sandbox: sandbox.to_string(),
-            write_roots: write_roots.iter().map(ToString::to_string).collect(),
-            network,
-            tty,
+            sandbox: "workspace-write".to_string(),
+            write_roots: vec![native_path_string(cwd)],
+            network: false,
+            tty: false,
         },
         resolved_identities: identities,
     })
+}
+
+fn native_path_string(path: &PathUri) -> String {
+    path.inferred_native_path_string()
 }
 
 fn describe_hunk(
@@ -231,60 +230,42 @@ fn chunk_to_wire(chunk: &UpdateFileChunk) -> PatchHunk {
     }
 }
 
-fn resolve_identity(
-    path: &PathUri,
-    requires_existing: bool,
-) -> Result<ResolvedIdentity, PatchGateError> {
+fn resolve_identity(path: &PathUri) -> Result<ResolvedIdentity, PatchGateError> {
     let native = path.to_path_buf();
-    let metadata = match fs::symlink_metadata(&native) {
-        Ok(metadata) => metadata,
-        Err(error) if !requires_existing && error.kind() == std::io::ErrorKind::NotFound => {
-            let parent = native.parent().ok_or_else(|| {
-                PatchGateError::Refused("new patch target has no existing parent".to_string())
-            })?;
-            fs::symlink_metadata(parent).map_err(|_| {
-                PatchGateError::Refused("new patch target parent identity unavailable".to_string())
-            })?
-        }
-        Err(_) => {
-            return Err(PatchGateError::Refused(
-                "patch target identity unavailable".to_string(),
-            ));
-        }
-    };
-    let kind = if metadata.file_type().is_symlink() {
-        IdentityKind::Symlink
-    } else if metadata.is_dir() {
-        IdentityKind::Directory
-    } else {
-        IdentityKind::File
-    };
-    let target = if matches!(kind, IdentityKind::Symlink) {
-        Some(
-            fs::read_link(&native)
-                .map_err(|_| PatchGateError::Refused("symlink target unavailable".to_string()))?
-                .to_string_lossy()
-                .into_owned(),
-        )
-    } else {
-        None
-    };
-    let (volume_serial, file_index) = native_identity(&native, &metadata)?;
-    let digest = if matches!(kind, IdentityKind::File) {
+    let identity = native_identity(&native)?;
+    let digest = if matches!(identity.kind, IdentityKind::File) {
         Some(hash_file(&native)?)
     } else {
         None
     };
     Ok(ResolvedIdentity {
-        path: path.to_string(),
-        kind,
-        target,
-        ancestor_identities: Vec::new(),
-        win32_normalized: path.inferred_native_path_string(),
-        volume_serial,
-        file_index,
+        path: native_path_string(path),
+        kind: identity.kind,
+        target: identity.target,
+        ancestor_identities: resolve_ancestor_identities(&native)?,
+        win32_normalized: identity.win32_normalized,
+        volume_serial: identity.volume_serial,
+        file_index: identity.file_index,
         pre_image_digest: digest,
     })
+}
+
+fn resolve_ancestor_identities(path: &Path) -> Result<Vec<AncestorIdentity>, PatchGateError> {
+    path.parent()
+        .into_iter()
+        .flat_map(Path::ancestors)
+        .map(|ancestor| {
+            let identity = native_identity(ancestor)?;
+            Ok(AncestorIdentity {
+                path: ancestor.to_string_lossy().into_owned(),
+                kind: identity.kind,
+                target: identity.target,
+                win32_normalized: identity.win32_normalized,
+                volume_serial: identity.volume_serial,
+                file_index: identity.file_index,
+            })
+        })
+        .collect()
 }
 
 fn pre_image_digest(
@@ -310,20 +291,36 @@ fn hash_file(path: &Path) -> Result<String, PatchGateError> {
     Ok(format!("{:x}", Sha256::digest(bytes)))
 }
 
-fn native_identity(
-    path: &Path,
-    metadata: &fs::Metadata,
-) -> Result<(String, String), PatchGateError> {
+struct NativeIdentity {
+    kind: IdentityKind,
+    target: Option<String>,
+    win32_normalized: String,
+    volume_serial: String,
+    file_index: String,
+}
+
+fn native_identity(path: &Path) -> Result<NativeIdentity, PatchGateError> {
     #[cfg(windows)]
     {
-        let _ = metadata;
         use std::os::windows::ffi::OsStrExt;
-        use windows_sys::Win32::Foundation::{CloseHandle, GENERIC_READ, INVALID_HANDLE_VALUE};
-        use windows_sys::Win32::Storage::FileSystem::{
-            BY_HANDLE_FILE_INFORMATION, CreateFileW, FILE_ATTRIBUTE_NORMAL,
-            FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_DELETE,
-            FILE_SHARE_READ, FILE_SHARE_WRITE, GetFileInformationByHandle, OPEN_EXISTING,
-        };
+        use std::os::windows::fs::MetadataExt;
+        use windows_sys::Win32::Foundation::CloseHandle;
+        use windows_sys::Win32::Foundation::GENERIC_READ;
+        use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
+        use windows_sys::Win32::Storage::FileSystem::BY_HANDLE_FILE_INFORMATION;
+        use windows_sys::Win32::Storage::FileSystem::CreateFileW;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_NORMAL;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_BACKUP_SEMANTICS;
+        use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OPEN_REPARSE_POINT;
+        use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_DELETE;
+        use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_READ;
+        use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_WRITE;
+        use windows_sys::Win32::Storage::FileSystem::GetFileInformationByHandle;
+        use windows_sys::Win32::Storage::FileSystem::OPEN_EXISTING;
+        let metadata = fs::symlink_metadata(path).map_err(|_| {
+            PatchGateError::Refused("native file identity metadata is unavailable".to_string())
+        })?;
         let wide = path
             .as_os_str()
             .encode_wide()
@@ -347,40 +344,124 @@ fn native_identity(
                 "native file identity could not be opened".to_string(),
             ));
         }
-        let mut info = std::mem::MaybeUninit::<BY_HANDLE_FILE_INFORMATION>::uninit();
-        // SAFETY: `info` points to writable storage and `handle` is valid.
-        let result = unsafe { GetFileInformationByHandle(handle, info.as_mut_ptr()) };
+        let result = (|| {
+            let mut info = std::mem::MaybeUninit::<BY_HANDLE_FILE_INFORMATION>::uninit();
+            // SAFETY: `info` points to writable storage and `handle` is valid.
+            if unsafe { GetFileInformationByHandle(handle, info.as_mut_ptr()) } == 0 {
+                return Err(PatchGateError::Refused(
+                    "native file identity could not be queried".to_string(),
+                ));
+            }
+            // SAFETY: GetFileInformationByHandle succeeded and initialized `info`.
+            let info = unsafe { info.assume_init() };
+            let reparse = metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0;
+            let kind = if reparse && metadata.file_type().is_symlink() {
+                IdentityKind::Symlink
+            } else if reparse {
+                IdentityKind::Junction
+            } else if metadata.is_dir() {
+                IdentityKind::Directory
+            } else {
+                IdentityKind::File
+            };
+            let target = if reparse {
+                Some(
+                    fs::read_link(path)
+                        .map_err(|_| {
+                            PatchGateError::Refused(
+                                "native link identity target is unavailable".to_string(),
+                            )
+                        })?
+                        .to_string_lossy()
+                        .into_owned(),
+                )
+            } else {
+                None
+            };
+            let file_index = (u64::from(info.nFileIndexHigh) << 32) | u64::from(info.nFileIndexLow);
+            Ok(NativeIdentity {
+                kind,
+                target,
+                win32_normalized: final_path_for_handle(handle)?,
+                volume_serial: info.dwVolumeSerialNumber.to_string(),
+                file_index: file_index.to_string(),
+            })
+        })();
         // SAFETY: `handle` was returned by CreateFileW and is closed exactly once.
         unsafe { CloseHandle(handle) };
-        if result == 0 {
-            return Err(PatchGateError::Refused(
-                "native file identity could not be queried".to_string(),
-            ));
-        }
-        // SAFETY: GetFileInformationByHandle succeeded and initialized `info`.
-        let info = unsafe { info.assume_init() };
-        let file_index = (u64::from(info.nFileIndexHigh) << 32) | u64::from(info.nFileIndexLow);
-        return Ok((
-            info.dwVolumeSerialNumber.to_string(),
-            file_index.to_string(),
-        ));
+        return result;
     }
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
-        return Ok((metadata.dev().to_string(), metadata.ino().to_string()));
+        let metadata = fs::symlink_metadata(path).map_err(|_| {
+            PatchGateError::Refused("native file identity metadata is unavailable".to_string())
+        })?;
+        let kind = if metadata.file_type().is_symlink() {
+            IdentityKind::Symlink
+        } else if metadata.is_dir() {
+            IdentityKind::Directory
+        } else {
+            IdentityKind::File
+        };
+        let target = if matches!(kind, IdentityKind::Symlink) {
+            Some(
+                fs::read_link(path)
+                    .map_err(|_| {
+                        PatchGateError::Refused(
+                            "native link identity target is unavailable".to_string(),
+                        )
+                    })?
+                    .to_string_lossy()
+                    .into_owned(),
+            )
+        } else {
+            None
+        };
+        return Ok(NativeIdentity {
+            kind,
+            target,
+            win32_normalized: path.to_string_lossy().into_owned(),
+            volume_serial: metadata.dev().to_string(),
+            file_index: metadata.ino().to_string(),
+        });
     }
     #[cfg(not(any(unix, windows)))]
     {
-        let _ = metadata;
+        let _ = path;
         Err(PatchGateError::Refused(
             "native file identity is unsupported on this platform".to_string(),
         ))
     }
 }
 
+#[cfg(windows)]
+fn final_path_for_handle(
+    handle: windows_sys::Win32::Foundation::HANDLE,
+) -> Result<String, PatchGateError> {
+    use windows_sys::Win32::Storage::FileSystem::GetFinalPathNameByHandleW;
+
+    let mut buffer = vec![0_u16; 260];
+    loop {
+        // SAFETY: `handle` is open and `buffer` is writable for its full length.
+        let length = unsafe {
+            GetFinalPathNameByHandleW(handle, buffer.as_mut_ptr(), buffer.len() as u32, 0)
+        };
+        if length == 0 {
+            return Err(PatchGateError::Refused(
+                "native file identity final path is unavailable".to_string(),
+            ));
+        }
+        if (length as usize) < buffer.len() {
+            return Ok(String::from_utf16_lossy(&buffer[..length as usize]));
+        }
+        buffer.resize(length as usize + 1, 0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::authorize_patch;
     use super::prepare_patch;
     use codex_utils_path_uri::PathUri;
     use std::fs;
@@ -392,15 +473,22 @@ mod tests {
         let request = prepare_patch(
             "*** Begin Patch\n*** Add File: note.txt\n+hello\n*** End Patch",
             &cwd,
-            std::slice::from_ref(&cwd),
-            "none",
-            false,
-            false,
         )
         .expect("request");
         assert_eq!(request.operations.len(), 1);
         assert_eq!(request.operations[0].pre_image_digest, None);
         assert_eq!(request.resolved_identities.len(), 1);
+        assert!(
+            !request.resolved_identities[0]
+                .ancestor_identities
+                .is_empty()
+        );
+        assert_eq!(
+            request.permissions.write_roots,
+            vec![cwd.inferred_native_path_string()]
+        );
+        assert!(!request.permissions.network);
+        assert!(!request.permissions.tty);
     }
 
     #[test]
@@ -412,10 +500,6 @@ mod tests {
         let request = prepare_patch(
             "*** Begin Patch\n*** Update File: note.txt\n@@\n-old\n+new\n*** End Patch",
             &cwd,
-            std::slice::from_ref(&cwd),
-            "none",
-            false,
-            false,
         )
         .expect("request");
         assert_eq!(
@@ -432,5 +516,50 @@ mod tests {
                 .map(str::len),
             Some(64)
         );
+        assert!(
+            !request.resolved_identities[0]
+                .ancestor_identities
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn real_decider_allows_all_bounded_operations_when_configured() {
+        if std::env::var_os("COVENANT_REAL_DECIDER_TEST").is_none() {
+            return;
+        }
+        let current_dir = std::env::current_dir().expect("current directory");
+        let root = tempfile::tempdir_in(current_dir).expect("in-worktree tempdir");
+        let cwd = PathUri::from_host_native_path(root.path()).expect("cwd URI");
+
+        authorize_patch(
+            "*** Begin Patch\n*** Add File: added.txt\n+hello\n*** End Patch",
+            &cwd,
+        )
+        .expect("real decider should allow a bounded add");
+
+        let path = root.path().join("updated.txt");
+        fs::write(&path, "old\n").expect("write update fixture");
+        authorize_patch(
+            "*** Begin Patch\n*** Update File: updated.txt\n@@\n-old\n+new\n*** End Patch",
+            &cwd,
+        )
+        .expect("real decider should allow a bounded update");
+
+        let path = root.path().join("deleted.txt");
+        fs::write(&path, "old\n").expect("write delete fixture");
+        authorize_patch(
+            "*** Begin Patch\n*** Delete File: deleted.txt\n*** End Patch",
+            &cwd,
+        )
+        .expect("real decider should allow a bounded delete");
+
+        let path = root.path().join("moved.txt");
+        fs::write(&path, "old\n").expect("write move fixture");
+        authorize_patch(
+            "*** Begin Patch\n*** Update File: moved.txt\n*** Move to: destination.txt\n@@\n-old\n+new\n*** End Patch",
+            &cwd,
+        )
+        .expect("real decider should allow a bounded move");
     }
 }
